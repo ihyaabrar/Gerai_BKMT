@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  nama      String
+  username  String   @unique
+  password  String
+  role      String   @default("kasir")
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  shifts    ShiftKasir[]
+}
+
+model Barang {
+  id            String   @id @default(cuid())
+  kode          String   @unique
+  barcode       String?  @unique
+  nama          String
+  kategori      String?
+  hargaBeli     Float
+  hargaJual     Float
+  stok          Int      @default(0)
+  stokMinimum   Int      @default(5)
+  satuan        String   @default("pcs")
+  aktif         Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  detailPenjualan DetailPenjualan[]
+  penyesuaian     PenyesuaianStok[]
+  retur           Retur[]
+}
+
+model Member {
+  id        String   @id @default(cuid())
+  kode      String   @unique
+  nama      String
+  telepon   String?
+  alamat    String?
+  poin      Int      @default(0)
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  penjualan Penjualan[]
+}
+
+model Nasabah {
+  id              String   @id @default(cuid())
+  nama            String
+  telepon         String?
+  alamat          String?
+  jumlahInvestasi Float
+  persentase      Float
+  aktif           Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Supplier {
+  id        String   @id @default(cuid())
+  nama      String
+  telepon   String?
+  alamat    String?
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Penjualan {
+  id            String   @id @default(cuid())
+  nomorTransaksi String  @unique
+  tanggal       DateTime @default(now())
+  memberId      String?
+  member        Member?  @relation(fields: [memberId], references: [id])
+  subtotal      Float
+  diskon        Float    @default(0)
+  total         Float
+  bayar         Float
+  kembalian     Float
+  metodeBayar   String   @default("Tunai")
+  shiftId       String?
+  shift         ShiftKasir? @relation(fields: [shiftId], references: [id])
+  createdAt     DateTime @default(now())
+  
+  detail        DetailPenjualan[]
+}
+
+model DetailPenjualan {
+  id          String    @id @default(cuid())
+  penjualanId String
+  penjualan   Penjualan @relation(fields: [penjualanId], references: [id], onDelete: Cascade)
+  barangId    String
+  barang      Barang    @relation(fields: [barangId], references: [id])
+  qty         Int
+  hargaJual   Float
+  subtotal    Float
+  createdAt   DateTime  @default(now())
+}
+
+model Pengeluaran {
+  id          String   @id @default(cuid())
+  tanggal     DateTime @default(now())
+  kategori    String
+  keterangan  String
+  jumlah      Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ShiftKasir {
+  id          String    @id @default(cuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  tanggal     DateTime  @default(now())
+  jamBuka     DateTime  @default(now())
+  jamTutup    DateTime?
+  saldoAwal   Float
+  saldoAkhir  Float?
+  status      String    @default("buka")
+  createdAt   DateTime  @default(now())
+  
+  penjualan   Penjualan[]
+}
+
+model PenyesuaianStok {
+  id        String   @id @default(cuid())
+  tanggal   DateTime @default(now())
+  barangId  String
+  barang    Barang   @relation(fields: [barangId], references: [id])
+  jenis     String
+  qty       Int
+  alasan    String
+  createdAt DateTime @default(now())
+}
+
+model Retur {
+  id          String   @id @default(cuid())
+  tanggal     DateTime @default(now())
+  barangId    String
+  barang      Barang   @relation(fields: [barangId], references: [id])
+  qty         Int
+  alasan      String
+  status      String   @default("proses")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Pengaturan {
+  id                String   @id @default(cuid())
+  namaToko          String   @default("Gerai BKMT")
+  alamatToko        String?
+  teleponToko       String?
+  prefixTransaksi   String   @default("TRX")
+  diskonMember      Float    @default(5)
+  persenNasabah     Float    @default(30)
+  persenPengelola   Float    @default(70)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
