@@ -1,109 +1,31 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { prisma } from "@/lib/prisma";
 import { formatRupiah } from "@/lib/utils";
 import {
-  DollarSign,
-  TrendingUp,
-  Package,
-  AlertTriangle,
-  Clock,
-  Award,
-  BarChart3,
+  DollarSign, TrendingUp, Package, AlertTriangle, Clock, Award, BarChart3,
 } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 
-async function getDashboardData() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+export default function Dashboard() {
+  const [data, setData] = useState<any>(null);
 
-  // Penjualan hari ini
-  const penjualanHariIni = await prisma.penjualan.aggregate({
-    where: { tanggal: { gte: today } },
-    _sum: { total: true },
-  });
+  useEffect(() => {
+    fetch("/api/dashboard").then((r) => r.json()).then(setData);
+  }, []);
 
-  // Laba bulan ini
-  const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-  const penjualanBulanIni = await prisma.penjualan.findMany({
-    where: { tanggal: { gte: firstDayOfMonth } },
-    include: { detail: { include: { barang: true } } },
-  });
-  let labaBulanIni = 0;
-  penjualanBulanIni.forEach((p) =>
-    p.detail.forEach((d) => { labaBulanIni += (d.hargaJual - d.barang.hargaBeli) * d.qty; })
-  );
-
-  // Stats
-  const totalBarang = await prisma.barang.count({ where: { aktif: true } });
-  const stokRendah = await prisma.barang.count({
-    where: { stok: { lte: prisma.barang.fields.stokMinimum }, aktif: true },
-  });
-
-  // Transaksi terbaru
-  const transaksiTerbaru = await prisma.penjualan.findMany({
-    take: 5,
-    orderBy: { tanggal: "desc" },
-    include: { member: true },
-  });
-
-  // Produk terlaris
-  const produkTerlaris = await prisma.detailPenjualan.groupBy({
-    by: ["barangId"],
-    _sum: { qty: true },
-    orderBy: { _sum: { qty: "desc" } },
-    take: 5,
-  });
-  const barangTerlaris = await prisma.barang.findMany({
-    where: { id: { in: produkTerlaris.map((p) => p.barangId) } },
-  });
-
-  // Grafik penjualan 12 bulan terakhir
-  const bulanNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-  const chartData = [];
-  for (let i = 11; i >= 0; i--) {
-    const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-    const start = new Date(d.getFullYear(), d.getMonth(), 1);
-    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
-
-    const penjualan = await prisma.penjualan.findMany({
-      where: { tanggal: { gte: start, lte: end } },
-      include: { detail: { include: { barang: true } } },
-    });
-
-    const totalPenjualan = penjualan.reduce((s, p) => s + p.total, 0);
-    let totalLaba = 0;
-    penjualan.forEach((p) =>
-      p.detail.forEach((d) => { totalLaba += (d.hargaJual - d.barang.hargaBeli) * d.qty; })
+  if (!data) {
+    return (
+      <div className="flex items-center justify-center h-64 text-gray-400">
+        Memuat dashboard...
+      </div>
     );
-
-    chartData.push({
-      bulan: bulanNames[d.getMonth()],
-      penjualan: totalPenjualan,
-      laba: totalLaba,
-    });
   }
-
-  return {
-    penjualanHariIni: penjualanHariIni._sum.total || 0,
-    labaBulanIni,
-    totalBarang,
-    stokRendah,
-    transaksiTerbaru,
-    produkTerlaris: produkTerlaris.map((p) => ({
-      ...barangTerlaris.find((b) => b.id === p.barangId)!,
-      totalTerjual: p._sum.qty || 0,
-    })),
-    chartData,
-  };
-}
-
-export default async function Dashboard() {
-  const data = await getDashboardData();
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
           Dashboard
@@ -111,7 +33,6 @@ export default async function Dashboard() {
         <p className="text-gray-500 mt-1">Ringkasan aktivitas toko hari ini</p>
       </div>
 
-      {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { title: "Penjualan Hari Ini", value: formatRupiah(data.penjualanHariIni), sub: "Hari ini", gradient: "from-emerald-500 to-teal-600", icon: DollarSign },
@@ -137,7 +58,6 @@ export default async function Dashboard() {
         ))}
       </div>
 
-      {/* Grafik Penjualan */}
       <Card className="border-0 shadow-md">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
@@ -148,12 +68,10 @@ export default async function Dashboard() {
           </CardTitle>
           <div className="flex items-center gap-4 mt-1">
             <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-sm bg-emerald-500" />
-              Penjualan
+              <div className="w-3 h-3 rounded-sm bg-emerald-500" /> Penjualan
             </div>
             <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-sm bg-indigo-500" />
-              Laba
+              <div className="w-3 h-3 rounded-sm bg-indigo-500" /> Laba
             </div>
           </div>
         </CardHeader>
@@ -162,9 +80,7 @@ export default async function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Transaksi Terbaru + Produk Terlaris */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Transaksi Terbaru */}
         <Card className="border-0 shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -182,7 +98,7 @@ export default async function Dashboard() {
               </div>
             ) : (
               <div className="space-y-2">
-                {data.transaksiTerbaru.map((t, idx) => (
+                {data.transaksiTerbaru.map((t: any, idx: number) => (
                   <div key={t.id} className="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
@@ -206,7 +122,6 @@ export default async function Dashboard() {
           </CardContent>
         </Card>
 
-        {/* Produk Terlaris */}
         <Card className="border-0 shadow-md">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-base">
@@ -224,7 +139,7 @@ export default async function Dashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {data.produkTerlaris.map((p, idx) => (
+                {data.produkTerlaris.map((p: any, idx: number) => (
                   <div key={p.id} className="flex items-center gap-3">
                     <div className="w-7 h-7 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-xs font-bold shrink-0">
                       {idx + 1}
