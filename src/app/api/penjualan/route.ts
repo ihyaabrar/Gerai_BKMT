@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateKode } from "@/lib/utils";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const penjualan = await prisma.penjualan.findMany({
     include: { member: true, detail: { include: { barang: true } } },

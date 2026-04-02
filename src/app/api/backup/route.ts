@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { exec } from "child_process";
 import { promisify } from "util";
+
+export const dynamic = "force-dynamic";
 import { existsSync, mkdirSync, readdirSync, statSync, copyFileSync } from "fs";
 import { join } from "path";
 
