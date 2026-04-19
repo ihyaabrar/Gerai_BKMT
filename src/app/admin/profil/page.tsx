@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, Building2 } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 export default function AdminProfilPage() {
   const [loading, setLoading] = useState(true);
@@ -82,7 +83,19 @@ export default function AdminProfilPage() {
           {field("Email", "email", "email")}
           {field("Telepon", "telepon")}
           {field("Alamat", "alamat")}
-          {field("URL Logo", "logoUrl")}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Logo Organisasi</label>
+            <div className="mt-1">
+              <ImageUpload
+                value={form.logoUrl}
+                onChange={(url) => setForm({ ...form, logoUrl: url })}
+                folder="logo"
+                label="Upload Logo"
+                shape="circle"
+                previewSize="md"
+              />
+            </div>
+          </div>
           {field("Facebook", "facebook")}
           {field("Instagram", "instagram")}
           {field("YouTube", "youtube")}

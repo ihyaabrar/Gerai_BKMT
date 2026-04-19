@@ -8,6 +8,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { generateSlug } from "@/lib/utils";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 export default function BeritaBaruPage() {
   const router = useRouter();
@@ -67,8 +68,17 @@ export default function BeritaBaruPage() {
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">URL Gambar</label>
-          <Input value={form.gambarUrl} onChange={(e) => setForm({ ...form, gambarUrl: e.target.value })} placeholder="https://..." className="mt-1" />
+          <label className="text-sm font-medium text-gray-700">Gambar Berita</label>
+          <div className="mt-1">
+            <ImageUpload
+              value={form.gambarUrl}
+              onChange={(url) => setForm({ ...form, gambarUrl: url })}
+              folder="berita"
+              label="Upload Gambar Berita"
+              shape="square"
+              previewSize="lg"
+            />
+          </div>
         </div>
         <div>
           <label className="text-sm font-medium text-gray-700">Status</label>

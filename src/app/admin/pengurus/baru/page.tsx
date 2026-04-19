@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 export default function PengurusBaruPage() {
   const router = useRouter();
@@ -69,8 +70,17 @@ export default function PengurusBaruPage() {
             <Input value={form.periode} onChange={(e) => setForm({ ...form, periode: e.target.value })} placeholder="2023-2027" className="mt-1" />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">URL Foto</label>
-            <Input value={form.fotoUrl} onChange={(e) => setForm({ ...form, fotoUrl: e.target.value })} placeholder="https://..." className="mt-1" />
+            <label className="text-sm font-medium text-gray-700">Foto</label>
+            <div className="mt-1">
+              <ImageUpload
+                value={form.fotoUrl}
+                onChange={(url) => setForm({ ...form, fotoUrl: url })}
+                folder="pengurus"
+                label="Upload Foto"
+                shape="circle"
+                previewSize="sm"
+              />
+            </div>
           </div>
           <div>
             <label className="text-sm font-medium text-gray-700">Urutan Tampil</label>
