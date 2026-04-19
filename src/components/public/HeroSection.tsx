@@ -10,12 +10,12 @@ export function HeroSection({ profil }: HeroSectionProps) {
   return (
     <section
       id="beranda"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden"
+      className="relative flex items-center justify-center overflow-hidden"
       style={{
         background: "linear-gradient(135deg, #064e3b 0%, #065f46 30%, #047857 60%, #059669 100%)",
+        minHeight: "100vh",
       }}
-    >
-      {/* Decorative blobs */}
+    >      {/* Decorative blobs */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-400/20 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-teal-300/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2" />
       <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-green-300/10 rounded-full blur-2xl -translate-x-1/2 -translate-y-1/2" />
@@ -29,7 +29,7 @@ export function HeroSection({ profil }: HeroSectionProps) {
         }}
       />
 
-      <div className="relative z-10 max-w-5xl mx-auto px-6 py-24 text-center">
+      <div className="relative z-10 max-w-5xl mx-auto px-6 pt-24 pb-16 text-center">
         {/* Badge */}
         <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur border border-white/20 text-white/90 text-xs font-medium px-4 py-2 rounded-full mb-8">
           <span className="w-2 h-2 bg-emerald-300 rounded-full animate-pulse" />

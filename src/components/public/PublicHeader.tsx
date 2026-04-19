@@ -15,6 +15,8 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
+    // Set initial state berdasarkan scroll position saat ini
+    setScrolled(window.scrollY > 60);
     const onScroll = () => setScrolled(window.scrollY > 60);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
