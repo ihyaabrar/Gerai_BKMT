@@ -4,33 +4,57 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
 
+// Route yang bebas diakses tanpa login
+const PUBLIC_ROUTES = ["/", "/login"];
+
+function isPublicRoute(pathname: string): boolean {
+  if (PUBLIC_ROUTES.includes(pathname)) return true;
+  if (pathname.startsWith("/berita/")) return true;
+  if (pathname.startsWith("/api/public/")) return true;
+  return false;
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, canAccess } = useAuthStore();
+  const { isAuthenticated, canAccess, user } = useAuthStore();
 
   useEffect(() => {
-    // Skip auth check for login page
-    if (pathname === "/login") return;
+    // Public routes — tidak perlu cek auth
+    if (isPublicRoute(pathname)) {
+      // Kalau sudah login dan buka /login, redirect ke /app
+      if (pathname === "/login" && isAuthenticated) {
+        router.push("/app");
+      }
+      return;
+    }
 
-    // Redirect to login if not authenticated
+    // Belum login → redirect ke /login
     if (!isAuthenticated) {
       router.push("/login");
       return;
     }
 
-    // Check if user can access current path
-    if (!canAccess(pathname)) {
-      router.push("/");
+    // Route /admin — hanya master/admin
+    if (pathname.startsWith("/admin")) {
+      if (user?.role === "kasir") {
+        router.push("/app");
+      }
+      return;
     }
-  }, [isAuthenticated, pathname, router, canAccess]);
 
-  // Show login page without sidebar
-  if (pathname === "/login") {
+    // Route /app — cek canAccess
+    if (!canAccess(pathname)) {
+      router.push("/app");
+    }
+  }, [isAuthenticated, pathname, router, canAccess, user]);
+
+  // Public routes — render langsung
+  if (isPublicRoute(pathname)) {
     return <>{children}</>;
   }
 
-  // Show loading or redirect
+  // Belum auth — jangan render apapun (mencegah flash)
   if (!isAuthenticated) {
     return null;
   }

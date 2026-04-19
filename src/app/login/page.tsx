@@ -34,7 +34,7 @@ export default function LoginPage() {
       if (res.ok) {
         login(data.user);
         toast.success(`Selamat datang, ${data.user.nama}!`);
-        router.push("/");
+        router.push("/app");
       } else {
         toast.error(data.error || "Login gagal");
       }

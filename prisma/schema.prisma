@@ -18,6 +18,7 @@ model User {
   updatedAt DateTime @updatedAt
   
   shifts    ShiftKasir[]
+  berita    Berita[]
 }
 
 model Barang {
@@ -180,4 +181,69 @@ model KategoriPengeluaran {
   nama      String   @unique
   aktif     Boolean  @default(true)
   createdAt DateTime @default(now())
+}
+
+// ─── Public Profile Models ───────────────────────────────────────────────────
+
+model ProfilOrganisasi {
+  id          String   @id @default(cuid())
+  nama        String
+  singkatan   String?
+  deskripsi   String?
+  visi        String?
+  misi        String?
+  sejarah     String?
+  logoUrl     String?
+  email       String?
+  telepon     String?
+  alamat      String?
+  facebook    String?
+  instagram   String?
+  youtube     String?
+  website     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Berita {
+  id               String    @id @default(cuid())
+  judul            String
+  slug             String    @unique
+  konten           String
+  ringkasan        String?
+  gambarUrl        String?
+  status           String    @default("draft")
+  tanggalPublikasi DateTime?
+  penulisId        String?
+  penulis          User?     @relation(fields: [penulisId], references: [id])
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model Pengurus {
+  id         String   @id @default(cuid())
+  nama       String
+  nik        String?
+  alamat     String?
+  jabatan    String
+  tingkatan  String   @default("PD")
+  periode    String?
+  fotoUrl    String?
+  urutan     Int      @default(0)
+  aktif      Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model InformasiGerai {
+  id             String   @id @default(cuid())
+  nama           String
+  alamat         String
+  jamOperasional String?
+  telepon        String?
+  deskripsi      String?
+  latitude       Float?
+  longitude      Float?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }

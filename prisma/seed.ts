@@ -126,6 +126,74 @@ async function main() {
   }
   console.log('✅ Supplier created');
 
+  // ─── Public Profile Seed Data ─────────────────────────────────────────────
+
+  // Profil Organisasi
+  const existingProfil = await prisma.profilOrganisasi.findFirst();
+  if (!existingProfil) {
+    await prisma.profilOrganisasi.create({
+      data: {
+        nama: "Pimpinan Daerah Badan Kontak Majelis Taklim Kabupaten Kubu Raya",
+        singkatan: "PD BKMT Kubu Raya",
+        deskripsi: "Organisasi kemasyarakatan Islam yang menjadi wadah koordinasi dan pembinaan majelis taklim di Kabupaten Kubu Raya, Kalimantan Barat. Bergerak di bidang pendidikan keagamaan, pemberdayaan ekonomi umat, dan kegiatan sosial kemasyarakatan.",
+        visi: "Terwujudnya masyarakat Muslim Kabupaten Kubu Raya yang beriman, berilmu, berakhlak mulia, dan berdaya secara ekonomi melalui pembinaan majelis taklim yang terorganisir.",
+        misi: "1. Mengkoordinasikan dan membina majelis taklim di seluruh wilayah Kabupaten Kubu Raya\n2. Meningkatkan kualitas pendidikan keagamaan Islam bagi masyarakat, khususnya kaum perempuan\n3. Memberdayakan ekonomi anggota melalui program usaha produktif dan koperasi\n4. Menjalin silaturahmi dan kerjasama antar majelis taklim, pemerintah, dan organisasi Islam lainnya\n5. Mengembangkan generasi muda Islam melalui program Permata BKMT",
+        sejarah: "BKMT (Badan Kontak Majelis Taklim) didirikan secara nasional pada tahun 1981 sebagai organisasi yang mewadahi majelis taklim di seluruh Indonesia. PD BKMT Kabupaten Kubu Raya merupakan pimpinan daerah yang bertugas mengkoordinasikan seluruh kegiatan BKMT di wilayah Kabupaten Kubu Raya, Kalimantan Barat. Kabupaten Kubu Raya terbentuk pada 17 Juli 2007, dengan ibu kota di Sungai Raya, berbatasan langsung dengan Kota Pontianak. PD BKMT Kubu Raya membawahi 20 Pimpinan Cabang (PC) di tingkat kecamatan dan kelurahan, serta sekitar 130 kelompok Permata BKMT yang merupakan organisasi remaja dan pemuda.",
+        alamat: "Kabupaten Kubu Raya, Kalimantan Barat",
+        telepon: "",
+        email: "",
+      },
+    });
+    console.log('✅ ProfilOrganisasi created');
+  }
+
+  // Informasi Gerai
+  const existingGerai = await prisma.informasiGerai.findFirst();
+  if (!existingGerai) {
+    await prisma.informasiGerai.create({
+      data: {
+        nama: "Gerai BKMT Kubu Raya",
+        alamat: "Kabupaten Kubu Raya, Kalimantan Barat",
+        jamOperasional: "Senin - Sabtu, 08.00 - 17.00 WIB",
+        telepon: "",
+        deskripsi: "Unit usaha ekonomi produktif PD BKMT Kabupaten Kubu Raya yang menyediakan kebutuhan sehari-hari anggota dan masyarakat sekitar. Gerai ini merupakan wujud nyata program pemberdayaan ekonomi umat yang dikelola secara profesional dengan sistem kasir digital.",
+      },
+    });
+    console.log('✅ InformasiGerai created');
+  }
+
+  // Pengurus contoh (PD BKMT)
+  const existingPengurus = await prisma.pengurus.findFirst();
+  if (!existingPengurus) {
+    await prisma.pengurus.createMany({
+      data: [
+        { nama: "Ketua PD BKMT", jabatan: "Ketua", tingkatan: "PD", periode: "2023-2027", urutan: 1 },
+        { nama: "Wakil Ketua", jabatan: "Wakil Ketua", tingkatan: "PD", periode: "2023-2027", urutan: 2 },
+        { nama: "Sekretaris", jabatan: "Sekretaris", tingkatan: "PD", periode: "2023-2027", urutan: 3 },
+        { nama: "Bendahara", jabatan: "Bendahara", tingkatan: "PD", periode: "2023-2027", urutan: 4 },
+      ],
+    });
+    console.log('✅ Pengurus contoh created');
+  }
+
+  // Berita contoh
+  const existingBerita = await prisma.berita.findFirst();
+  if (!existingBerita) {
+    const adminUser = await prisma.user.findFirst({ where: { role: "master" } });
+    await prisma.berita.create({
+      data: {
+        judul: "Selamat Datang di Website Resmi PD BKMT Kabupaten Kubu Raya",
+        slug: "selamat-datang-website-resmi-pd-bkmt-kubu-raya",
+        konten: "Alhamdulillah, website resmi Pimpinan Daerah Badan Kontak Majelis Taklim (PD BKMT) Kabupaten Kubu Raya telah resmi diluncurkan.\n\nMelalui website ini, kami berharap dapat memberikan informasi yang lebih mudah diakses oleh seluruh anggota, pengurus, dan masyarakat umum mengenai kegiatan dan program PD BKMT Kabupaten Kubu Raya.\n\nWebsite ini juga terintegrasi dengan sistem kasir digital Gerai BKMT yang memudahkan pengelolaan usaha ekonomi produktif organisasi.\n\nSemoga kehadiran website ini dapat memperkuat silaturahmi dan koordinasi antar majelis taklim di seluruh Kabupaten Kubu Raya.\n\nWassalamu'alaikum Warahmatullahi Wabarakatuh.",
+        ringkasan: "Website resmi PD BKMT Kabupaten Kubu Raya telah resmi diluncurkan untuk memudahkan akses informasi bagi seluruh anggota dan masyarakat.",
+        status: "published",
+        tanggalPublikasi: new Date(),
+        penulisId: adminUser?.id || null,
+      },
+    });
+    console.log('✅ Berita contoh created');
+  }
+
   console.log('🎉 Seeding completed!');
 }
 

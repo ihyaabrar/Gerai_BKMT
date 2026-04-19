@@ -33,9 +33,10 @@ export const useAuthStore = create<AuthState>()(
         // Kasir tidak bisa akses laporan dan pengaturan
         if (user.role === "kasir") {
           const restrictedPaths = [
-            "/keuangan/laporan",
-            "/sistem/pengaturan",
-            "/sistem/backup",
+            "/app/keuangan/laporan",
+            "/app/sistem/pengaturan",
+            "/app/sistem/backup",
+            "/admin",
           ];
           return !restrictedPaths.some((p) => path.startsWith(p));
         }

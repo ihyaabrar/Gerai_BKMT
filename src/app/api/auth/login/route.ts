@@ -49,10 +49,25 @@ export async function POST(request: Request) {
 
     const { password: _, ...userWithoutPassword } = user;
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       success: true,
       user: userWithoutPassword,
     });
+
+    // Set session cookie HTTP-only untuk auth API admin
+    response.cookies.set("session", JSON.stringify({
+      id: user.id,
+      role: user.role,
+      nama: user.nama,
+    }), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7, // 7 hari
+      path: "/",
+    });
+
+    return response;
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
