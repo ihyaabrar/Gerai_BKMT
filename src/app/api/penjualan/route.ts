@@ -23,6 +23,9 @@ export async function POST(request: Request) {
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "Keranjang kosong" }, { status: 400 });
     }
+    if (typeof bayar !== "number" || bayar < total) {
+      return NextResponse.json({ error: "Jumlah bayar tidak valid atau kurang dari total" }, { status: 400 });
+    }
 
     // Validasi & lock stok semua item sebelum transaksi
     for (const item of items) {

@@ -25,6 +25,9 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
     const body = await request.json();
     if (!body.nama?.trim()) return NextResponse.json({ error: "Nama tidak boleh kosong" }, { status: 400 });
     if (!body.jabatan?.trim()) return NextResponse.json({ error: "Jabatan tidak boleh kosong" }, { status: 400 });
+    if (body.tingkatan && !["PD", "PC", "Permata"].includes(body.tingkatan)) {
+      return NextResponse.json({ error: "Tingkatan harus PD, PC, atau Permata" }, { status: 400 });
+    }
 
     const { id: _id, createdAt: _c, updatedAt: _u, ...data } = body;
     const pengurus = await prisma.pengurus.update({ where: { id: params.id }, data });

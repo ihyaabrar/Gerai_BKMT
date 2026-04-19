@@ -66,7 +66,6 @@ export function ImageUpload({
         toast.error(data.error || "Gagal mengupload gambar");
         return;
       }
-
       onChange(data.url);
       toast.success("Gambar berhasil diupload");
     } catch (err) {

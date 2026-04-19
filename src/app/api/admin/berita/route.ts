@@ -12,6 +12,7 @@ export async function GET(request: NextRequest) {
   try {
     const berita = await prisma.berita.findMany({
       orderBy: { createdAt: "desc" },
+      take: 100, // limit 100 untuk admin
       include: { penulis: { select: { nama: true } } },
     });
     return NextResponse.json({ data: berita });

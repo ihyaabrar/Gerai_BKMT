@@ -60,6 +60,7 @@ export default async function BeritaDetailPage({ params }: Props) {
         </div>
 
         <div className="prose prose-emerald max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
+          {/* Konten ditampilkan sebagai plain text — aman dari XSS */}
           {berita.konten}
         </div>
 

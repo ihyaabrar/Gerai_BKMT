@@ -8,7 +8,6 @@ const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
 
 export async function POST(request: NextRequest) {
-  // Cek auth
   const auth = requireAdminAuth(request);
   if (auth.error) return auth.error;
 
@@ -21,7 +20,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 });
     }
 
-    // Validasi tipe file
     const fileType = file.type.toLowerCase();
     if (!ALLOWED_TYPES.includes(fileType)) {
       return NextResponse.json(
@@ -30,7 +28,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validasi ukuran
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
         { error: `Ukuran file terlalu besar (${(file.size / 1024 / 1024).toFixed(1)}MB). Maksimal 5MB.` },
@@ -38,18 +35,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Konversi ke buffer
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
-
-    // Upload ke Cloudinary
     const url = await uploadImage(buffer, folder);
 
     return NextResponse.json({ url, success: true });
   } catch (error: any) {
     console.error("Upload error:", error?.message || error);
     return NextResponse.json(
-      { error: "Gagal mengupload gambar. Pastikan konfigurasi Cloudinary benar." },
+      { error: `Gagal upload: ${error?.message || "Unknown error"}` },
       { status: 500 }
     );
   }
