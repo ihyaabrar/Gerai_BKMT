@@ -11,23 +11,28 @@ export { cloudinary };
 export async function uploadImage(
   file: Buffer,
   folder: string,
-  publicId?: string
 ): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const options: any = {
-      folder: `bkmt/${folder}`,
-      resource_type: "image",
-      transformation: [{ quality: "auto", fetch_format: "auto" }],
-    };
-    if (publicId) options.public_id = publicId;
+  // Konversi buffer ke base64 data URI — lebih reliable di Next.js App Router
+  const base64 = file.toString("base64");
+  const mimeType = detectMimeType(file);
+  const dataUri = `data:${mimeType};base64,${base64}`;
 
-    cloudinary.uploader
-      .upload_stream(options, (error, result) => {
-        if (error || !result) return reject(error);
-        resolve(result.secure_url);
-      })
-      .end(file);
+  const result = await cloudinary.uploader.upload(dataUri, {
+    folder: `bkmt/${folder}`,
+    resource_type: "image",
+    transformation: [{ quality: "auto", fetch_format: "auto" }],
   });
+
+  return result.secure_url;
+}
+
+function detectMimeType(buffer: Buffer): string {
+  // Deteksi MIME type dari magic bytes
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) return "image/jpeg";
+  if (buffer[0] === 0x89 && buffer[1] === 0x50) return "image/png";
+  if (buffer[0] === 0x47 && buffer[1] === 0x49) return "image/gif";
+  if (buffer[0] === 0x52 && buffer[1] === 0x49) return "image/webp";
+  return "image/jpeg"; // default
 }
 
 export async function deleteImage(publicId: string): Promise<void> {

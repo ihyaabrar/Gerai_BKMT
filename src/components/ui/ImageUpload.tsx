@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useId } from "react";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,10 +29,24 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  // useId menghasilkan ID unik per instance komponen — tidak ada konflik
+  const uid = useId();
+  const inputId = `upload-${uid}`;
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Validasi client-side sebelum kirim ke server
+    const ALLOWED = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
+    if (!ALLOWED.includes(file.type)) {
+      toast.error("Format tidak didukung. Gunakan JPG, PNG, WebP, atau GIF.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Ukuran file terlalu besar. Maksimal 5MB.");
+      return;
+    }
 
     setUploading(true);
     try {
@@ -43,9 +57,11 @@ export function ImageUpload({
       const res = await fetch("/api/upload", {
         method: "POST",
         body: formData,
+        // Tidak set Content-Type — browser otomatis set multipart/form-data dengan boundary
       });
 
       const data = await res.json();
+
       if (!res.ok) {
         toast.error(data.error || "Gagal mengupload gambar");
         return;
@@ -53,17 +69,24 @@ export function ImageUpload({
 
       onChange(data.url);
       toast.success("Gambar berhasil diupload");
-    } catch {
-      toast.error("Terjadi kesalahan saat upload");
+    } catch (err) {
+      console.error("Upload error:", err);
+      toast.error("Terjadi kesalahan saat upload. Coba lagi.");
     } finally {
       setUploading(false);
-      // Reset input agar file yang sama bisa diupload ulang
       if (inputRef.current) inputRef.current.value = "";
     }
   };
 
-  const handleRemove = () => {
+  const handleRemove = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onChange("");
+  };
+
+  const handleLabelClick = (e: React.MouseEvent) => {
+    // Cegah label trigger submit form
+    e.stopPropagation();
   };
 
   const shapeClass = shape === "circle" ? "rounded-full" : "rounded-xl";
@@ -71,13 +94,15 @@ export function ImageUpload({
 
   return (
     <div className="space-y-2">
+      {/* Input file tersembunyi */}
       <input
         ref={inputRef}
         type="file"
         accept="image/jpeg,image/jpg,image/png,image/webp,image/gif"
         onChange={handleFileChange}
         className="hidden"
-        id={`upload-${folder}`}
+        id={inputId}
+        disabled={uploading}
       />
 
       {value ? (
@@ -92,15 +117,17 @@ export function ImageUpload({
             <button
               type="button"
               onClick={handleRemove}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors shadow-md"
+              disabled={uploading}
+              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors shadow-md disabled:opacity-50"
             >
               <X className="h-3.5 w-3.5" />
             </button>
           </div>
           <div className="flex flex-col gap-2 justify-center">
             <label
-              htmlFor={`upload-${folder}`}
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
+              htmlFor={inputId}
+              onClick={handleLabelClick}
+              className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
             >
               {uploading ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Mengupload...</>
@@ -114,8 +141,9 @@ export function ImageUpload({
       ) : (
         // Area upload kosong
         <label
-          htmlFor={`upload-${folder}`}
-          className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all ${uploading ? "opacity-50 cursor-not-allowed" : ""}`}
+          htmlFor={inputId}
+          onClick={handleLabelClick}
+          className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
         >
           {uploading ? (
             <>
