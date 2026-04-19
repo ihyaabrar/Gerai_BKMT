@@ -37,7 +37,7 @@ export default async function PublicProfilePage() {
   const pengurusList = sortPengurus(pengurusRaw) as PengurusPublic[];
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <PublicHeader
         orgName={profil?.nama || "PD BKMT Kabupaten Kubu Raya"}
         singkatan={profil?.singkatan}
