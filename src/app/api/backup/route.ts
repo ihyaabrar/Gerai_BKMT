@@ -15,17 +15,20 @@ export async function POST(request: Request) {
 
     if (action === "backup") {
       const backupDir = join(process.cwd(), "backups");
-      
-      // Create backup directory if not exists
       if (!existsSync(backupDir)) {
         mkdirSync(backupDir, { recursive: true });
       }
 
+      const sourceDb = join(process.cwd(), "prisma", "dev.db");
+      if (!existsSync(sourceDb)) {
+        return NextResponse.json(
+          { error: "File database tidak ditemukan. Backup hanya tersedia untuk SQLite." },
+          { status: 400 }
+        );
+      }
+
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       const backupFile = join(backupDir, `backup-${timestamp}.db`);
-      const sourceDb = join(process.cwd(), "prisma", "dev.db");
-
-      // Copy database file
       copyFileSync(sourceDb, backupFile);
 
       return NextResponse.json({

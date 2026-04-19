@@ -185,8 +185,8 @@ export function PrintReceipt({ data }: { data: ReceiptData }) {
           </div>
           {data.diskon > 0 && (
             <div className="flex justify-between text-xs mb-1">
-              <span>Diskon:</span>
-              <span>-{formatRupiah(data.diskon)}</span>
+              <span>Diskon ({data.diskon}%):</span>
+              <span>-{formatRupiah(data.subtotal * data.diskon / 100)}</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-base border-t border-gray-400 pt-2 mt-2">

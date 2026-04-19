@@ -14,19 +14,48 @@ export async function GET() {
     });
 
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // Laba kotor bulan ini = (harga jual - harga beli) × qty
     const penjualanBulanIni = await prisma.penjualan.findMany({
       where: { tanggal: { gte: firstDayOfMonth } },
       include: { detail: { include: { barang: true } } },
     });
-    let labaBulanIni = 0;
+    let labaKotor = 0;
     penjualanBulanIni.forEach((p) =>
-      p.detail.forEach((d) => { labaBulanIni += (d.hargaJual - d.barang.hargaBeli) * d.qty; })
+      p.detail.forEach((d) => {
+        labaKotor += (d.hargaJual - d.barang.hargaBeli) * d.qty;
+      })
     );
 
-    const totalBarang = await prisma.barang.count({ where: { aktif: true } });
-    const stokRendah = await prisma.barang.count({
-      where: { aktif: true, stok: { lte: 5 } },
+    // Pengeluaran operasional bulan ini (selain pembelian barang)
+    const pengeluaranBulanIni = await prisma.pengeluaran.aggregate({
+      where: {
+        tanggal: { gte: firstDayOfMonth },
+        kategori: { not: "Pembelian Barang" },
+      },
+      _sum: { jumlah: true },
     });
+    const totalPengeluaranOps = pengeluaranBulanIni._sum.jumlah || 0;
+    const labaBersih = labaKotor - totalPengeluaranOps;
+
+    const totalBarang = await prisma.barang.count({ where: { aktif: true } });
+
+    // Ambil semua barang aktif lalu filter di JS (lebih aman untuk SQLite)
+    const semuaBarang = await prisma.barang.findMany({
+      where: { aktif: true },
+      select: { id: true, nama: true, kode: true, stok: true, stokMinimum: true, satuan: true },
+      orderBy: { stok: "asc" },
+    });
+
+    // Barang yang stok-nya <= stokMinimum (per barang, bukan hardcode)
+    const barangStokRendah = semuaBarang.filter((b) => b.stok <= b.stokMinimum);
+    const barangStokHabis = semuaBarang.filter((b) => b.stok === 0);
+
+    // Gabungkan untuk alert (habis + rendah), max 10
+    const barangPerluRestock = [
+      ...barangStokHabis,
+      ...barangStokRendah.filter((b) => b.stok > 0),
+    ].slice(0, 10);
 
     const transaksiTerbaru = await prisma.penjualan.findMany({
       take: 5,
@@ -59,7 +88,9 @@ export async function GET() {
       const totalPenjualan = penjualan.reduce((s, p) => s + p.total, 0);
       let totalLaba = 0;
       penjualan.forEach((p) =>
-        p.detail.forEach((d) => { totalLaba += (d.hargaJual - d.barang.hargaBeli) * d.qty; })
+        p.detail.forEach((d) => {
+          totalLaba += (d.hargaJual - d.barang.hargaBeli) * d.qty;
+        })
       );
 
       chartData.push({ bulan: bulanNames[d.getMonth()], penjualan: totalPenjualan, laba: totalLaba });
@@ -67,9 +98,12 @@ export async function GET() {
 
     return NextResponse.json({
       penjualanHariIni: penjualanHariIni._sum.total || 0,
-      labaBulanIni,
+      labaKotor,
+      labaBersih,
+      totalPengeluaranOps,
       totalBarang,
-      stokRendah,
+      stokRendah: barangStokRendah.length,
+      barangStokRendah: barangPerluRestock,
       transaksiTerbaru,
       produkTerlaris: produkTerlaris.map((p) => ({
         ...barangTerlaris.find((b) => b.id === p.barangId)!,
@@ -78,6 +112,7 @@ export async function GET() {
       chartData,
     });
   } catch (error) {
+    console.error("Dashboard error:", error);
     return NextResponse.json({ error: "Failed to fetch dashboard" }, { status: 500 });
   }
 }

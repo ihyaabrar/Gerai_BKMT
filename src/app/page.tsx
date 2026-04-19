@@ -36,7 +36,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {[
           { title: "Penjualan Hari Ini", value: formatRupiah(data.penjualanHariIni), sub: "Hari ini", gradient: "from-emerald-500 to-teal-600", icon: DollarSign },
-          { title: "Laba Bulan Ini", value: formatRupiah(data.labaBulanIni), sub: "Bulan ini", gradient: "from-blue-500 to-indigo-600", icon: TrendingUp },
+          { title: "Laba Bulan Ini", value: formatRupiah(data.labaKotor ?? data.labaBulanIni ?? 0), sub: `Bersih: ${formatRupiah(data.labaBersih ?? 0)}`, gradient: "from-blue-500 to-indigo-600", icon: TrendingUp },
           { title: "Total Barang", value: data.totalBarang, sub: "Produk aktif", gradient: "from-violet-500 to-purple-600", icon: Package },
           { title: "Stok Rendah", value: data.stokRendah, sub: "Perlu restock", gradient: "from-amber-500 to-orange-600", icon: AlertTriangle, warn: true },
         ].map((card) => (

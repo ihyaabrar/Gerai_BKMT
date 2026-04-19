@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { RotateCcw, Plus, Package } from "lucide-react";
 import { format } from "date-fns";
+import { toast } from "sonner";
 
 interface Retur {
   id: string;
@@ -72,17 +73,18 @@ export default function ReturPage() {
         body: JSON.stringify(form),
       });
 
-      if (res.ok) {
-        setOpen(false);
-        setForm({
-          barangId: "",
-          qty: "",
-          alasan: "",
-        });
-        fetchData();
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Gagal membuat retur");
+        return;
       }
+
+      toast.success("Retur berhasil dibuat");
+      setOpen(false);
+      setForm({ barangId: "", qty: "", alasan: "" });
+      fetchData();
     } catch (error) {
-      console.error("Failed to create retur:", error);
+      toast.error("Terjadi kesalahan");
     }
   };
 
@@ -94,11 +96,16 @@ export default function ReturPage() {
         body: JSON.stringify({ id, status }),
       });
 
-      if (res.ok) {
-        fetchData();
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data.error || "Gagal update status");
+        return;
       }
+
+      toast.success(status === "selesai" ? "Retur selesai — stok dikurangi" : "Status diperbarui");
+      fetchData();
     } catch (error) {
-      console.error("Failed to update status:", error);
+      toast.error("Terjadi kesalahan");
     }
   };
 

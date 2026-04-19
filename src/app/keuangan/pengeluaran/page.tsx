@@ -10,6 +10,7 @@ import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
 import { Pagination } from "@/components/ui/pagination";
 import * as XLSX from "xlsx";
+import { toast } from "sonner";
 
 interface Pengeluaran {
   id: string;
@@ -19,20 +20,15 @@ interface Pengeluaran {
   jumlah: number;
 }
 
-const KATEGORI_OPTIONS = [
-  "Gaji",
-  "Listrik",
-  "Air",
-  "Sewa",
-  "Transportasi",
-  "Pemeliharaan",
-  "Perlengkapan",
-  "Lainnya",
-];
+interface KategoriPengeluaran {
+  id: string;
+  nama: string;
+}
 
 export default function PengeluaranPage() {
   const [pengeluaran, setPengeluaran] = useState<Pengeluaran[]>([]);
   const [filteredData, setFilteredData] = useState<Pengeluaran[]>([]);
+  const [kategoriList, setKategoriList] = useState<KategoriPengeluaran[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -40,10 +36,23 @@ export default function PengeluaranPage() {
   const itemsPerPage = 10;
   const [form, setForm] = useState({
     tanggal: format(new Date(), "yyyy-MM-dd"),
-    kategori: "Gaji",
+    kategori: "",
     keterangan: "",
     jumlah: "",
   });
+
+  const fetchKategori = async () => {
+    try {
+      const res = await fetch("/api/kategori-pengeluaran");
+      const data = await res.json();
+      setKategoriList(data);
+      if (data.length > 0) {
+        setForm((f) => ({ ...f, kategori: f.kategori || data[0].nama }));
+      }
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchPengeluaran = async () => {
     try {
@@ -60,6 +69,7 @@ export default function PengeluaranPage() {
 
   useEffect(() => {
     fetchPengeluaran();
+    fetchKategori();
   }, []);
 
   useEffect(() => {
@@ -74,41 +84,44 @@ export default function PengeluaranPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!form.kategori) {
+      toast.error("Pilih kategori pengeluaran");
+      return;
+    }
     try {
       const res = await fetch("/api/pengeluaran", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-
       if (res.ok) {
+        toast.success("Pengeluaran berhasil dicatat");
         setOpen(false);
         setForm({
           tanggal: format(new Date(), "yyyy-MM-dd"),
-          kategori: "Gaji",
+          kategori: kategoriList[0]?.nama || "",
           keterangan: "",
           jumlah: "",
         });
         fetchPengeluaran();
+      } else {
+        toast.error("Gagal menyimpan pengeluaran");
       }
-    } catch (error) {
-      console.error("Failed to create pengeluaran:", error);
+    } catch {
+      toast.error("Terjadi kesalahan");
     }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Hapus pengeluaran ini?")) return;
-
     try {
-      const res = await fetch(`/api/pengeluaran?id=${id}`, {
-        method: "DELETE",
-      });
-
+      const res = await fetch(`/api/pengeluaran?id=${id}`, { method: "DELETE" });
       if (res.ok) {
+        toast.success("Pengeluaran dihapus");
         fetchPengeluaran();
       }
-    } catch (error) {
-      console.error("Failed to delete pengeluaran:", error);
+    } catch {
+      toast.error("Gagal menghapus");
     }
   };
 
@@ -124,13 +137,10 @@ export default function PengeluaranPage() {
       Keterangan: p.keterangan,
       Jumlah: p.jumlah,
     }));
-
     const ws = XLSX.utils.json_to_sheet(exportData);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Pengeluaran");
-
     ws["!cols"] = [{ wch: 12 }, { wch: 15 }, { wch: 40 }, { wch: 15 }];
-
     XLSX.writeFile(wb, `Pengeluaran_${new Date().toISOString().split("T")[0]}.xlsx`);
   };
 
@@ -162,52 +172,57 @@ export default function PengeluaranPage() {
                 <DialogTitle>Tambah Pengeluaran</DialogTitle>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="text-sm font-medium">Tanggal</label>
-                <Input
-                  type="date"
-                  value={form.tanggal}
-                  onChange={(e) => setForm({ ...form, tanggal: e.target.value })}
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Kategori</label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2"
-                  value={form.kategori}
-                  onChange={(e) => setForm({ ...form, kategori: e.target.value })}
-                  required
-                >
-                  {KATEGORI_OPTIONS.map((k) => (
-                    <option key={k} value={k}>
-                      {k}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="text-sm font-medium">Keterangan</label>
-                <Input
-                  value={form.keterangan}
-                  onChange={(e) => setForm({ ...form, keterangan: e.target.value })}
-                  placeholder="Deskripsi pengeluaran"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium">Jumlah</label>
-                <Input
-                  type="number"
-                  value={form.jumlah}
-                  onChange={(e) => setForm({ ...form, jumlah: e.target.value })}
-                  placeholder="0"
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
-                Simpan
-              </Button>
+                <div>
+                  <label className="text-sm font-medium">Tanggal</label>
+                  <Input
+                    type="date"
+                    value={form.tanggal}
+                    onChange={(e) => setForm({ ...form, tanggal: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Kategori</label>
+                  <select
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                    value={form.kategori}
+                    onChange={(e) => setForm({ ...form, kategori: e.target.value })}
+                    required
+                  >
+                    <option value="">-- Pilih Kategori --</option>
+                    {kategoriList.map((k) => (
+                      <option key={k.id} value={k.nama}>{k.nama}</option>
+                    ))}
+                  </select>
+                  {kategoriList.length === 0 && (
+                    <p className="text-xs text-amber-600 mt-1">
+                      Belum ada kategori. Tambahkan di menu Pengaturan.
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Keterangan</label>
+                  <Input
+                    value={form.keterangan}
+                    onChange={(e) => setForm({ ...form, keterangan: e.target.value })}
+                    placeholder="Deskripsi pengeluaran"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Jumlah</label>
+                  <Input
+                    type="number"
+                    value={form.jumlah}
+                    onChange={(e) => setForm({ ...form, jumlah: e.target.value })}
+                    placeholder="0"
+                    min="1"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
+                  Simpan
+                </Button>
               </form>
             </DialogContent>
           </Dialog>
@@ -263,46 +278,45 @@ export default function PengeluaranPage() {
                   </thead>
                   <tbody>
                     {paginatedData.map((p) => (
-                    <tr key={p.id} className="border-b hover:bg-gray-50">
-                      <td className="p-3">
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-gray-400" />
-                          {format(new Date(p.tanggal), "dd/MM/yyyy")}
-                        </div>
-                      </td>
-                      <td className="p-3">
-                        <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm">
-                          {p.kategori}
-                        </span>
-                      </td>
-                      <td className="p-3">{p.keterangan}</td>
-                      <td className="p-3 text-right font-semibold text-red-600">
-                        {formatRupiah(p.jumlah)}
-                      </td>
-                      <td className="p-3 text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(p.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={itemsPerPage}
-              totalItems={filteredData.length}
-            />
-          </>
+                      <tr key={p.id} className="border-b hover:bg-gray-50">
+                        <td className="p-3">
+                          <div className="flex items-center gap-2">
+                            <Calendar className="h-4 w-4 text-gray-400" />
+                            {format(new Date(p.tanggal), "dd/MM/yyyy")}
+                          </div>
+                        </td>
+                        <td className="p-3">
+                          <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm">
+                            {p.kategori}
+                          </span>
+                        </td>
+                        <td className="p-3">{p.keterangan}</td>
+                        <td className="p-3 text-right font-semibold text-red-600">
+                          {formatRupiah(p.jumlah)}
+                        </td>
+                        <td className="p-3 text-center">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleDelete(p.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredData.length}
+              />
+            </>
           )}
         </CardContent>
       </Card>

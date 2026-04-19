@@ -167,3 +167,17 @@ model Pengaturan {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+model KategoriBarang {
+  id        String   @id @default(cuid())
+  nama      String   @unique
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model KategoriPengeluaran {
+  id        String   @id @default(cuid())
+  nama      String   @unique
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+}

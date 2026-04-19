@@ -34,20 +34,29 @@ export default function DistribusiPage() {
   const fetchDistribusiData = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/laporan");
-      const result = await res.json();
 
-      // Calculate distribusi from laporan data
-      const totalLaba = result.totalLaba || 0;
-      const persenNasabah = 30;
-      const persenPengelola = 70;
+      // Ambil pengaturan untuk persentase yang benar
+      const [laporanRes, nasabahRes, pengaturanRes] = await Promise.all([
+        fetch(`/api/laporan?type=penjualan&startDate=${
+          new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
+        }&endDate=${new Date().toISOString()}`),
+        fetch("/api/nasabah"),
+        fetch("/api/pengaturan"),
+      ]);
+
+      const [laporanData, nasabahList, pengaturan] = await Promise.all([
+        laporanRes.json(),
+        nasabahRes.json(),
+        pengaturanRes.json(),
+      ]);
+
+      const totalLaba = laporanData.totalLaba || 0;
+      const persenNasabah = pengaturan.persenNasabah ?? 30;
+      const persenPengelola = pengaturan.persenPengelola ?? 70;
       const bagianNasabah = totalLaba * (persenNasabah / 100);
       const bagianPengelola = totalLaba * (persenPengelola / 100);
 
-      // Fetch nasabah data
-      const nasabahRes = await fetch("/api/nasabah");
-      const nasabahList = await nasabahRes.json();
-      const activeNasabah = nasabahList.filter((n: any) => n.aktif);
+      const activeNasabah = Array.isArray(nasabahList) ? nasabahList.filter((n: any) => n.aktif) : [];
       const totalInvestasi = activeNasabah.reduce((sum: number, n: any) => sum + n.jumlahInvestasi, 0);
 
       const distribusiNasabah = activeNasabah.map((n: any) => ({

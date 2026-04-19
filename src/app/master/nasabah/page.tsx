@@ -85,12 +85,10 @@ export default function NasabahPage() {
           body: JSON.stringify({ id: editId, ...form, jumlahInvestasi }),
         });
       } else {
-        const newTotal = totalInvestasi + jumlahInvestasi;
-        const persentase = newTotal > 0 ? (jumlahInvestasi / newTotal) * 100 : 100;
         res = await fetch("/api/nasabah", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...form, jumlahInvestasi, persentase }),
+          body: JSON.stringify({ ...form, jumlahInvestasi }),
         });
       }
 

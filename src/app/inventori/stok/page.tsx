@@ -35,6 +35,7 @@ export default function StokPage() {
   }, []);
 
   const nilaiInventori = barang.reduce((sum, b) => sum + b.hargaBeli * b.stok, 0);
+  // Gunakan stokMinimum per barang (bukan hardcode 5)
   const stokRendah = barang.filter((b) => b.stok > 0 && b.stok <= b.stokMinimum);
   const stokHabis = barang.filter((b) => b.stok === 0);
 
@@ -62,6 +63,31 @@ export default function StokPage() {
         <h1 className="text-3xl font-bold">Stok Barang</h1>
         <p className="text-gray-500">Monitoring inventori real-time</p>
       </div>
+
+      {/* Alert stok rendah/habis */}
+      {(stokRendah.length > 0 || stokHabis.length > 0) && (
+        <div className="p-4 bg-amber-50 border border-amber-300 rounded-lg flex items-start gap-3">
+          <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5 shrink-0" />
+          <div>
+            <p className="font-semibold text-amber-800">Perhatian: Stok Perlu Diisi</p>
+            <p className="text-sm text-amber-700 mt-1">
+              {stokHabis.length > 0 && (
+                <span className="font-medium text-red-700">{stokHabis.length} barang habis</span>
+              )}
+              {stokHabis.length > 0 && stokRendah.length > 0 && " · "}
+              {stokRendah.length > 0 && (
+                <span>{stokRendah.length} barang stok rendah (di bawah minimum)</span>
+              )}
+            </p>
+            {stokHabis.length > 0 && (
+              <p className="text-xs text-red-600 mt-1">
+                Habis: {stokHabis.slice(0, 5).map((b) => b.nama).join(", ")}
+                {stokHabis.length > 5 && ` +${stokHabis.length - 5} lainnya`}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -108,7 +134,11 @@ export default function StokPage() {
                   className={filter === f ? "bg-emerald-600 hover:bg-emerald-700" : ""}
                   onClick={() => setFilter(f)}
                 >
-                  {f === "semua" ? "Semua" : f === "rendah" ? `Rendah (${stokRendah.length})` : `Habis (${stokHabis.length})`}
+                  {f === "semua"
+                    ? "Semua"
+                    : f === "rendah"
+                    ? `Rendah (${stokRendah.length})`
+                    : `Habis (${stokHabis.length})`}
                 </Button>
               ))}
             </div>
@@ -142,6 +172,7 @@ export default function StokPage() {
                     <th className="text-right py-3 px-4">Harga Beli</th>
                     <th className="text-right py-3 px-4">Harga Jual</th>
                     <th className="text-center py-3 px-4">Stok</th>
+                    <th className="text-center py-3 px-4">Min</th>
                     <th className="text-center py-3 px-4">Status</th>
                   </tr>
                 </thead>
@@ -149,7 +180,7 @@ export default function StokPage() {
                   {filtered.map((b) => {
                     const status = getStatus(b);
                     return (
-                      <tr key={b.id} className="border-b hover:bg-gray-50">
+                      <tr key={b.id} className={`border-b hover:bg-gray-50 ${b.stok === 0 ? "bg-red-50" : b.stok <= b.stokMinimum ? "bg-amber-50" : ""}`}>
                         <td className="py-3 px-4 font-medium text-sm">{b.kode}</td>
                         <td className="py-3 px-4">{b.nama}</td>
                         <td className="py-3 px-4 text-gray-500 text-sm">{b.kategori || "-"}</td>
@@ -158,6 +189,7 @@ export default function StokPage() {
                         <td className="py-3 px-4 text-center font-semibold">
                           {b.stok} <span className="text-xs text-gray-400">{b.satuan}</span>
                         </td>
+                        <td className="py-3 px-4 text-center text-xs text-gray-400">{b.stokMinimum}</td>
                         <td className="py-3 px-4 text-center">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
                             {status.label}

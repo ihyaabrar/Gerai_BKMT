@@ -6,13 +6,10 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const shifts = await prisma.shiftKasir.findMany({
-      include: {
-        user: true,
-      },
+      include: { user: true },
       orderBy: { jamBuka: "desc" },
       take: 20,
     });
-
     return NextResponse.json(shifts);
   } catch (error) {
     return NextResponse.json({ error: "Failed to fetch shifts" }, { status: 500 });
@@ -22,19 +19,14 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { action, userId, saldoAwal, saldoAkhir, catatan } = body;
+    const { action, userId, saldoAwal, saldoAkhir } = body;
 
     if (action === "buka") {
-      // Cek apakah ada shift yang masih aktif
       const activeShift = await prisma.shiftKasir.findFirst({
         where: { jamTutup: null },
       });
-
       if (activeShift) {
-        return NextResponse.json(
-          { error: "Masih ada shift aktif" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Masih ada shift aktif" }, { status: 400 });
       }
 
       const shift = await prisma.shiftKasir.create({
@@ -44,33 +36,24 @@ export async function POST(request: Request) {
           saldoAwal: parseFloat(saldoAwal),
           status: "buka",
         },
-        include: {
-          user: true,
-        },
+        include: { user: true },
       });
-
       return NextResponse.json(shift);
+
     } else if (action === "tutup") {
       const activeShift = await prisma.shiftKasir.findFirst({
         where: { jamTutup: null },
       });
-
       if (!activeShift) {
-        return NextResponse.json(
-          { error: "Tidak ada shift aktif" },
-          { status: 400 }
-        );
+        return NextResponse.json({ error: "Tidak ada shift aktif" }, { status: 400 });
       }
 
       // Hitung total penjualan selama shift
       const penjualan = await prisma.penjualan.findMany({
         where: {
-          tanggal: {
-            gte: activeShift.jamBuka,
-          },
+          shiftId: activeShift.id,
         },
       });
-
       const totalPenjualan = penjualan.reduce((sum, p) => sum + p.total, 0);
 
       const shift = await prisma.shiftKasir.update({
@@ -80,12 +63,10 @@ export async function POST(request: Request) {
           saldoAkhir: parseFloat(saldoAkhir),
           status: "tutup",
         },
-        include: {
-          user: true,
-        },
+        include: { user: true },
       });
 
-      return NextResponse.json(shift);
+      return NextResponse.json({ ...shift, totalPenjualan });
     }
 
     return NextResponse.json({ error: "Invalid action" }, { status: 400 });

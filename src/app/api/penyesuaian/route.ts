@@ -21,8 +21,11 @@ export async function POST(request: Request) {
     const { barangId, jenis, qty, alasan } = body;
 
     const qtyNum = parseInt(qty);
-    if (!barangId || !jenis || !qtyNum || !alasan) {
+    if (!barangId || !jenis || !alasan) {
       return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
+    }
+    if (isNaN(qtyNum) || qtyNum <= 0) {
+      return NextResponse.json({ error: "Jumlah harus lebih dari 0" }, { status: 400 });
     }
 
     const barang = await prisma.barang.findUnique({ where: { id: barangId } });

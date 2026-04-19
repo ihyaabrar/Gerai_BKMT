@@ -22,9 +22,15 @@ interface Barang {
   satuan: string;
 }
 
+interface KategoriBarang {
+  id: string;
+  nama: string;
+}
+
 export default function BarangMasukPage() {
   const [mode, setMode] = useState<"pilih" | "baru">("pilih");
   const [barangList, setBarangList] = useState<Barang[]>([]);
+  const [kategoriList, setKategoriList] = useState<KategoriBarang[]>([]);
   const [search, setSearch] = useState("");
   const [selectedBarang, setSelectedBarang] = useState<Barang | null>(null);
   const [jumlahMasuk, setJumlahMasuk] = useState("");
@@ -45,7 +51,18 @@ export default function BarangMasukPage() {
 
   useEffect(() => {
     fetchBarang();
+    fetchKategori();
   }, []);
+
+  const fetchKategori = async () => {
+    try {
+      const res = await fetch("/api/kategori-barang");
+      const data = await res.json();
+      setKategoriList(data);
+    } catch {
+      // ignore
+    }
+  };
 
   const fetchBarang = async () => {
     try {
@@ -476,12 +493,21 @@ export default function BarangMasukPage() {
 
               <div>
                 <label className="text-sm font-medium text-gray-700">Kategori</label>
-                <Input
+                <select
                   value={formBaru.kategori}
                   onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
-                  placeholder="Makanan, Minuman, dll"
-                  className="mt-1"
-                />
+                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  <option value="">-- Pilih Kategori --</option>
+                  {kategoriList.map((k) => (
+                    <option key={k.id} value={k.nama}>{k.nama}</option>
+                  ))}
+                </select>
+                {kategoriList.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Belum ada kategori. Tambahkan di menu Pengaturan.
+                  </p>
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-4">
