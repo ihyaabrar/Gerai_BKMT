@@ -1,151 +1,230 @@
-# Gerai BKMT - Sistem POS & Inventory
+# 🕌 Gerai BKMT — Sistem POS, Inventory & Profil Publik
 
-Aplikasi Point of Sale (POS) dan Manajemen Inventori yang dirancang untuk toko/kios dengan sistem investasi khusus. Aplikasi ini mengelola penjualan, stok barang, member, investor (nasabah), dan distribusi laba secara otomatis.
+Aplikasi terintegrasi untuk **PD BKMT Kabupaten Kubu Raya** yang menggabungkan:
+- **Halaman Profil Publik** — wajah digital organisasi BKMT yang dapat diakses siapa saja
+- **Sistem POS & Inventory** — kasir digital untuk Gerai BKMT
+- **Admin Panel** — pengelolaan konten profil publik
 
-## 📚 Dokumentasi
-
-Dokumentasi lengkap tersedia di folder [`docs/`](./docs/):
-
-- [Setup Guide](./docs/SETUP.md) - Panduan instalasi lengkap
-- [Features](./docs/FEATURES.md) - Daftar fitur lengkap
-- [API Documentation](./docs/API.md) - Dokumentasi API
-- [Architecture](./docs/ARCHITECTURE.md) - Arsitektur sistem
-- [Project Status](./docs/PROJECT_STATUS.md) - Status proyek terkini
-- [Advanced Features](./docs/ADVANCED_FEATURES.md) - Fitur advanced (pagination, search, export, barcode)
-- [Auth & Print](./docs/AUTH_AND_PRINT_IMPLEMENTATION.md) - Implementasi login & print receipt
-- [Critical Fixes](./docs/CRITICAL_FIXES.md) - Perbaikan bug critical
-- Dan dokumentasi lainnya...
+---
 
 ## 🚀 Tech Stack
 
-- **Framework**: Next.js 14 + React 18 + TypeScript
-- **Styling**: Tailwind CSS + shadcn/ui
-- **State Management**: Zustand
-- **Database**: SQLite + Prisma ORM
-- **Notifications**: Sonner
-- **Excel Export**: SheetJS (xlsx)
-- **Barcode Scanner**: html5-qrcode
-- **Date Formatting**: date-fns
+| Layer | Teknologi |
+|-------|-----------|
+| Framework | Next.js 14 (App Router) + TypeScript |
+| Styling | Tailwind CSS |
+| Database | PostgreSQL (Neon) + Prisma ORM |
+| State | Zustand (persist) |
+| Upload | Cloudinary |
+| Auth | Session Cookie (HTTP-only) + Zustand |
+| Deploy | Vercel |
+| Notifikasi | Sonner |
+| Export | SheetJS (xlsx) |
+| Barcode | html5-qrcode |
 
-## ✨ Status Proyek
+---
 
-✅ **PRODUCTION READY**
+## 📱 Struktur Aplikasi
 
-- Semua fitur core telah diimplementasikan
-- Login system dengan role-based access (Master & Kasir)
-- Print receipt otomatis
-- Pagination, search & filter
-- Export Excel
-- Barcode scanner
-- 0 TypeScript errors
-- Build production successful
+```
+/                   → Halaman profil publik BKMT (bebas akses)
+/berita/[slug]      → Detail berita publik
+/login              → Halaman login
+/app                → Dashboard sistem kasir (butuh login)
+/app/kasir          → POS kasir
+/app/inventori/*    → Manajemen inventori
+/app/keuangan/*     → Laporan keuangan & distribusi laba
+/app/master/*       → Data master (member, nasabah, supplier)
+/app/sistem/*       → Pengaturan sistem
+/admin              → Admin panel konten (master/admin only)
+/admin/profil       → Edit profil organisasi
+/admin/berita       → CRUD berita & pengumuman
+/admin/pengurus     → CRUD pengurus (PD/PC/Permata)
+/admin/gerai        → Edit informasi gerai
+```
 
-Lihat [Project Status](./docs/PROJECT_STATUS.md) untuk detail lengkap.
+---
 
-## 📦 Quick Start
+## ✨ Fitur Utama
 
-1. **Install dependencies:**
+### 🌐 Halaman Profil Publik
+- Hero section dengan gradient hijau + statistik organisasi
+- Profil organisasi: visi, misi, sejarah
+- Berita & pengumuman (featured + sidebar layout)
+- Susunan pengurus (PD, PC, Permata BKMT)
+- Informasi gerai dengan CTA login kasir
+- Responsive mobile & desktop
+- SEO-friendly (Server Components)
+
+### 🛡️ Admin Panel
+- Dashboard dengan progress kelengkapan konten
+- Edit profil organisasi (nama, visi, misi, sejarah, kontak, sosmed)
+- CRUD berita dengan auto-slug generation
+- CRUD pengurus dengan upload foto (Cloudinary)
+- Edit informasi gerai
+- Upload gambar langsung dari komputer (JPG/PNG/WebP, maks 5MB)
+
+### 💳 Sistem Kasir (POS)
+- Product grid dengan search & barcode scanner
+- Shopping cart dengan validasi stok real-time
+- Member selection dengan diskon otomatis
+- Multiple payment methods (Tunai/Transfer/QRIS)
+- Print struk thermal 58mm
+- Poin member otomatis (1 poin/Rp1.000)
+
+### 📦 Inventory Management
+- Barang masuk dengan pencatatan pengeluaran otomatis
+- Monitoring stok real-time dengan alert stok minimum
+- Penyesuaian stok (stock opname)
+- Retur barang (stok dikurangi saat status selesai)
+- Kategori barang dari database (bisa tambah di Pengaturan)
+
+### 💰 Keuangan
+- Riwayat penjualan dengan export Excel
+- Pengeluaran operasional dengan kategori dari database
+- Distribusi laba otomatis (nasabah + pengelola)
+- Laporan penjualan dengan grafik & produk terlaris
+- Persentase nasabah auto-rebalance saat tambah/edit/hapus
+
+### 👥 Master Data
+- Member dengan sistem poin
+- Nasabah/investor dengan perhitungan bagi hasil
+- Supplier
+
+### ⚙️ Sistem
+- Shift kasir dengan rekap saldo
+- Pengaturan toko (nama, prefix transaksi, diskon member, persentase bagi hasil)
+- Manajemen kategori barang & pengeluaran
+- Backup database (SQLite)
+
+---
+
+## 🗄️ Database Schema
+
+**16 tabel:**
+
+| Model | Deskripsi |
+|-------|-----------|
+| User | Pengguna sistem (master/kasir) |
+| Barang | Produk/barang dagangan |
+| Member | Pelanggan setia dengan poin |
+| Nasabah | Investor dengan bagi hasil |
+| Supplier | Pemasok barang |
+| Penjualan | Transaksi penjualan |
+| DetailPenjualan | Item per transaksi |
+| Pengeluaran | Pengeluaran operasional |
+| ShiftKasir | Shift kasir |
+| PenyesuaianStok | Stock opname |
+| Retur | Pengembalian barang |
+| Pengaturan | Konfigurasi sistem |
+| KategoriBarang | Kategori produk (dinamis) |
+| KategoriPengeluaran | Kategori pengeluaran (dinamis) |
+| ProfilOrganisasi | Profil publik BKMT |
+| Berita | Artikel & pengumuman |
+| Pengurus | Susunan pengurus (PD/PC/Permata) |
+| InformasiGerai | Info operasional gerai |
+
+---
+
+## 🔐 Role & Akses
+
+| Role | Akses |
+|------|-------|
+| `master` | Semua fitur + admin panel |
+| `admin` | Semua fitur + admin panel |
+| `kasir` | POS, inventori, keuangan (kecuali laporan & pengaturan) |
+
+---
+
+## 📦 Quick Start (Development)
+
+### 1. Clone & Install
+
 ```bash
+git clone https://github.com/ihyaabrar/Gerai_BKMT.git
+cd Gerai_BKMT
 npm install
 ```
 
-2. **Setup database:**
+### 2. Setup Environment
+
 ```bash
-npx prisma migrate dev
+cp .env.example .env
+```
+
+Edit `.env`:
+```env
+# PostgreSQL (Neon, Supabase, Railway, dll)
+DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+
+# Cloudinary (untuk upload foto)
+CLOUDINARY_CLOUD_NAME="your_cloud_name"
+CLOUDINARY_API_KEY="your_api_key"
+CLOUDINARY_API_SECRET="your_api_secret"
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your_cloud_name"
+```
+
+### 3. Setup Database
+
+```bash
+# Jalankan migrasi
+npx prisma migrate deploy
+
+# Isi data awal
 npx prisma db seed
 ```
 
-3. **Run development server:**
+### 4. Jalankan
+
 ```bash
 npm run dev
 ```
 
-4. **Open browser:**
-```
-http://localhost:3000
-```
+Buka **http://localhost:3000**
 
-5. **Login:**
-- Master: `admin` / `admin123` (Full access)
-- Kasir: `kasir` / `kasir123` (Limited access)
+### 5. Login
 
-Lihat [Setup Guide](./docs/SETUP.md) untuk panduan lengkap.
+| Role | Username | Password |
+|------|----------|----------|
+| Master | `admin` | `admin123` |
+| Kasir | `kasir` | `kasir123` |
 
-## 📱 Fitur Utama
+---
 
-### 1. 🔐 Authentication & Authorization
-- Login system dengan 2 role (Master & Kasir)
-- Role-based access control
-- Session management dengan Zustand persist
+## 🚀 Deploy ke Vercel
 
-### 2. 💳 Point of Sale (Kasir)
-- Product grid dengan search real-time
-- Barcode scanner dengan kamera
-- Shopping cart dengan validasi stok
-- Member selection & discount
-- Multiple payment methods (Tunai/Transfer/QRIS)
-- Auto-calculate total, discount, change
-- Print receipt otomatis (thermal 58mm)
+### 1. Push ke GitHub
 
-### 3. 📦 Inventory Management
-- **Barang Masuk**: Input produk baru
-- **Stok Barang**: Monitor real-time dengan filter
-- **Penyesuaian Stok**: Stock opname & adjustment
-- **Retur**: Return management dengan status tracking
-
-### 4. 💰 Financial Management
-- **Penjualan**: Transaction history dengan pagination & search
-- **Pengeluaran**: Expense tracking by category
-- **Distribusi Laba**: Profit distribution (30% nasabah, 70% pengelola)
-- **Laporan**: Comprehensive reports dengan Excel export
-
-### 5. 👥 Master Data
-- **Member**: Customer management dengan poin & discount
-- **Nasabah**: Investor management dengan profit sharing
-- **Supplier**: Vendor management
-
-### 6. ⚙️ System Management
-- **Shift Kasir**: Shift management dengan saldo tracking
-- **Pengaturan**: System configuration
-- **Backup**: Database backup & restore
-
-### 7. 🚀 Advanced Features
-- **Pagination**: 10 items per page
-- **Search & Filter**: Real-time search
-- **Export Excel**: Multi-sheet reports
-- **Barcode Scanner**: Camera-based scanning
-- **Toast Notifications**: Modern notifications
-
-Lihat [Features Documentation](./docs/FEATURES.md) untuk detail lengkap.
-
-## 💡 Sistem Bagi Hasil
-
-```
-Total Laba Bulanan
-├── 30% → Dana Nasabah
-│   └── Dibagi per nasabah sesuai persentase investasi
-└── 70% → Dana Pengelola
-    ├── Gaji Pegawai
-    ├── Kontribusi Organisasi
-    ├── Dana Sosial
-    └── Dana Pengembangan
+```bash
+git push origin main
 ```
 
-### Perhitungan:
-- Total Laba = Total Penjualan - Total Harga Beli
-- Bagian Nasabah = Total Laba × 30%
-- Per Nasabah = Bagian Nasabah × (Investasi Nasabah / Total Investasi)
+### 2. Import di Vercel
 
-## 🎨 Color System
+Buka [vercel.com](https://vercel.com) → New Project → Import dari GitHub
 
-- **Emerald**: Aksi utama, positif, sukses
-- **Teal**: Kasir, transaksi
-- **Blue**: Informasi, inventori
-- **Amber**: Warning, perhatian
-- **Red**: Error, hapus, stok habis
-- **Violet**: Nasabah, investasi
-- **Cyan**: Member
-- **Orange**: Supplier
+### 3. Set Environment Variables
+
+Di Vercel Dashboard → Settings → Environment Variables:
+
+```
+DATABASE_URL          = postgresql://...
+CLOUDINARY_CLOUD_NAME = your_cloud_name
+CLOUDINARY_API_KEY    = your_api_key
+CLOUDINARY_API_SECRET = your_api_secret
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = your_cloud_name
+```
+
+### 4. Jalankan Migrasi & Seed
+
+Setelah deploy pertama, jalankan dari terminal lokal dengan DATABASE_URL production:
+
+```bash
+npx prisma migrate deploy
+npx prisma db seed
+```
+
+---
 
 ## 📝 Scripts
 
@@ -153,89 +232,101 @@ Total Laba Bulanan
 npm run dev          # Development server
 npm run build        # Build production
 npm run start        # Start production server
-npx prisma migrate dev    # Run migrations
-npx prisma db seed        # Seed database
-npx prisma studio         # Open Prisma Studio
+npm run db:push      # Push schema ke database (tanpa migrasi)
+npm run db:migrate   # Deploy migrasi ke production
+npm run db:seed      # Isi data awal
+npm run db:studio    # Buka Prisma Studio (GUI database)
 ```
-
-## 📂 Project Structure
-
-```
-gerai-bkmt/
-├── docs/                 # 📚 Dokumentasi lengkap
-├── prisma/              # 🗄️ Database schema & migrations
-├── src/
-│   ├── app/            # 📱 Next.js pages & API routes
-│   ├── components/     # 🧩 React components
-│   ├── lib/           # 🛠️ Utilities
-│   └── store/         # 💾 Zustand stores
-├── public/            # 🖼️ Static assets
-└── ...config files
-```
-
-## 🗂️ Database Schema
-
-12 tables dengan relasi lengkap:
-- User, Barang, Member, Nasabah, Supplier
-- Penjualan, DetailPenjualan, Pengeluaran
-- ShiftKasir, PenyesuaianStok, Retur, Pengaturan
-
-Lihat [Architecture Documentation](./docs/ARCHITECTURE.md) untuk detail schema.
-
-## 🔐 Security
-
-- Input validation
-- SQL injection protection (Prisma ORM)
-- XSS protection
-- Role-based access control
-- Session management
-
-⚠️ **Note**: Password hashing belum diimplementasikan (demo only). Untuk production, gunakan bcrypt.
-
-## 📱 Responsive Design
-
-- **Desktop**: Sidebar fixed + content area
-- **Tablet**: Sidebar collapse + hamburger menu
-- **Mobile**: Sheet drawer menu
-- Optimized untuk semua ukuran layar
-
-## 🎨 UI/UX Features
-
-- Modern & clean interface
-- Toast notifications (Sonner)
-- Loading states
-- Empty states
-- Error handling
-- Smooth transitions
-- Accessible components
-
-## 🚀 Deployment
-
-Aplikasi siap untuk production deployment. Lihat [Deployment Guide](./docs/DEPLOYMENT.md) untuk panduan lengkap.
-
-### Checklist Production:
-- ✅ All features implemented
-- ✅ 0 TypeScript errors
-- ✅ Build successful
-- ⚠️ Password hashing (recommended)
-- ⚠️ Environment variables
-- ⚠️ Production database
-- ⚠️ HTTPS setup
-
-## 🤝 Contributing
-
-Lihat [Contributing Guide](./docs/CONTRIBUTING.md) untuk panduan kontribusi.
-
-## 📄 License
-
-MIT License - Lihat [LICENSE](./LICENSE) untuk detail.
-
-## 👨‍💻 Support
-
-Untuk pertanyaan atau bantuan, silakan buka issue di repository ini.
 
 ---
 
-**Developed with ❤️ for Gerai BKMT**  
-**Version:** 2.0.0  
-**Last Updated:** 25 Februari 2026
+## 📂 Struktur Folder
+
+```
+gerai-bkmt/
+├── prisma/
+│   ├── schema.prisma        # Database schema
+│   ├── seed.ts              # Data awal
+│   └── migrations/          # Riwayat migrasi
+├── src/
+│   ├── app/
+│   │   ├── page.tsx         # Halaman profil publik (/)
+│   │   ├── login/           # Halaman login
+│   │   ├── berita/[slug]/   # Detail berita publik
+│   │   ├── app/             # Sistem kasir (/app)
+│   │   ├── admin/           # Admin panel (/admin)
+│   │   └── api/             # API routes
+│   │       ├── public/      # API publik (tanpa auth)
+│   │       ├── admin/       # API admin (butuh auth)
+│   │       ├── auth/        # Login & logout
+│   │       └── upload/      # Upload gambar ke Cloudinary
+│   ├── components/
+│   │   ├── layout/          # Sidebar, AuthProvider, AdminSidebar
+│   │   ├── public/          # Komponen halaman publik
+│   │   └── ui/              # Komponen UI reusable
+│   ├── lib/
+│   │   ├── prisma.ts        # Prisma client
+│   │   ├── cloudinary.ts    # Cloudinary config & upload
+│   │   ├── auth-middleware.ts # Auth middleware untuk API admin
+│   │   └── utils.ts         # Utility functions
+│   ├── store/
+│   │   ├── auth.ts          # Auth state (Zustand)
+│   │   └── cart.ts          # Cart state (Zustand + persist)
+│   └── types/
+│       └── public-profile.ts # TypeScript interfaces
+├── .env.example             # Template environment variables
+├── next.config.js           # Next.js config (Cloudinary domain)
+└── tailwind.config.ts       # Tailwind config
+```
+
+---
+
+## 🎨 Sistem Warna
+
+| Warna | Penggunaan |
+|-------|-----------|
+| Emerald/Teal | Primary — halaman publik, kasir |
+| Violet/Purple | Admin panel |
+| Blue/Indigo | Informasi, laporan |
+| Amber/Orange | Warning, pengeluaran |
+| Red | Error, hapus |
+
+---
+
+## 💡 Sistem Bagi Hasil
+
+```
+Total Laba Bulanan
+├── X% → Dana Nasabah
+│   └── Dibagi per nasabah sesuai porsi investasi
+└── Y% → Dana Pengelola
+    ├── Gaji Pegawai (20%)
+    ├── Kontribusi Organisasi (20%)
+    ├── Dana Sosial (20%)
+    ├── Dana Pengembangan (10%)
+    └── Operasional & Lainnya (30%)
+```
+
+Persentase X dan Y dapat diatur di menu **Pengaturan** (default: 30% nasabah, 70% pengelola).
+
+---
+
+## ⚠️ Catatan Keamanan
+
+- Password di-hash dengan **bcrypt** (auto-upgrade dari plain text saat login)
+- Session disimpan di **HTTP-only cookie** untuk auth API admin
+- Upload gambar divalidasi tipe file dan ukuran (maks 5MB)
+- API admin dilindungi middleware auth (401/403)
+- Input form divalidasi di client dan server
+
+---
+
+## 📄 Lisensi
+
+MIT License — Lihat [LICENSE](./LICENSE) untuk detail.
+
+---
+
+**Dikembangkan untuk PD BKMT Kabupaten Kubu Raya**  
+**Version:** 3.0.0  
+**Last Updated:** April 2026
