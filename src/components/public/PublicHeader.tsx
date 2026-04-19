@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, X, LogIn } from "lucide-react";
 
 interface PublicHeaderProps {
@@ -12,6 +12,13 @@ interface PublicHeaderProps {
 
 export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   const navLinks = [
     { label: "Beranda", href: "#beranda" },
@@ -22,20 +29,28 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
   ];
 
   return (
-    <header className="bg-emerald-800 text-white sticky top-0 z-50 shadow-lg">
-      <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-        {/* Logo & Nama */}
+    <header className={`sticky top-0 z-50 transition-all duration-300 ${
+      scrolled
+        ? "bg-white/90 backdrop-blur-md shadow-lg border-b border-gray-100"
+        : "bg-transparent"
+    }`}>
+      <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        {/* Logo */}
         <div className="flex items-center gap-3">
           {logoUrl ? (
-            <img src={logoUrl} alt="Logo BKMT" className="h-10 w-10 rounded-full object-cover" />
+            <img src={logoUrl} alt="Logo" className="h-10 w-10 rounded-xl object-cover shadow-md" />
           ) : (
-            <div className="h-10 w-10 rounded-full bg-emerald-600 flex items-center justify-center font-bold text-sm">
-              {singkatan?.slice(0, 2) || "BK"}
+            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
+              <span className="text-white font-bold text-sm">{singkatan?.slice(0, 2) || "BK"}</span>
             </div>
           )}
           <div>
-            <p className="font-bold text-sm leading-tight">{singkatan || "BKMT"}</p>
-            <p className="text-emerald-200 text-xs leading-tight hidden sm:block">Kubu Raya</p>
+            <p className={`font-bold text-sm leading-tight ${scrolled ? "text-gray-900" : "text-white"}`}>
+              {singkatan || "BKMT"}
+            </p>
+            <p className={`text-xs leading-tight ${scrolled ? "text-gray-500" : "text-emerald-200"}`}>
+              Kubu Raya
+            </p>
           </div>
         </div>
 
@@ -45,44 +60,56 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
             <a
               key={link.href}
               href={link.href}
-              className="px-3 py-1.5 rounded-lg text-sm hover:bg-emerald-700 transition-colors"
+              className={`px-4 py-2 rounded-full text-sm font-medium transition-all hover:bg-emerald-500/10 ${
+                scrolled ? "text-gray-700 hover:text-emerald-600" : "text-white/90 hover:text-white"
+              }`}
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        {/* Login Button */}
-        <div className="flex items-center gap-2">
+        {/* CTA */}
+        <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="flex items-center gap-2 bg-white text-emerald-800 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-emerald-50 transition-colors"
+            className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-md hover:shadow-lg hover:from-emerald-600 hover:to-teal-600 transition-all"
           >
             <LogIn className="h-4 w-4" />
-            <span className="hidden sm:inline">Login Kasir</span>
+            Login Kasir
           </Link>
           <button
-            className="md:hidden p-2 rounded-lg hover:bg-emerald-700"
+            className={`md:hidden p-2 rounded-xl transition-colors ${scrolled ? "hover:bg-gray-100" : "hover:bg-white/10"}`}
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+            {menuOpen
+              ? <X className={`h-5 w-5 ${scrolled ? "text-gray-700" : "text-white"}`} />
+              : <Menu className={`h-5 w-5 ${scrolled ? "text-gray-700" : "text-white"}`} />
+            }
           </button>
         </div>
       </div>
 
       {/* Mobile Nav */}
       {menuOpen && (
-        <div className="md:hidden border-t border-emerald-700 px-4 py-2 space-y-1">
+        <div className="md:hidden bg-white/95 backdrop-blur-md border-t border-gray-100 px-6 py-4 space-y-1 shadow-lg">
           {navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="block px-3 py-2 rounded-lg text-sm hover:bg-emerald-700 transition-colors"
+              className="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               {link.label}
             </a>
           ))}
+          <Link
+            href="/login"
+            className="flex items-center gap-2 mt-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-3 rounded-xl text-sm font-semibold"
+          >
+            <LogIn className="h-4 w-4" />
+            Login ke Kasir
+          </Link>
         </div>
       )}
     </header>

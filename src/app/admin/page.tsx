@@ -2,9 +2,11 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Building2, FileText, Users, Store, ArrowRight, CheckCircle, AlertCircle } from "lucide-react";
+import { Building2, FileText, Users, Store, ArrowRight, CheckCircle, AlertCircle, TrendingUp } from "lucide-react";
+import { useAuthStore } from "@/store/auth";
 
 export default function AdminDashboard() {
+  const { user } = useAuthStore();
   const [stats, setStats] = useState({ berita: 0, pengurus: 0, hasProfil: false, hasGerai: false });
 
   useEffect(() => {
@@ -28,10 +30,11 @@ export default function AdminDashboard() {
       href: "/admin/profil",
       icon: Building2,
       label: "Profil Organisasi",
-      desc: "Edit nama, visi, misi, sejarah organisasi",
+      desc: "Nama, visi, misi, sejarah, kontak",
       status: stats.hasProfil ? "Sudah diisi" : "Belum diisi",
       ok: stats.hasProfil,
-      color: "emerald",
+      gradient: "from-emerald-500 to-teal-500",
+      bg: "bg-emerald-50",
     },
     {
       href: "/admin/berita",
@@ -40,7 +43,8 @@ export default function AdminDashboard() {
       desc: `${stats.berita} berita dipublikasikan`,
       status: `${stats.berita} published`,
       ok: stats.berita > 0,
-      color: "blue",
+      gradient: "from-blue-500 to-indigo-500",
+      bg: "bg-blue-50",
     },
     {
       href: "/admin/pengurus",
@@ -49,33 +53,61 @@ export default function AdminDashboard() {
       desc: `${stats.pengurus} pengurus aktif`,
       status: `${stats.pengurus} aktif`,
       ok: stats.pengurus > 0,
-      color: "violet",
+      gradient: "from-violet-500 to-purple-500",
+      bg: "bg-violet-50",
     },
     {
       href: "/admin/gerai",
       icon: Store,
       label: "Informasi Gerai",
-      desc: "Edit alamat, jam operasional, kontak",
+      desc: "Alamat, jam operasional, kontak",
       status: stats.hasGerai ? "Sudah diisi" : "Belum diisi",
       ok: stats.hasGerai,
-      color: "amber",
+      gradient: "from-amber-500 to-orange-500",
+      bg: "bg-amber-50",
     },
   ];
 
-  const colorMap: Record<string, string> = {
-    emerald: "bg-emerald-100 text-emerald-700",
-    blue: "bg-blue-100 text-blue-700",
-    violet: "bg-violet-100 text-violet-700",
-    amber: "bg-amber-100 text-amber-700",
-  };
+  const completedCount = [stats.hasProfil, stats.berita > 0, stats.pengurus > 0, stats.hasGerai].filter(Boolean).length;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-        <p className="text-gray-500 mt-1">Kelola konten halaman profil publik BKMT Kubu Raya</p>
+    <div className="space-y-8">
+      {/* Header */}
+      <div className="flex items-start justify-between">
+        <div>
+          <p className="text-gray-500 text-sm">Selamat datang kembali,</p>
+          <h1 className="text-2xl font-bold text-gray-900 mt-0.5">{user?.nama || "Admin"} 👋</h1>
+        </div>
+        <Link
+          href="/"
+          target="_blank"
+          className="flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 transition-colors"
+        >
+          <TrendingUp className="h-4 w-4" />
+          Lihat Halaman Publik
+        </Link>
       </div>
 
+      {/* Progress */}
+      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-sm font-semibold text-gray-700">Kelengkapan Konten</p>
+          <span className="text-sm font-bold text-emerald-600">{completedCount}/4 selesai</span>
+        </div>
+        <div className="w-full bg-gray-100 rounded-full h-2.5">
+          <div
+            className="bg-gradient-to-r from-emerald-500 to-teal-500 h-2.5 rounded-full transition-all duration-500"
+            style={{ width: `${(completedCount / 4) * 100}%` }}
+          />
+        </div>
+        {completedCount < 4 && (
+          <p className="text-xs text-gray-400 mt-2">
+            Lengkapi semua konten agar halaman publik tampil sempurna
+          </p>
+        )}
+      </div>
+
+      {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -83,11 +115,11 @@ export default function AdminDashboard() {
             <Link
               key={card.href}
               href={card.href}
-              className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-md hover:border-emerald-300 transition-all group"
+              className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 transition-all"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`p-3 rounded-xl ${colorMap[card.color]}`}>
-                  <Icon className="h-6 w-6" />
+              <div className="flex items-start justify-between mb-5">
+                <div className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-2xl flex items-center justify-center shadow-md`}>
+                  <Icon className="h-6 w-6 text-white" />
                 </div>
                 {card.ok
                   ? <CheckCircle className="h-5 w-5 text-emerald-500" />
@@ -95,23 +127,18 @@ export default function AdminDashboard() {
                 }
               </div>
               <h3 className="font-bold text-gray-900 mb-1">{card.label}</h3>
-              <p className="text-gray-500 text-sm mb-3">{card.desc}</p>
+              <p className="text-gray-500 text-sm mb-4">{card.desc}</p>
               <div className="flex items-center justify-between">
-                <span className={`text-xs px-2 py-1 rounded-full ${card.ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                <span className={`text-xs px-3 py-1 rounded-full font-medium ${
+                  card.ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
+                }`}>
                   {card.status}
                 </span>
-                <ArrowRight className="h-4 w-4 text-gray-400 group-hover:text-emerald-600 group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
               </div>
             </Link>
           );
         })}
-      </div>
-
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-5">
-        <p className="text-sm text-emerald-800">
-          <strong>💡 Tips:</strong> Isi semua konten di atas agar halaman profil publik tampil lengkap.
-          Kunjungi <Link href="/" className="underline font-medium" target="_blank">halaman publik</Link> untuk melihat hasilnya.
-        </p>
       </div>
     </div>
   );

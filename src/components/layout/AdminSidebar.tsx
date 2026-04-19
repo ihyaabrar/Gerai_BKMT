@@ -7,11 +7,11 @@ import { Globe, LogOut, LayoutDashboard, FileText, Users, Store, Building2, Shop
 import { useAuthStore } from "@/store/auth";
 
 const adminMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard Admin", href: "/admin" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
   { icon: Building2, label: "Profil Organisasi", href: "/admin/profil" },
-  { icon: FileText, label: "Berita & Pengumuman", href: "/admin/berita" },
+  { icon: FileText, label: "Berita", href: "/admin/berita" },
   { icon: Users, label: "Pengurus", href: "/admin/pengurus" },
-  { icon: Store, label: "Informasi Gerai", href: "/admin/gerai" },
+  { icon: Store, label: "Info Gerai", href: "/admin/gerai" },
 ];
 
 export function AdminSidebar() {
@@ -26,20 +26,35 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen p-4 flex flex-col">
-      <div className="mb-6">
-        <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Admin Panel</p>
-        <h1 className="text-lg font-bold text-white">BKMT Kubu Raya</h1>
+    <aside className="w-60 bg-gray-900 text-white min-h-screen flex flex-col">
+      {/* Header */}
+      <div className="p-5 border-b border-gray-800">
+        <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Admin Panel</p>
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-xs">BK</span>
+          </div>
+          <span className="font-bold text-sm text-white">BKMT Kubu Raya</span>
+        </div>
       </div>
 
+      {/* User */}
       {user && (
-        <div className="mb-4 p-3 bg-gray-800 rounded-lg">
-          <p className="font-semibold text-sm">{user.nama}</p>
-          <p className="text-xs text-gray-400 capitalize">{user.role}</p>
+        <div className="mx-4 mt-4 p-3 bg-gray-800 rounded-xl border border-gray-700">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-white text-xs font-bold">{user.nama.charAt(0)}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold text-xs text-white truncate">{user.nama}</p>
+              <p className="text-xs text-gray-400 capitalize">{user.role}</p>
+            </div>
+          </div>
         </div>
       )}
 
-      <nav className="space-y-1 flex-1">
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5">
         {adminMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
@@ -48,10 +63,10 @@ export function AdminSidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition-colors",
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors",
                 isActive
-                  ? "bg-emerald-700 text-white"
-                  : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                  ? "bg-violet-600 text-white font-medium shadow-lg shadow-violet-900/30"
+                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
               )}
             >
               <Icon className="h-4 w-4" />
@@ -61,24 +76,19 @@ export function AdminSidebar() {
         })}
       </nav>
 
-      <div className="border-t border-gray-700 pt-3 mt-3 space-y-1">
-        <Link
-          href="/app"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
-        >
+      {/* Footer */}
+      <div className="px-3 pb-4 space-y-0.5 border-t border-gray-800 pt-3">
+        <Link href="/app" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-gray-800 hover:text-white transition-colors">
           <ShoppingCart className="h-4 w-4" />
           Ke Sistem Kasir
         </Link>
-        <Link
-          href="/"
-          className="flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-gray-800 hover:text-white transition-colors"
-        >
+        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-gray-800 hover:text-white transition-colors">
           <Globe className="h-4 w-4" />
           Lihat Profil Publik
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-gray-300 hover:bg-red-700 hover:text-white transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-red-900/30 hover:text-red-400 transition-colors"
         >
           <LogOut className="h-4 w-4" />
           Logout

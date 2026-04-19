@@ -5,7 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, ShoppingCart, Package, Wallet, Users, Settings,
-  ChevronDown, LogOut, User, Globe, Shield,
+  ChevronDown, LogOut, Globe, Shield, ChevronRight,
 } from "lucide-react";
 import { useState } from "react";
 import { useAuthStore } from "@/store/auth";
@@ -74,55 +74,79 @@ export function Sidebar() {
   const isAdmin = user?.role === "master" || user?.role === "admin";
 
   return (
-    <aside className="w-64 bg-emerald-800 text-white min-h-screen p-4 flex flex-col">
-      <div className="mb-6">
-        <h1 className="text-xl font-bold">Gerai BKMT</h1>
-        <p className="text-emerald-200 text-xs">POS & Inventory</p>
+    <aside className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
+      {/* Header */}
+      <div className="p-5 border-b border-gray-800">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-white font-bold text-xs">BK</span>
+          </div>
+          <div>
+            <p className="font-bold text-sm text-white">Gerai BKMT</p>
+            <p className="text-gray-500 text-xs">POS & Inventory</p>
+          </div>
+        </div>
       </div>
 
+      {/* User info */}
       {user && (
-        <div className="mb-4 p-3 bg-emerald-700 rounded-lg">
-          <div className="flex items-center gap-2 mb-1">
-            <User className="h-4 w-4" />
-            <span className="font-semibold text-sm">{user.nama}</span>
+        <div className="mx-4 mt-4 p-3 bg-gray-800 rounded-xl border border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-white text-xs font-bold">{user.nama.charAt(0)}</span>
+            </div>
+            <div className="min-w-0">
+              <p className="font-semibold text-sm text-white truncate">{user.nama}</p>
+              <p className="text-xs text-gray-400 capitalize">{user.role}</p>
+            </div>
           </div>
-          <span className="text-xs text-emerald-200 capitalize">{user.role}</span>
         </div>
       )}
 
-      <nav className="space-y-1 flex-1">
+      {/* Nav */}
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href;
           const hasSubmenu = "submenu" in item;
           const isOpen = openMenus.includes(item.label);
+          const isSubmenuActive = hasSubmenu && item.submenu?.some((s) => pathname === s.href);
 
           if (hasSubmenu) {
             return (
               <div key={item.label}>
                 <button
                   onClick={() => toggleMenu(item.label)}
-                  className="w-full flex items-center justify-between px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+                  className={cn(
+                    "w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm transition-colors",
+                    isSubmenuActive
+                      ? "bg-emerald-600/20 text-emerald-400"
+                      : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                  )}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4" />
                     <span>{item.label}</span>
                   </div>
-                  <ChevronDown className={cn("h-4 w-4 transition-transform", isOpen && "rotate-180")} />
+                  <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", isOpen && "rotate-180")} />
                 </button>
                 {isOpen && item.submenu && (
-                  <div className="ml-8 mt-1 space-y-1">
+                  <div className="ml-4 mt-0.5 space-y-0.5 border-l border-gray-800 pl-3">
                     {item.submenu.map((sub) => {
                       if (!canAccess(sub.href)) return null;
+                      const isSubActive = pathname === sub.href;
                       return (
                         <Link
                           key={sub.href}
                           href={sub.href}
                           className={cn(
-                            "block px-4 py-2 rounded-lg text-sm hover:bg-emerald-700 transition-colors",
-                            pathname === sub.href && "bg-emerald-700"
+                            "flex items-center gap-2 px-3 py-2 rounded-lg text-xs transition-colors",
+                            isSubActive
+                              ? "bg-emerald-600 text-white font-medium"
+                              : "text-gray-500 hover:bg-gray-800 hover:text-white"
                           )}
                         >
+                          <ChevronRight className="h-3 w-3" />
                           {sub.label}
                         </Link>
                       );
@@ -138,44 +162,45 @@ export function Sidebar() {
               key={item.href}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors",
-                isActive && "bg-emerald-700"
+                "flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-colors",
+                isActive
+                  ? "bg-emerald-600 text-white font-medium shadow-lg shadow-emerald-900/30"
+                  : "text-gray-400 hover:bg-gray-800 hover:text-white"
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className="h-4 w-4" />
               <span>{item.label}</span>
             </Link>
           );
         })}
       </nav>
 
-      {/* Link ke Profil Publik & Admin Panel */}
-      <div className="border-t border-emerald-700 pt-3 mt-3 space-y-1">
-        <Link
-          href="/"
-          className="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-emerald-200 text-sm"
-        >
+      {/* Footer links */}
+      <div className="px-3 pb-4 space-y-0.5 border-t border-gray-800 pt-3">
+        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-gray-800 hover:text-white transition-colors">
           <Globe className="h-4 w-4" />
-          <span>Lihat Profil Publik</span>
+          Lihat Profil Publik
         </Link>
         {isAdmin && (
           <Link
             href="/admin"
             className={cn(
-              "flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-emerald-700 transition-colors text-emerald-200 text-sm",
-              pathname.startsWith("/admin") && "bg-emerald-700 text-white"
+              "flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs transition-colors",
+              pathname.startsWith("/admin")
+                ? "bg-violet-600/20 text-violet-400"
+                : "text-gray-500 hover:bg-gray-800 hover:text-white"
             )}
           >
             <Shield className="h-4 w-4" />
-            <span>Admin Panel</span>
+            Admin Panel
           </Link>
         )}
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-600 transition-colors text-sm"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-red-900/30 hover:text-red-400 transition-colors"
         >
           <LogOut className="h-4 w-4" />
-          <span>Logout</span>
+          Logout
         </button>
       </div>
     </aside>
