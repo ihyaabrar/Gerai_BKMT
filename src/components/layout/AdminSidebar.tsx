@@ -20,9 +20,8 @@ export function AdminSidebar() {
   const { user, logout } = useAuthStore();
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    logout();
-    router.push("/login");
+    await logout();
+    router.replace("/login");
   };
 
   return (

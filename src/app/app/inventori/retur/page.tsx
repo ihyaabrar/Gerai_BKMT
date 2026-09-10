@@ -46,15 +46,17 @@ export default function ReturPage() {
         fetch("/api/barang"),
       ]);
 
+      if (!returRes.ok || !barangRes.ok) throw new Error();
+
       const [returData, barangData] = await Promise.all([
         returRes.json(),
         barangRes.json(),
       ]);
 
-      setRetur(returData);
-      setBarang(barangData);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
+      setRetur(Array.isArray(returData) ? returData : []);
+      setBarang(Array.isArray(barangData) ? barangData : []);
+    } catch {
+      toast.error("Gagal memuat data retur");
     } finally {
       setLoading(false);
     }

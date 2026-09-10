@@ -64,7 +64,9 @@ export default function PengaturanPage() {
   const fetchKategoriBarang = async () => {
     try {
       const res = await fetch("/api/kategori-barang");
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setKategoriBarang(data);
     } catch { /* ignore */ }
   };
@@ -72,7 +74,9 @@ export default function PengaturanPage() {
   const fetchKategoriPengeluaran = async () => {
     try {
       const res = await fetch("/api/kategori-pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setKategoriPengeluaran(data);
     } catch { /* ignore */ }
   };
@@ -114,7 +118,11 @@ export default function PengaturanPage() {
           persenPengelola: p,
         }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menyimpan pengaturan");
+        return;
+      }
       toast.success("Pengaturan berhasil disimpan");
     } catch {
       toast.error("Gagal menyimpan pengaturan");

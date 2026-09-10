@@ -44,7 +44,9 @@ export default function PengeluaranPage() {
   const fetchKategori = async () => {
     try {
       const res = await fetch("/api/kategori-pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setKategoriList(data);
       if (data.length > 0) {
         setForm((f) => ({ ...f, kategori: f.kategori || data[0].nama }));
@@ -57,11 +59,13 @@ export default function PengeluaranPage() {
   const fetchPengeluaran = async () => {
     try {
       const res = await fetch("/api/pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setPengeluaran(data);
-      setFilteredData(data);
-    } catch (error) {
-      console.error("Failed to fetch pengeluaran:", error);
+      const rows = Array.isArray(data) ? data : [];
+      setPengeluaran(rows);
+      setFilteredData(rows);
+    } catch {
+      toast.error("Gagal memuat data pengeluaran");
     } finally {
       setLoading(false);
     }

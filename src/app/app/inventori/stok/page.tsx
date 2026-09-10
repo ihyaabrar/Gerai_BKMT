@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle, Search } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Barang {
   id: string;
@@ -29,8 +30,9 @@ export default function StokPage() {
 
   useEffect(() => {
     fetch("/api/barang")
-      .then((r) => r.json())
-      .then((data) => setBarang(data))
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setBarang(Array.isArray(data) ? data : []))
+      .catch(() => toast.error("Gagal memuat data stok"))
       .finally(() => setLoading(false));
   }, []);
 

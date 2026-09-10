@@ -3,88 +3,119 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, Download, Clock, HardDrive, AlertTriangle } from "lucide-react";
-import { format } from "date-fns";
+import { Database, Download, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
-interface Backup {
-  filename: string;
-  size: number;
-  createdAt: string;
+interface Statistik {
+  barang: number;
+  member: number;
+  nasabah: number;
+  supplier: number;
+  penjualan: number;
+  pengeluaran: number;
+  retur: number;
+  shift: number;
 }
 
-export default function BackupPage() {
-  const [backups, setBackups] = useState<Backup[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [creating, setCreating] = useState(false);
+const LABEL: Record<keyof Statistik, string> = {
+  barang: "Barang",
+  member: "Member",
+  nasabah: "Nasabah",
+  supplier: "Supplier",
+  penjualan: "Transaksi Penjualan",
+  pengeluaran: "Pengeluaran",
+  retur: "Retur",
+  shift: "Shift Kasir",
+};
 
-  const fetchBackups = async () => {
-    try {
-      const res = await fetch("/api/backup");
-      const data = await res.json();
-      setBackups(data);
-    } catch {
-      toast.error("Gagal memuat daftar backup");
-    } finally {
-      setLoading(false);
-    }
-  };
+export default function BackupPage() {
+  const [statistik, setStatistik] = useState<Statistik | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [downloading, setDownloading] = useState(false);
 
   useEffect(() => {
-    fetchBackups();
+    const fetchStatistik = async () => {
+      try {
+        const res = await fetch("/api/backup", { method: "POST" });
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        setStatistik(data.statistik);
+      } catch {
+        toast.error("Gagal memuat statistik database");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStatistik();
   }, []);
 
-  const handleCreateBackup = async () => {
-    setCreating(true);
+  const handleDownload = async () => {
+    setDownloading(true);
     try {
-      const res = await fetch("/api/backup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "backup" }),
-      });
-
+      const res = await fetch("/api/backup");
       if (!res.ok) throw new Error();
-      toast.success("Backup berhasil dibuat");
-      fetchBackups();
+
+      const blob = await res.blob();
+      const disposition = res.headers.get("Content-Disposition") ?? "";
+      const filename =
+        disposition.match(/filename="?([^"]+)"?/)?.[1] ?? "backup-gerai-bkmt.json";
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      toast.success("Backup berhasil diunduh");
     } catch {
       toast.error("Gagal membuat backup");
     } finally {
-      setCreating(false);
+      setDownloading(false);
     }
   };
 
-  const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(2) + " MB";
-  };
+  const totalBaris = statistik
+    ? Object.values(statistik).reduce((sum, n) => sum + n, 0)
+    : 0;
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-4 justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Backup Data</h1>
-          <p className="text-gray-500">Backup dan restore database</p>
+          <p className="text-gray-500">Unduh salinan seluruh data dalam format JSON</p>
         </div>
-        <Button onClick={handleCreateBackup} disabled={creating} className="bg-blue-600 hover:bg-blue-700">
-          <Database className="h-4 w-4 mr-2" />
-          {creating ? "Membuat Backup..." : "Buat Backup"}
+        <Button
+          onClick={handleDownload}
+          disabled={downloading || loading}
+          className="bg-emerald-600 hover:bg-emerald-700"
+        >
+          {downloading ? (
+            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Menyiapkan...</>
+          ) : (
+            <><Download className="h-4 w-4 mr-2" /> Unduh Backup</>
+          )}
         </Button>
       </div>
 
-      <Card className="bg-gradient-to-r from-blue-500 to-cyan-600 text-white">
+      <Card className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
         <CardHeader>
           <CardTitle className="text-white">Informasi Database</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm opacity-80">Lokasi Database</p>
-              <p className="text-lg font-semibold">prisma/dev.db</p>
+              <p className="text-sm opacity-80">Jenis Database</p>
+              <p className="text-lg font-semibold">PostgreSQL</p>
             </div>
             <div>
-              <p className="text-sm opacity-80">Total Backup</p>
-              <p className="text-lg font-semibold">{backups.length} file</p>
+              <p className="text-sm opacity-80">Total Baris Data</p>
+              <p className="text-lg font-semibold">
+                {loading ? "…" : totalBaris.toLocaleString("id-ID")}
+              </p>
             </div>
           </div>
         </CardContent>
@@ -93,47 +124,25 @@ export default function BackupPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <HardDrive className="h-5 w-5" />
-            Riwayat Backup
+            <Database className="h-5 w-5" />
+            Isi Backup
           </CardTitle>
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
-          ) : backups.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
-              <Database className="h-14 w-14 mx-auto mb-3 opacity-30" />
-              <p>Belum ada backup</p>
-              <p className="text-sm mt-1">Klik "Buat Backup" untuk memulai</p>
+            <div className="text-center py-8 text-gray-500">
+              <Loader2 className="h-5 w-5 animate-spin mx-auto" />
             </div>
+          ) : !statistik ? (
+            <p className="text-center py-8 text-gray-400">Statistik tidak tersedia</p>
           ) : (
-            <div className="space-y-3">
-              {backups.map((backup) => (
-                <div key={backup.filename}
-                  className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-4">
-                    <div className="bg-blue-100 p-3 rounded-lg">
-                      <Database className="h-5 w-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{backup.filename}</p>
-                      <div className="flex gap-4 text-xs text-gray-500 mt-1">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {format(new Date(backup.createdAt), "dd/MM/yyyy HH:mm")}
-                        </span>
-                        <span className="flex items-center gap-1">
-                          <HardDrive className="h-3 w-3" />
-                          {formatFileSize(backup.size)}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm"
-                    onClick={() => toast.info(`File: backups/${backup.filename}`)}>
-                    <Download className="h-4 w-4 mr-1" />
-                    Info
-                  </Button>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {(Object.keys(LABEL) as (keyof Statistik)[]).map((key) => (
+                <div key={key} className="p-4 border rounded-xl">
+                  <p className="text-xs text-gray-500">{LABEL[key]}</p>
+                  <p className="text-xl font-bold text-gray-900 mt-1">
+                    {statistik[key].toLocaleString("id-ID")}
+                  </p>
                 </div>
               ))}
             </div>
@@ -149,10 +158,10 @@ export default function BackupPage() {
           </CardTitle>
         </CardHeader>
         <CardContent className="text-sm text-amber-800 space-y-1">
-          <p>• Backup database secara berkala untuk menghindari kehilangan data</p>
-          <p>• File backup disimpan di folder: <code className="bg-amber-100 px-1 rounded">backups/</code></p>
-          <p>• Simpan file backup di lokasi aman (external drive, cloud storage)</p>
-          <p>• Untuk restore: stop aplikasi, replace <code className="bg-amber-100 px-1 rounded">prisma/dev.db</code> dengan file backup, lalu restart</p>
+          <p>• Unduh backup secara berkala dan simpan di lokasi aman (cloud/external drive)</p>
+          <p>• Password pengguna sengaja tidak disertakan dalam file backup</p>
+          <p>• File JSON ini untuk arsip &amp; migrasi data, bukan snapshot penuh PostgreSQL</p>
+          <p>• Untuk backup tingkat database, gunakan fitur snapshot dari penyedia (Neon/Supabase) atau <code className="bg-amber-100 px-1 rounded">pg_dump</code></p>
         </CardContent>
       </Card>
     </div>

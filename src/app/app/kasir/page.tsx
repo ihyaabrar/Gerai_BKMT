@@ -54,15 +54,25 @@ export default function KasirPage() {
   }, []);
 
   const fetchBarang = async () => {
-    const res = await fetch("/api/barang");
-    const data = await res.json();
-    setBarangList(data);
+    try {
+      const res = await fetch("/api/barang");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setBarangList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat daftar barang");
+    }
   };
 
   const fetchMember = async () => {
-    const res = await fetch("/api/member");
-    const data = await res.json();
-    setMemberList(data);
+    try {
+      const res = await fetch("/api/member");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setMemberList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat daftar member");
+    }
   };
 
   const fetchPengaturan = async () => {
@@ -150,24 +160,30 @@ export default function KasirPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error();
-
       const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data?.error || "Gagal memproses pembayaran");
+        return;
+      }
+
+      // Struk memakai angka hasil hitungan server (harga, diskon, total),
+      // bukan angka dari keranjang, supaya struk selalu cocok dengan database.
       const receipt = {
         nomorTransaksi: data.nomorTransaksi,
-        tanggal: new Date(),
-        items: items.map((item) => ({
-          nama: item.nama,
-          qty: item.qty,
-          harga: item.hargaJual,
-          subtotal: item.hargaJual * item.qty,
+        tanggal: new Date(data.tanggal ?? Date.now()),
+        items: (data.detail ?? []).map((d: any) => ({
+          nama: d.barang?.nama ?? "-",
+          qty: d.qty,
+          harga: d.hargaJual,
+          subtotal: d.subtotal,
         })),
-        subtotal: getSubtotal(),
-        diskon,
-        total,
-        bayar: bayarNum,
-        kembalian,
-        member: selectedMember?.nama,
+        subtotal: data.subtotal,
+        diskon: data.diskon,
+        total: data.total,
+        bayar: data.bayar,
+        kembalian: data.kembalian,
+        member: data.member?.nama,
         kasir: user?.nama || "Kasir",
       };
 

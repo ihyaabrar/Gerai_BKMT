@@ -1,0 +1,5 @@
+# Normalisasi akhir baris agar konsisten lintas OS.
+* text=auto
+
+# Skrip shell harus tetap LF supaya bisa dieksekusi di Linux/macOS.
+*.sh text eol=lf

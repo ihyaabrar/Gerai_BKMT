@@ -6,7 +6,7 @@ import { generateSlug, ensureUniqueSlug, applyPublishLogic } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {

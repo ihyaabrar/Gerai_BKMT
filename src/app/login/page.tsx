@@ -28,7 +28,11 @@ export default function LoginPage() {
       if (res.ok) {
         login(data.user);
         toast.success(`Selamat datang, ${data.user.nama}!`);
-        router.push("/app");
+        // Hanya terima path internal supaya tidak bisa dipakai open redirect.
+        const next = new URLSearchParams(window.location.search).get("next");
+        const target =
+          next && next.startsWith("/") && !next.startsWith("//") ? next : "/app";
+        router.replace(target);
       } else {
         toast.error(data.error || "Login gagal");
       }
@@ -158,7 +162,8 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Demo accounts */}
+          {/* Demo accounts — hanya tampil di luar produksi */}
+          {process.env.NODE_ENV !== "production" && (
           <div className="mt-8 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Akun Demo</p>
             <div className="grid grid-cols-2 gap-3">
@@ -180,6 +185,7 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+          )}
         </div>
       </div>
     </div>
