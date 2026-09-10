@@ -20,13 +20,20 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
   const adaPendamping = rest.length > 0;
 
   return (
-    <section id="berita" className="py-20 px-6 bg-surface-muted">
-      <div className="max-w-6xl mx-auto">
+    <section id="berita" className="bg-surface-muted">
+      <div className="max-w-6xl mx-auto px-6 py-16 lg:py-20">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
-          <div>
-            <span className="text-brand-600 text-sm font-semibold uppercase tracking-widest">Informasi</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Berita & Pengumuman</h2>
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-10 gap-4">
+          <div className="max-w-xl">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">
+              Informasi
+            </p>
+            <h2 className="mt-3 font-display text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+              Berita &amp; Pengumuman
+            </h2>
+            <p className="mt-3 text-slate-600 leading-relaxed">
+              Kegiatan, pengumuman, dan kabar terkini dari PD BKMT Kubu Raya.
+            </p>
           </div>
           {beritaList.length > 1 && (
             <Link
@@ -39,12 +46,12 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
         </div>
 
         {beritaList.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
-              <Newspaper className="h-10 w-10 text-gray-300" />
+          <div className="rounded-card border border-border bg-white text-center py-16">
+            <div className="w-14 h-14 bg-surface-sunken border border-border rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Newspaper className="h-6 w-6 text-slate-300" />
             </div>
-            <p className="text-slate-400 text-lg font-medium">Belum ada berita</p>
-            <p className="text-gray-300 text-sm mt-1">Berita akan segera hadir</p>
+            <p className="text-slate-500 font-medium">Belum ada berita</p>
+            <p className="text-slate-400 text-sm mt-1">Berita akan segera hadir</p>
           </div>
         ) : (
           <div
@@ -60,7 +67,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                 href={`/berita/${featured.slug}`}
                 className={`${
                   adaPendamping ? "lg:col-span-3" : "block"
-                } group relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all`}
+                } group relative overflow-hidden rounded-card bg-white border border-border hover:border-brand-300 transition-all`}
               >
                 <div className="relative h-64 lg:h-80 overflow-hidden">
                   {featured.gambarUrl ? (
@@ -70,9 +77,13 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center">
-                      <Newspaper className="h-16 w-16 text-white/50" />
-                    </div>
+                    /* Tanpa gambar sendiri, dipakai foto kegiatan umum */
+                    <img
+                      src="/images/kegiatan-majelis-taklim.webp"
+                      alt=""
+                      aria-hidden="true"
+                      className="w-full h-full object-cover"
+                    />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
@@ -105,7 +116,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                 <Link
                   key={berita.id}
                   href={`/berita/${berita.slug}`}
-                  className="group flex gap-4 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
+                  className="group flex gap-4 bg-white rounded-xl p-4 border border-border hover:border-brand-300 transition-all"
                 >
                   <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
                     {berita.gambarUrl ? (
@@ -115,9 +126,12 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
-                      <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
-                        <Newspaper className="h-6 w-6 text-brand-400" />
-                      </div>
+                      <img
+                        src="/images/kegiatan-majelis-taklim.webp"
+                        alt=""
+                        aria-hidden="true"
+                        className="w-full h-full object-cover"
+                      />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
