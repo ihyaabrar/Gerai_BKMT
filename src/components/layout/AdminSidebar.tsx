@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Globe, LogOut, LayoutDashboard, FileText, Users, Store, Building2, ShoppingCart } from "lucide-react";
+import { Globe, LogOut, LayoutDashboard, FileText, Users, Store, Building2, ShoppingCart, X } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
+import { useSidebar } from "@/components/layout/DashboardShell";
 
 const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
@@ -15,6 +16,7 @@ const adminMenuItems = [
 ];
 
 export function AdminSidebar() {
+  const { open, close } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuthStore();
@@ -25,17 +27,43 @@ export function AdminSidebar() {
   };
 
   return (
-    <aside className="w-60 bg-gray-900 text-white min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="p-5 border-b border-gray-800">
-        <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Admin Panel</p>
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-xs">BK</span>
+    <>
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={close}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 w-60 max-w-[85vw] bg-gray-900 text-white",
+          "flex flex-col transition-transform duration-200 ease-out",
+          open ? "translate-x-0" : "-translate-x-full",
+          "lg:static lg:translate-x-0 lg:max-w-none lg:h-screen lg:sticky lg:top-0 lg:shrink-0"
+        )}
+      >
+        {/* Header */}
+        <div className="p-5 border-b border-gray-800">
+          <div className="flex items-start justify-between gap-2">
+            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Admin Panel</p>
+            <button
+              type="button"
+              onClick={close}
+              aria-label="Tutup menu navigasi"
+              className="lg:hidden p-2 -mt-2 -mr-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+            >
+              <X className="h-5 w-5" />
+            </button>
           </div>
-          <span className="font-bold text-sm text-white">BKMT Kubu Raya</span>
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-xs">BK</span>
+            </div>
+            <span className="font-bold text-sm text-white truncate">BKMT Kubu Raya</span>
+          </div>
         </div>
-      </div>
 
       {/* User */}
       {user && (
@@ -53,7 +81,7 @@ export function AdminSidebar() {
       )}
 
       {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
         {adminMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.href || (item.href !== "/admin" && pathname.startsWith(item.href));
@@ -93,6 +121,7 @@ export function AdminSidebar() {
           Logout
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

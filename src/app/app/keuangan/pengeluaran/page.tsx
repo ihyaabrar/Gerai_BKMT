@@ -150,9 +150,9 @@ export default function PengeluaranPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Pengeluaran</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Pengeluaran</h1>
           <p className="text-gray-500">Catat pengeluaran operasional</p>
         </div>
         <div className="flex gap-2">
@@ -244,7 +244,7 @@ export default function PengeluaranPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
               Riwayat Pengeluaran
@@ -270,7 +270,7 @@ export default function PengeluaranPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[640px]">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-3">Tanggal</th>

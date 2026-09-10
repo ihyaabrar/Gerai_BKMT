@@ -62,7 +62,7 @@ export default function StokPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Stok Barang</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Stok Barang</h1>
         <p className="text-gray-500">Monitoring inventori real-time</p>
       </div>
 
@@ -165,7 +165,7 @@ export default function StokPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[760px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Kode</th>

@@ -318,7 +318,7 @@ export default function LaporanPage() {
             <CardContent>
               {data.produkTerlaris.length > 0 ? (
                 <div className="overflow-x-auto">
-                  <table className="w-full">
+                  <table className="w-full min-w-[600px]">
                     <thead>
                       <tr className="border-b-2 border-gray-200">
                         <th className="text-left p-4 text-sm font-semibold text-gray-700">Ranking</th>

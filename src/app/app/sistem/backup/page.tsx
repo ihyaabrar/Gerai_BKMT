@@ -85,7 +85,7 @@ export default function BackupPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-4 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Backup Data</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Backup Data</h1>
           <p className="text-gray-500">Unduh salinan seluruh data dalam format JSON</p>
         </div>
         <Button

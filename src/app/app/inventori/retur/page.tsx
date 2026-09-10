@@ -113,9 +113,9 @@ export default function ReturPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Retur Barang</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Retur Barang</h1>
           <p className="text-gray-500">Pengembalian barang rusak/kadaluarsa</p>
         </div>
         <Button onClick={() => setOpen(true)} className="bg-orange-600 hover:bg-orange-700">
@@ -142,7 +142,7 @@ export default function ReturPage() {
             <div className="space-y-4">
               {retur.map((r) => (
                 <div key={r.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-wrap gap-3 justify-between items-start">
                     <div className="flex gap-4">
                       <div className="bg-orange-100 p-3 rounded-lg">
                         <Package className="h-6 w-6 text-orange-600" />

@@ -268,7 +268,7 @@ export default function BarangMasukPage() {
                         : "border-gray-200 hover:border-blue-300"
                     }`}
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
                         <p className="font-bold text-gray-900">{barang.nama}</p>
                         <p className="text-sm text-gray-500">{barang.kode} • {barang.barcode}</p>
@@ -419,7 +419,7 @@ export default function BarangMasukPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleTambahBaru} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Kode Barang</label>
                   <Input
@@ -475,7 +475,7 @@ export default function BarangMasukPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Harga Beli</label>
                   <Input
@@ -500,7 +500,7 @@ export default function BarangMasukPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="text-sm font-medium text-gray-700">Stok Awal</label>
                   <Input

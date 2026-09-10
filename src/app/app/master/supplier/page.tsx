@@ -106,9 +106,9 @@ export default function SupplierPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Supplier</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Supplier</h1>
           <p className="text-gray-500">Manajemen data pemasok barang</p>
         </div>
         <Dialog

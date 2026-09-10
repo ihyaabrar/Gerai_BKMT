@@ -139,9 +139,9 @@ export default function PenjualanPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Riwayat Penjualan</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Riwayat Penjualan</h1>
           <p className="text-gray-500">Data transaksi penjualan</p>
         </div>
         <Button
@@ -156,7 +156,7 @@ export default function PenjualanPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5" />
               Transaksi Terbaru
@@ -182,7 +182,7 @@ export default function PenjualanPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[760px]">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-4">No. Transaksi</th>

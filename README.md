@@ -64,8 +64,14 @@ Aplikasi terintegrasi untuk **PD BKMT Kabupaten Kubu Raya** yang menggabungkan:
 - Edit informasi gerai
 - Upload gambar langsung dari komputer (JPG/PNG/WebP, maks 5MB)
 
+### 📱 Responsif
+- Sidebar berubah jadi drawer di bawah 1024px — bisa dipakai dari HP & tablet
+- Dialog tampil sebagai sheet yang bisa di-scroll di layar kecil
+- Bar pembayaran melayang di halaman kasir versi mobile
+- Semua tabel bisa digeser horizontal tanpa merusak lebar halaman
+
 ### 💳 Sistem Kasir (POS)
-- Product grid dengan search & barcode scanner
+- Product grid responsif (2/3/4 kolom) dengan search & barcode scanner
 - Shopping cart dengan validasi stok real-time
 - Member selection dengan diskon otomatis
 - Multiple payment methods (Tunai/Transfer/QRIS)
@@ -356,5 +362,5 @@ MIT License — Lihat [LICENSE](./LICENSE) untuk detail.
 ---
 
 **Dikembangkan untuk PD BKMT Kabupaten Kubu Raya**  
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Last Updated:** September 2026

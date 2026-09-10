@@ -125,7 +125,7 @@ export default function PenyesuaianPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Penyesuaian Stok</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Penyesuaian Stok</h1>
         <p className="text-gray-500">Stock opname dan koreksi stok</p>
       </div>
 
@@ -304,7 +304,7 @@ export default function PenyesuaianPage() {
               <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
                 {history.map((p) => (
                   <div key={p.id} className="border rounded-lg p-3">
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
                         <p className="font-medium text-sm">{p.barang.nama}</p>
                         <p className="text-xs text-gray-500">{p.barang.kode}</p>

@@ -129,9 +129,9 @@ export default function ShiftPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Shift Kasir</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Shift Kasir</h1>
           <p className="text-gray-500">Manajemen shift dan rekap kasir</p>
         </div>
         <div className="flex gap-2">
@@ -225,7 +225,7 @@ export default function ShiftPage() {
 
                   return (
                     <div key={s.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-wrap gap-3 justify-between items-start">
                         <div className="flex gap-4">
                           <div className="bg-blue-100 p-3 rounded-lg">
                             <User className="h-6 w-6 text-blue-600" />
