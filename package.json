@@ -10,11 +10,11 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts",
+    "db:seed": "ts-node --project prisma/tsconfig.seed.json prisma/seed.ts",
     "db:studio": "prisma studio"
   },
   "prisma": {
-    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
+    "seed": "ts-node --project prisma/tsconfig.seed.json prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.10.0",

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Truck, Plus, Edit, Trash2, Phone, MapPin } from "lucide-react";
+import { toast } from "sonner";
 
 interface Supplier {
   id: string;
@@ -29,10 +30,11 @@ export default function SupplierPage() {
   const fetchSupplier = async () => {
     try {
       const res = await fetch("/api/supplier");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setSupplier(data);
-    } catch (error) {
-      console.error("Failed to fetch supplier:", error);
+      setSupplier(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat data supplier");
     } finally {
       setLoading(false);
     }
@@ -55,14 +57,19 @@ export default function SupplierPage() {
         body: JSON.stringify(body),
       });
 
-      if (res.ok) {
-        setOpen(false);
-        setEditId(null);
-        setForm({ nama: "", telepon: "", alamat: "" });
-        fetchSupplier();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menyimpan supplier");
+        return;
       }
-    } catch (error) {
-      console.error("Failed to save supplier:", error);
+
+      setOpen(false);
+      setEditId(null);
+      setForm({ nama: "", telepon: "", alamat: "" });
+      fetchSupplier();
+      toast.success(editId ? "Supplier berhasil diupdate" : "Supplier berhasil ditambahkan");
+    } catch {
+      toast.error("Gagal menyimpan supplier");
     }
   };
 
@@ -84,11 +91,16 @@ export default function SupplierPage() {
         method: "DELETE",
       });
 
-      if (res.ok) {
-        fetchSupplier();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menghapus supplier");
+        return;
       }
-    } catch (error) {
-      console.error("Failed to delete supplier:", error);
+
+      fetchSupplier();
+      toast.success("Supplier berhasil dihapus");
+    } catch {
+      toast.error("Gagal menghapus supplier");
     }
   };
 

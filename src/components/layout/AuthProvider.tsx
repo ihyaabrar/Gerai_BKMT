@@ -3,60 +3,43 @@
 import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuthStore } from "@/store/auth";
-
-// Route yang bebas diakses tanpa login
-const PUBLIC_ROUTES = ["/", "/login"];
-
-function isPublicRoute(pathname: string): boolean {
-  if (PUBLIC_ROUTES.includes(pathname)) return true;
-  if (pathname.startsWith("/berita/")) return true;
-  if (pathname.startsWith("/api/public/")) return true;
-  return false;
-}
+import { isPublicPath, canAccessPath } from "@/lib/permissions";
+import { Loader2 } from "lucide-react";
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, canAccess, user } = useAuthStore();
+  const { status, user, refresh } = useAuthStore();
+
+  // Verifikasi sesi ke server setiap kali route berpindah antar area terproteksi.
+  useEffect(() => {
+    if (isPublicPath(pathname)) return;
+    refresh();
+  }, [pathname, refresh]);
 
   useEffect(() => {
-    // Public routes — tidak perlu cek auth
-    if (isPublicRoute(pathname)) {
-      // Kalau sudah login dan buka /login, redirect ke /app
-      if (pathname === "/login" && isAuthenticated) {
-        router.push("/app");
-      }
+    if (isPublicPath(pathname) || status === "loading") return;
+
+    if (status === "unauthenticated") {
+      router.replace(`/login?next=${encodeURIComponent(pathname)}`);
       return;
     }
 
-    // Belum login → redirect ke /login
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
+    if (!canAccessPath(user?.role, pathname)) {
+      router.replace("/app");
     }
+  }, [status, user, pathname, router]);
 
-    // Route /admin — hanya master/admin
-    if (pathname.startsWith("/admin")) {
-      if (user?.role === "kasir") {
-        router.push("/app");
-      }
-      return;
-    }
-
-    // Route /app — cek canAccess
-    if (!canAccess(pathname)) {
-      router.push("/app");
-    }
-  }, [isAuthenticated, pathname, router, canAccess, user]);
-
-  // Public routes — render langsung
-  if (isPublicRoute(pathname)) {
+  if (isPublicPath(pathname)) {
     return <>{children}</>;
   }
 
-  // Belum auth — jangan render apapun (mencegah flash)
-  if (!isAuthenticated) {
-    return null;
+  if (status !== "authenticated") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+      </div>
+    );
   }
 
   return <>{children}</>;

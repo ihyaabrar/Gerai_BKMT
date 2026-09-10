@@ -9,7 +9,6 @@ import { Clock, PlayCircle, StopCircle, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
-import { useAuthStore } from "@/store/auth";
 
 interface Shift {
   id: string;
@@ -17,7 +16,8 @@ interface Shift {
   jamTutup: string | null;
   saldoAwal: number;
   saldoAkhir: number | null;
-  totalPenjualan: number | null;
+  totalPenjualan: number;
+  jumlahTransaksi: number;
   catatan: string | null;
   user: {
     nama: string;
@@ -37,19 +37,18 @@ export default function ShiftPage() {
     saldoAkhir: "",
     catatan: "",
   });
+  const [submitting, setSubmitting] = useState(false);
   
-  const { user } = useAuthStore();
 
   const fetchShifts = async () => {
     try {
       const res = await fetch("/api/shift");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setShifts(data);
-
-      const active = data.find((s: Shift) => s.jamTutup === null);
-      setActiveShift(active || null);
-    } catch (error) {
-      console.error("Failed to fetch shifts:", error);
+      setShifts(data.data ?? []);
+      setActiveShift(data.shiftAktif ?? null);
+    } catch {
+      toast.error("Gagal memuat data shift");
     } finally {
       setLoading(false);
     }
@@ -61,20 +60,17 @@ export default function ShiftPage() {
 
   const handleBukaShift = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      toast.error("User tidak ditemukan, silakan login ulang");
-      return;
-    }
-    
+
+    if (submitting) return;
+    setSubmitting(true);
     try {
+      // userId tidak lagi dikirim dari client — server memakai sesi login.
       const res = await fetch("/api/shift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "buka",
-          userId: user.id,
-          saldoAwal: formBuka.saldoAwal,
+          saldoAwal: Number(formBuka.saldoAwal),
         }),
       });
 
@@ -89,33 +85,45 @@ export default function ShiftPage() {
       }
     } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleTutupShift = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const res = await fetch("/api/shift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "tutup",
-          saldoAkhir: formTutup.saldoAkhir,
+          saldoAkhir: Number(formTutup.saldoAkhir),
           catatan: formTutup.catatan,
         }),
       });
 
       if (res.ok) {
+        const hasil = await res.json();
         setOpenTutup(false);
         setFormTutup({ saldoAkhir: "", catatan: "" });
         fetchShifts();
-        toast.success("Shift berhasil ditutup");
+        toast.success(
+          hasil.selisih === 0
+            ? "Shift ditutup — kas sesuai"
+            : `Shift ditutup — selisih kas ${formatRupiah(hasil.selisih)}`
+        );
       } else {
         const error = await res.json();
         toast.error(error.error || "Gagal menutup shift");
       }
     } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -212,7 +220,8 @@ export default function ShiftPage() {
                       new Date(s.jamBuka).getTime()) /
                       (1000 * 60)
                   );
-                  const selisih = (s.saldoAkhir || 0) - s.saldoAwal - (s.totalPenjualan || 0);
+                  const selisih =
+                    (s.saldoAkhir || 0) - s.saldoAwal - (s.totalPenjualan || 0);
 
                   return (
                     <div key={s.id} className="border rounded-lg p-4">
@@ -235,7 +244,9 @@ export default function ShiftPage() {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Total Penjualan</p>
+                                <p className="text-xs text-gray-500">
+                                  Total Penjualan ({s.jumlahTransaksi ?? 0} transaksi)
+                                </p>
                                 <p className="font-semibold text-green-600">
                                   {formatRupiah(s.totalPenjualan || 0)}
                                 </p>
@@ -293,8 +304,12 @@ export default function ShiftPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700">
-              Buka Shift
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-green-600 hover:bg-green-700"
+            >
+              {submitting ? "Memproses..." : "Buka Shift"}
             </Button>
           </form>
         </DialogContent>
@@ -326,8 +341,12 @@ export default function ShiftPage() {
                 rows={3}
               />
             </div>
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
-              Tutup Shift
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
+              {submitting ? "Memproses..." : "Tutup Shift"}
             </Button>
           </form>
         </DialogContent>

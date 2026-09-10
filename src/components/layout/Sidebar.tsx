@@ -66,9 +66,8 @@ export function Sidebar() {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    logout();
-    router.push("/login");
+    await logout();
+    router.replace("/login");
   };
 
   const isAdmin = user?.role === "master" || user?.role === "admin";

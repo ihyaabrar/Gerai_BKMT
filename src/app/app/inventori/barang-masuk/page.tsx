@@ -36,6 +36,7 @@ export default function BarangMasukPage() {
   const [jumlahMasuk, setJumlahMasuk] = useState("");
   const [updateHargaBeli, setUpdateHargaBeli] = useState(false);
   const [hargaBeliBaru, setHargaBeliBaru] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   
   const [formBaru, setFormBaru] = useState({
     kode: "",
@@ -67,9 +68,10 @@ export default function BarangMasukPage() {
   const fetchBarang = async () => {
     try {
       const res = await fetch("/api/barang");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setBarangList(data);
-    } catch (error) {
+      setBarangList(Array.isArray(data) ? data : []);
+    } catch {
       toast.error("Gagal memuat data barang");
     }
   };
@@ -85,132 +87,95 @@ export default function BarangMasukPage() {
     }
 
     const qty = parseInt(jumlahMasuk);
-    if (qty <= 0) {
+    if (!Number.isFinite(qty) || qty <= 0) {
       toast.error("Jumlah harus lebih dari 0");
       return;
     }
 
-    // Hitung total pengeluaran
-    const hargaBeli = updateHargaBeli && hargaBeliBaru 
-      ? parseFloat(hargaBeliBaru) 
-      : selectedBarang.hargaBeli;
-    
-    const totalPengeluaran = hargaBeli * qty;
-
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      // 1. Update stok barang (dan harga beli jika diupdate)
-      const updateData: any = {
-        id: selectedBarang.id,
-        stok: selectedBarang.stok + qty,
-      };
-
-      if (updateHargaBeli && hargaBeliBaru) {
-        updateData.hargaBeli = parseFloat(hargaBeliBaru);
-      }
-
-      const resBarang = await fetch("/api/barang", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
-      });
-
-      if (!resBarang.ok) {
-        toast.error("Gagal update stok");
-        return;
-      }
-
-      // 2. Catat sebagai pengeluaran
-      const resPengeluaran = await fetch("/api/pengeluaran", {
+      // Satu endpoint: penambahan stok dan pencatatan pengeluaran
+      // dilakukan dalam satu transaksi di server.
+      const res = await fetch("/api/barang-masuk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tanggal: new Date().toISOString(),
-          kategori: "Pembelian Barang",
-          keterangan: `Pembelian ${selectedBarang.nama} (${qty} ${selectedBarang.satuan}) @ ${formatRupiah(hargaBeli)}`,
-          jumlah: totalPengeluaran,
+          mode: "existing",
+          barangId: selectedBarang.id,
+          qty,
+          updateHargaBeli,
+          hargaBeliBaru: updateHargaBeli ? hargaBeliBaru : null,
         }),
       });
 
-      if (resBarang.ok && resPengeluaran.ok) {
-        toast.success(
-          `Stok ${selectedBarang.nama} berhasil ditambah ${qty} ${selectedBarang.satuan}. ` +
-          `Pengeluaran ${formatRupiah(totalPengeluaran)} tercatat.`
-        );
-        setSelectedBarang(null);
-        setJumlahMasuk("");
-        setUpdateHargaBeli(false);
-        setHargaBeliBaru("");
-        fetchBarang();
-      } else {
-        toast.error("Gagal mencatat pengeluaran");
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data?.error || "Gagal mencatat barang masuk");
+        return;
       }
-    } catch (error) {
+
+      toast.success(
+        `Stok ${selectedBarang.nama} bertambah ${qty} ${selectedBarang.satuan}. ` +
+          `Pengeluaran ${formatRupiah(data.totalPengeluaran)} tercatat.`
+      );
+      setSelectedBarang(null);
+      setJumlahMasuk("");
+      setUpdateHargaBeli(false);
+      setHargaBeliBaru("");
+      fetchBarang();
+    } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleTambahBaru = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const stok = parseInt(formBaru.stok);
-    const hargaBeli = parseFloat(formBaru.hargaBeli);
-    const totalPengeluaran = hargaBeli * stok;
 
-    const payload = {
-      ...formBaru,
-      hargaBeli,
-      hargaJual: parseFloat(formBaru.hargaJual),
-      stok,
-      stokMinimum: parseInt(formBaru.stokMinimum),
-    };
-
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      // 1. Tambah barang baru
-      const resBarang = await fetch("/api/barang", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!resBarang.ok) {
-        toast.error("Gagal menambah barang");
-        return;
-      }
-
-      // 2. Catat sebagai pengeluaran
-      const resPengeluaran = await fetch("/api/pengeluaran", {
+      const res = await fetch("/api/barang-masuk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tanggal: new Date().toISOString(),
-          kategori: "Pembelian Barang",
-          keterangan: `Pembelian barang baru: ${formBaru.nama} (${stok} ${formBaru.satuan}) @ ${formatRupiah(hargaBeli)}`,
-          jumlah: totalPengeluaran,
+          mode: "baru",
+          ...formBaru,
+          hargaBeli: Number(formBaru.hargaBeli),
+          hargaJual: Number(formBaru.hargaJual),
+          stok: Number(formBaru.stok),
+          stokMinimum: Number(formBaru.stokMinimum),
         }),
       });
 
-      if (resBarang.ok && resPengeluaran.ok) {
-        toast.success(
-          `Barang baru berhasil ditambahkan! ` +
-          `Pengeluaran ${formatRupiah(totalPengeluaran)} tercatat.`
-        );
-        setFormBaru({
-          kode: "",
-          barcode: "",
-          nama: "",
-          kategori: "",
-          hargaBeli: "",
-          hargaJual: "",
-          stok: "",
-          stokMinimum: "5",
-          satuan: "pcs",
-        });
-        fetchBarang();
-      } else {
-        toast.error("Gagal mencatat pengeluaran");
+      const data = await res.json();
+      if (!res.ok) {
+        // Tampilkan pesan spesifik dari server (kode/barcode duplikat, dll)
+        toast.error(data?.error || "Gagal menambah barang");
+        return;
       }
-    } catch (error) {
+
+      toast.success(
+        `Barang baru ditambahkan. Pengeluaran ${formatRupiah(data.totalPengeluaran)} tercatat.`
+      );
+      setFormBaru({
+        kode: "",
+        barcode: "",
+        nama: "",
+        kategori: "",
+        hargaBeli: "",
+        hargaJual: "",
+        stok: "",
+        stokMinimum: "5",
+        satuan: "pcs",
+      });
+      fetchBarang();
+    } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -424,10 +389,10 @@ export default function BarangMasukPage() {
                   <Button
                     onClick={handleUpdateStok}
                     className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    disabled={!jumlahMasuk || parseInt(jumlahMasuk) <= 0}
+                    disabled={submitting || !jumlahMasuk || parseInt(jumlahMasuk) <= 0}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Update Stok & Catat Pengeluaran
+                    {submitting ? "Menyimpan..." : "Update Stok & Catat Pengeluaran"}
                   </Button>
                 </div>
               ) : (
@@ -586,13 +551,14 @@ export default function BarangMasukPage() {
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 font-semibold" 
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 font-semibold"
                 size="lg"
               >
                 <PackagePlus className="mr-2 h-5 w-5" />
-                Simpan Barang & Catat Pengeluaran
+                {submitting ? "Menyimpan..." : "Simpan Barang & Catat Pengeluaran"}
               </Button>
             </form>
           </CardContent>

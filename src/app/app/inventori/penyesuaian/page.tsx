@@ -40,13 +40,17 @@ export default function PenyesuaianPage() {
 
   const fetchBarang = async () => {
     const res = await fetch("/api/barang");
+    if (!res.ok) return;
     const data = await res.json();
+    if (!Array.isArray(data)) return;
     setBarangList(data);
   };
 
   const fetchHistory = async () => {
     const res = await fetch("/api/penyesuaian");
+    if (!res.ok) return;
     const data = await res.json();
+    if (!Array.isArray(data)) return;
     setHistory(data);
   };
 

@@ -127,6 +127,7 @@ model ShiftKasir {
   jamTutup    DateTime?
   saldoAwal   Float
   saldoAkhir  Float?
+  catatan     String?
   status      String    @default("buka")
   createdAt   DateTime  @default(now())
   

@@ -1,8 +1,22 @@
 node_modules
 .next
+out
+dist
+
+# Environment
 .env
 .env.local
-dist
+.env.*.local
+
+# Build artifacts
+tsconfig.tsbuildinfo
+next-env.d.ts
+
+# Database & backup
 *.db
 *.db-journal
+backups/
+
+# OS / editor
 .DS_Store
+Thumbs.db

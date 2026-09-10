@@ -8,6 +8,7 @@ import { Receipt, Search, Download } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import * as XLSX from "xlsx";
+import { toast } from "sonner";
 
 interface Penjualan {
   id: string;
@@ -22,48 +23,89 @@ interface Penjualan {
   } | null;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function PenjualanPage() {
   const [penjualan, setPenjualan] = useState<Penjualan[]>([]);
-  const [filteredData, setFilteredData] = useState<Penjualan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
+  // Tunda pencarian supaya tidak memanggil API di setiap ketikan.
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setCurrentPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Paginasi & pencarian dikerjakan server, bukan lagi memuat
+  // seluruh riwayat transaksi ke browser.
+  useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchPenjualan = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: String(currentPage),
+          limit: String(ITEMS_PER_PAGE),
+        });
+        if (debouncedSearch) params.set("search", debouncedSearch);
+
+        const res = await fetch(`/api/penjualan?${params}`, { signal: controller.signal });
+        if (!res.ok) throw new Error();
+        const json = await res.json();
+
+        setPenjualan(json.data ?? []);
+        setTotalItems(json.pagination?.total ?? 0);
+        setTotalPages(Math.max(json.pagination?.totalPages ?? 1, 1));
+      } catch (error) {
+        if ((error as Error)?.name !== "AbortError") {
+          toast.error("Gagal memuat riwayat penjualan");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPenjualan();
-  }, []);
+    return () => controller.abort();
+  }, [currentPage, debouncedSearch]);
 
-  useEffect(() => {
-    const filtered = penjualan.filter(
-      (p) =>
-        p.nomorTransaksi.toLowerCase().includes(search.toLowerCase()) ||
-        p.member?.nama.toLowerCase().includes(search.toLowerCase()) ||
-        p.metodeBayar.toLowerCase().includes(search.toLowerCase())
-    );
-    setFilteredData(filtered);
-    setCurrentPage(1);
-  }, [search, penjualan]);
-
-  const fetchPenjualan = async () => {
+  const handleExportExcel = async () => {
+    setExporting(true);
     try {
-      const res = await fetch("/api/penjualan");
-      const data = await res.json();
-      setPenjualan(data);
-      setFilteredData(data);
-    } catch (error) {
-      console.error("Failed to fetch penjualan:", error);
+      const params = new URLSearchParams({ page: "1", limit: "200" });
+      if (debouncedSearch) params.set("search", debouncedSearch);
+
+      // Ambil sampai 200 baris terbaru sesuai filter aktif.
+      const res = await fetch(`/api/penjualan?${params}`);
+      if (!res.ok) throw new Error();
+      const json = await res.json();
+      const rows: Penjualan[] = json.data ?? [];
+
+      if (rows.length === 0) {
+        toast.info("Tidak ada data untuk diekspor");
+        return;
+      }
+
+      exportRows(rows);
+      toast.success(`${rows.length} transaksi diekspor`);
+    } catch {
+      toast.error("Gagal mengekspor data");
     } finally {
-      setLoading(false);
+      setExporting(false);
     }
   };
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleExportExcel = () => {
-    const exportData = filteredData.map((p) => ({
+  const exportRows = (rows: Penjualan[]) => {
+    const exportData = rows.map((p) => ({
       "No. Transaksi": p.nomorTransaksi,
       Tanggal: new Date(p.tanggal).toLocaleDateString("id-ID"),
       Member: p.member?.nama || "Umum",
@@ -78,7 +120,10 @@ export default function PenjualanPage() {
     XLSX.utils.book_append_sheet(wb, ws, "Penjualan");
 
     // Auto width columns
-    const maxWidth = exportData.reduce((w, r) => Math.max(w, r["No. Transaksi"].length), 10);
+    const maxWidth = exportData.reduce(
+      (w, r) => Math.max(w, r["No. Transaksi"].length),
+      10
+    );
     ws["!cols"] = [
       { wch: maxWidth },
       { wch: 15 },
@@ -101,10 +146,11 @@ export default function PenjualanPage() {
         </div>
         <Button
           onClick={handleExportExcel}
+          disabled={exporting || loading}
           className="bg-green-600 hover:bg-green-700"
         >
           <Download className="h-4 w-4 mr-2" />
-          Export Excel
+          {exporting ? "Menyiapkan..." : "Export Excel"}
         </Button>
       </div>
 
@@ -129,7 +175,7 @@ export default function PenjualanPage() {
         <CardContent>
           {loading ? (
             <div className="text-center py-8 text-gray-500">Loading...</div>
-          ) : filteredData.length === 0 ? (
+          ) : penjualan.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               {search ? "Tidak ada data yang cocok" : "Belum ada transaksi"}
             </div>
@@ -149,7 +195,7 @@ export default function PenjualanPage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedData.map((p) => (
+                    {penjualan.map((p) => (
                       <tr key={p.id} className="border-b hover:bg-gray-50">
                         <td className="py-3 px-4 font-medium">{p.nomorTransaksi}</td>
                         <td className="py-3 px-4">
@@ -164,7 +210,7 @@ export default function PenjualanPage() {
                         <td className="py-3 px-4">{p.member?.nama || "Umum"}</td>
                         <td className="py-3 px-4 text-right">{formatRupiah(p.subtotal)}</td>
                         <td className="py-3 px-4 text-right text-emerald-600">
-                          {p.diskon > 0 ? `-${formatRupiah((p.subtotal * p.diskon) / 100)}` : "-"}
+                          {p.diskon > 0 ? `-${formatRupiah(p.diskon)}` : "-"}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold">
                           {formatRupiah(p.total)}
@@ -184,8 +230,8 @@ export default function PenjualanPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredData.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={totalItems}
               />
             </>
           )}
