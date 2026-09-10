@@ -34,8 +34,8 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         scrolled
-          ? "bg-white/95 backdrop-blur-md shadow-md border-b border-gray-100"
-          : "bg-transparent"
+          ? "bg-white/90 backdrop-blur-md border-b border-border shadow-card"
+          : "bg-white/70 backdrop-blur-sm"
       }`}
     >
       <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -44,16 +44,16 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
           {logoUrl ? (
             <img src={logoUrl} alt="Logo" className="h-10 w-10 rounded-xl object-cover shadow-md" />
           ) : (
-            <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center shadow-md">
-              <span className="text-white font-bold text-sm">{singkatan?.slice(0, 2) || "BK"}</span>
+            <div className="h-10 w-10 rounded-xl bg-gold-400 flex items-center justify-center">
+              <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
             </div>
           )}
           <div>
-            <p className={`font-bold text-sm leading-tight transition-colors ${scrolled ? "text-gray-900" : "text-white"}`}>
+            <p className="font-bold text-sm leading-tight text-slate-900">
               {singkatan || "BKMT"}
             </p>
-            <p className={`text-xs leading-tight transition-colors ${scrolled ? "text-gray-500" : "text-emerald-200"}`}>
-              Kubu Raya
+            <p className="text-xs leading-tight text-slate-500">
+              Bersama Umat, Membangun Masyarakat
             </p>
           </div>
         </div>
@@ -64,11 +64,7 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
             <a
               key={link.href}
               href={link.href}
-              className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                scrolled
-                  ? "text-gray-600 hover:text-emerald-600 hover:bg-emerald-50"
-                  : "text-white/90 hover:text-white hover:bg-white/10"
-              }`}
+              className="px-3.5 py-2 rounded-lg text-sm font-medium text-slate-600 transition-colors hover:text-brand-700 hover:bg-brand-50"
             >
               {link.label}
             </a>
@@ -79,15 +75,14 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
         <div className="flex items-center gap-3">
           <Link
             href="/login"
-            className="hidden sm:flex items-center gap-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-5 py-2.5 rounded-full text-sm font-semibold shadow-lg hover:shadow-xl hover:from-emerald-600 hover:to-teal-600 transition-all"
+            className="hidden sm:flex items-center gap-2 bg-brand-600 text-white px-4 h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
           >
             <LogIn className="h-4 w-4" />
             Login Kasir
           </Link>
           <button
-            className={`md:hidden p-2 rounded-xl transition-colors ${
-              scrolled ? "hover:bg-gray-100 text-gray-700" : "hover:bg-white/10 text-white"
-            }`}
+            aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
+            className="md:hidden p-2 rounded-lg text-slate-600 transition-colors hover:bg-surface-sunken"
             onClick={() => setMenuOpen(!menuOpen)}
           >
             {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -97,7 +92,7 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
 
       {/* Mobile Nav */}
       {menuOpen && (
-        <div className="md:hidden bg-white/98 backdrop-blur-md border-t border-gray-100 px-6 py-4 space-y-1 shadow-lg">
+        <div className="md:hidden bg-white border-t border-border px-6 py-4 space-y-1 shadow-card">
           {navLinks.map((link) => (
             <a
               key={link.href}
