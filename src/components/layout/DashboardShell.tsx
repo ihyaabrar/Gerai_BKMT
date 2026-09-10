@@ -41,7 +41,7 @@ export function DashboardShell({
   sidebar,
   brand,
   brandLabel,
-  brandAccent = "from-emerald-500 to-teal-500",
+  brandAccent = "bg-gold-400",
   children,
 }: DashboardShellProps) {
   const pathname = usePathname();
@@ -78,13 +78,13 @@ export function DashboardShell({
       */}
       <a
         href="#konten-utama"
-        className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:rounded-lg focus:bg-emerald-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:rounded-xl focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
       >
         Lewati ke konten utama
       </a>
 
       <div className="lg:flex">
-        <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 bg-gray-900 text-white px-4 h-14 shadow-lg">
+        <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 bg-brand-deep text-white px-4 h-14 shadow-lg">
           <button
             type="button"
             onClick={() => setOpen(true)}
@@ -102,7 +102,7 @@ export function DashboardShell({
             </div>
             <div className="min-w-0 leading-tight">
               {brandLabel && (
-                <p className="text-[10px] text-gray-500 uppercase tracking-widest">
+                <p className="text-[10px] text-brand-300 uppercase tracking-widest">
                   {brandLabel}
                 </p>
               )}
@@ -117,7 +117,7 @@ export function DashboardShell({
         <main
           id="konten-utama"
           tabIndex={-1}
-          className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 min-h-screen bg-gray-50 focus:outline-none"
+          className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 min-h-screen bg-surface-muted focus:outline-none"
         >
           {children}
         </main>

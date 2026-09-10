@@ -96,7 +96,7 @@ export function BarcodeScanner({ onScan }: BarcodeScannerProps) {
               className="w-full rounded-lg overflow-hidden border"
             />
 
-            <div className="text-center text-sm text-gray-500">
+            <div className="text-center text-sm text-slate-500">
               Arahkan kamera ke barcode produk
             </div>
 

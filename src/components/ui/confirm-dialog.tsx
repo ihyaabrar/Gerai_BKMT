@@ -61,8 +61,8 @@ export function ConfirmDialog({
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <h2 className="text-base font-semibold text-gray-900">{judul}</h2>
-            <div className="text-sm text-gray-500 mt-1 break-words">{pesan}</div>
+            <h2 className="text-base font-semibold text-brand-900">{judul}</h2>
+            <div className="text-sm text-slate-500 mt-1 break-words">{pesan}</div>
           </div>
         </div>
 

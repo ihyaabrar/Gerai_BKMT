@@ -75,13 +75,13 @@ export default function AdminDashboard() {
       {/* Header */}
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <p className="text-gray-500 text-sm">Selamat datang kembali,</p>
-          <h1 className="text-2xl font-bold text-gray-900 mt-0.5">{user?.nama || "Admin"} 👋</h1>
+          <p className="text-slate-500 text-sm">Selamat datang kembali,</p>
+          <h1 className="text-2xl font-bold text-brand-900 mt-0.5">{user?.nama || "Admin"} 👋</h1>
         </div>
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-2 text-sm text-emerald-600 hover:text-emerald-700 font-medium bg-emerald-50 px-4 py-2 rounded-xl border border-emerald-100 transition-colors"
+          className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium bg-brand-50 px-4 py-2 rounded-xl border border-brand-100 transition-colors"
         >
           <TrendingUp className="h-4 w-4" />
           Lihat Halaman Publik
@@ -91,8 +91,8 @@ export default function AdminDashboard() {
       {/* Progress */}
       <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-3">
-          <p className="text-sm font-semibold text-gray-700">Kelengkapan Konten</p>
-          <span className="text-sm font-bold text-emerald-600">{completedCount}/4 selesai</span>
+          <p className="text-sm font-semibold text-slate-700">Kelengkapan Konten</p>
+          <span className="text-sm font-bold text-brand-600">{completedCount}/4 selesai</span>
         </div>
         <div className="w-full bg-gray-100 rounded-full h-2.5">
           <div
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
           />
         </div>
         {completedCount < 4 && (
-          <p className="text-xs text-gray-400 mt-2">
+          <p className="text-xs text-slate-400 mt-2">
             Lengkapi semua konten agar halaman publik tampil sempurna
           </p>
         )}
@@ -126,15 +126,15 @@ export default function AdminDashboard() {
                   : <AlertCircle className="h-5 w-5 text-amber-400" />
                 }
               </div>
-              <h3 className="font-bold text-gray-900 mb-1">{card.label}</h3>
-              <p className="text-gray-500 text-sm mb-4">{card.desc}</p>
+              <h3 className="font-bold text-brand-900 mb-1">{card.label}</h3>
+              <p className="text-slate-500 text-sm mb-4">{card.desc}</p>
               <div className="flex items-center justify-between">
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${
                   card.ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"
                 }`}>
                   {card.status}
                 </span>
-                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-gray-600 group-hover:translate-x-1 transition-all" />
+                <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
               </div>
             </Link>
           );

@@ -202,7 +202,7 @@ export default function BarangMasukPage() {
         <h1 className="text-2xl sm:text-3xl font-bold">
           Barang Masuk
         </h1>
-        <p className="text-gray-600 mt-2">Tambah stok barang yang sudah ada atau tambah produk baru</p>
+        <p className="text-slate-600 mt-2">Tambah stok barang yang sudah ada atau tambah produk baru</p>
       </div>
 
       {/* Mode Selector */}
@@ -244,7 +244,7 @@ export default function BarangMasukPage() {
                 Pilih Barang
               </CardTitle>
               <div className="relative mt-4">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
                 <Input aria-label="Cari barang..."
                   placeholder="Cari barang..."
                   value={search}
@@ -270,21 +270,21 @@ export default function BarangMasukPage() {
                   >
                     <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
-                        <p className="font-bold text-gray-900">{barang.nama}</p>
-                        <p className="text-sm text-gray-500">{barang.kode} • {barang.barcode}</p>
-                        <p className="text-xs text-gray-400 mt-1">{barang.kategori}</p>
+                        <p className="font-bold text-brand-900">{barang.nama}</p>
+                        <p className="text-sm text-slate-500">{barang.kode} • {barang.barcode}</p>
+                        <p className="text-xs text-slate-400 mt-1">{barang.kategori}</p>
                       </div>
                       <div className="text-right">
                         <Badge variant={barang.stok <= barang.stokMinimum ? "destructive" : "outline"}>
                           Stok: {barang.stok} {barang.satuan}
                         </Badge>
-                        <p className="text-sm text-gray-600 mt-1">{formatRupiah(barang.hargaBeli)}</p>
+                        <p className="text-sm text-slate-600 mt-1">{formatRupiah(barang.hargaBeli)}</p>
                       </div>
                     </div>
                   </div>
                 ))}
                 {filteredBarang.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-slate-500">
                     {search ? "Tidak ada barang yang cocok" : "Belum ada barang"}
                   </div>
                 )}
@@ -305,23 +305,23 @@ export default function BarangMasukPage() {
             <CardContent>
               {selectedBarang ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                    <p className="font-bold text-gray-900 mb-1">{selectedBarang.nama}</p>
-                    <p className="text-sm text-gray-600">{selectedBarang.kode}</p>
-                    <div className="mt-3 pt-3 border-t border-blue-200">
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-brand-200">
+                    <p className="font-bold text-brand-900 mb-1">{selectedBarang.nama}</p>
+                    <p className="text-sm text-slate-600">{selectedBarang.kode}</p>
+                    <div className="mt-3 pt-3 border-t border-brand-200">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600">Stok Saat Ini:</span>
+                        <span className="text-slate-600">Stok Saat Ini:</span>
                         <span className="font-semibold">{selectedBarang.stok} {selectedBarang.satuan}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Harga Beli:</span>
+                        <span className="text-slate-600">Harga Beli:</span>
                         <span className="font-semibold">{formatRupiah(selectedBarang.hargaBeli)}</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700" htmlFor="jumlah-masuk">Jumlah Masuk</label>
+                    <label className="text-sm font-medium text-slate-700" htmlFor="jumlah-masuk">Jumlah Masuk</label>
                     <Input id="jumlah-masuk"
                       type="number"
                       value={jumlahMasuk}
@@ -339,9 +339,9 @@ export default function BarangMasukPage() {
                       id="updateHargaBeli"
                       checked={updateHargaBeli}
                       onChange={(e) => setUpdateHargaBeli(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                      className="w-4 h-4 text-brand-600 rounded focus:ring-blue-500"
                     />
-                    <label htmlFor="updateHargaBeli" className="text-sm font-medium text-gray-700 cursor-pointer">
+                    <label htmlFor="updateHargaBeli" className="text-sm font-medium text-slate-700 cursor-pointer">
                       Update Harga Beli
                     </label>
                   </div>
@@ -349,7 +349,7 @@ export default function BarangMasukPage() {
                   {/* Input Harga Beli Baru */}
                   {updateHargaBeli && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700" htmlFor="harga-beli-baru">Harga Beli Baru</label>
+                      <label className="text-sm font-medium text-slate-700" htmlFor="harga-beli-baru">Harga Beli Baru</label>
                       <Input id="harga-beli-baru"
                         type="number"
                         value={hargaBeliBaru}
@@ -364,9 +364,9 @@ export default function BarangMasukPage() {
                   {/* Preview */}
                   {jumlahMasuk && parseInt(jumlahMasuk) > 0 && (
                     <div className="space-y-2">
-                      <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                        <p className="text-sm text-gray-600 mb-1">Stok Setelah Update:</p>
-                        <p className="text-2xl font-bold text-emerald-600">
+                      <div className="p-3 bg-brand-50 rounded-lg border border-brand-200">
+                        <p className="text-sm text-slate-600 mb-1">Stok Setelah Update:</p>
+                        <p className="text-2xl font-bold text-brand-600">
                           {selectedBarang.stok + parseInt(jumlahMasuk)} {selectedBarang.satuan}
                         </p>
                       </div>
@@ -374,12 +374,12 @@ export default function BarangMasukPage() {
                       <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                         <div className="flex items-center gap-2 mb-1">
                           <DollarSign className="h-4 w-4 text-amber-600" />
-                          <p className="text-sm font-medium text-gray-700">Total Pengeluaran:</p>
+                          <p className="text-sm font-medium text-slate-700">Total Pengeluaran:</p>
                         </div>
                         <p className="text-xl font-bold text-amber-600">
                           {formatRupiah(calculateTotalPengeluaran())}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-slate-500 mt-1">
                           {parseInt(jumlahMasuk)} × {formatRupiah(updateHargaBeli && hargaBeliBaru ? parseFloat(hargaBeliBaru) : selectedBarang.hargaBeli)}
                         </p>
                       </div>
@@ -396,7 +396,7 @@ export default function BarangMasukPage() {
                   </Button>
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-slate-500">
                   <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                   <p>Pilih barang dari daftar</p>
                 </div>
@@ -421,7 +421,7 @@ export default function BarangMasukPage() {
             <form onSubmit={handleTambahBaru} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="kode-barang">Kode Barang</label>
+                  <label className="text-sm font-medium text-slate-700" htmlFor="kode-barang">Kode Barang</label>
                   <Input id="kode-barang"
                     required
                     value={formBaru.kode}
@@ -431,7 +431,7 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label htmlFor="barang-barcode" className="text-sm font-medium text-gray-700">Barcode</label>
+                  <label htmlFor="barang-barcode" className="text-sm font-medium text-slate-700">Barcode</label>
                   <div className="flex gap-2 mt-1">
                     <Input
                       id="barang-barcode"
@@ -447,7 +447,7 @@ export default function BarangMasukPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700" htmlFor="nama-barang">Nama Barang</label>
+                <label className="text-sm font-medium text-slate-700" htmlFor="nama-barang">Nama Barang</label>
                 <Input id="nama-barang"
                   required
                   value={formBaru.nama}
@@ -458,7 +458,7 @@ export default function BarangMasukPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700" htmlFor="kategori">Kategori</label>
+                <label className="text-sm font-medium text-slate-700" htmlFor="kategori">Kategori</label>
                 <select id="kategori"
                   value={formBaru.kategori}
                   onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
@@ -478,7 +478,7 @@ export default function BarangMasukPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="harga-beli">Harga Beli</label>
+                  <label className="text-sm font-medium text-slate-700" htmlFor="harga-beli">Harga Beli</label>
                   <Input id="harga-beli"
                     required
                     type="number"
@@ -489,7 +489,7 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="harga-jual">Harga Jual</label>
+                  <label className="text-sm font-medium text-slate-700" htmlFor="harga-jual">Harga Jual</label>
                   <Input id="harga-jual"
                     required
                     type="number"
@@ -503,7 +503,7 @@ export default function BarangMasukPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="stok-awal">Stok Awal</label>
+                  <label className="text-sm font-medium text-slate-700" htmlFor="stok-awal">Stok Awal</label>
                   <Input id="stok-awal"
                     required
                     type="number"
@@ -514,7 +514,7 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="stok-minimum">Stok Minimum</label>
+                  <label className="text-sm font-medium text-slate-700" htmlFor="stok-minimum">Stok Minimum</label>
                   <Input id="stok-minimum"
                     required
                     type="number"
@@ -525,7 +525,7 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700" htmlFor="satuan">Satuan</label>
+                  <label className="text-sm font-medium text-slate-700" htmlFor="satuan">Satuan</label>
                   <Input id="satuan"
                     required
                     value={formBaru.satuan}
@@ -541,12 +541,12 @@ export default function BarangMasukPage() {
                 <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="h-5 w-5 text-amber-600" />
-                    <p className="text-sm font-semibold text-gray-700">Total Pengeluaran:</p>
+                    <p className="text-sm font-semibold text-slate-700">Total Pengeluaran:</p>
                   </div>
                   <p className="text-2xl font-bold text-amber-600">
                     {formatRupiah(parseInt(formBaru.stok || "0") * parseFloat(formBaru.hargaBeli || "0"))}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     {formBaru.stok} {formBaru.satuan} × {formatRupiah(parseFloat(formBaru.hargaBeli || "0"))}
                   </p>
                 </div>

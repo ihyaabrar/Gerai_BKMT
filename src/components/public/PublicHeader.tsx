@@ -102,7 +102,7 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
             <a
               key={link.href}
               href={link.href}
-              className="block px-4 py-3 rounded-xl text-sm font-medium text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 transition-colors"
+              className="block px-4 py-3 rounded-xl text-sm font-medium text-slate-700 hover:bg-brand-50 hover:text-brand-700 transition-colors"
               onClick={() => setMenuOpen(false)}
             >
               {link.label}

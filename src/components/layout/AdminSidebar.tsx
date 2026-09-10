@@ -47,12 +47,12 @@ export function AdminSidebar() {
         {/* Header */}
         <div className="p-5 border-b border-gray-800">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-xs text-gray-500 uppercase tracking-widest mb-1">Admin Panel</p>
+            <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Admin Panel</p>
             <button
               type="button"
               onClick={close}
               aria-label="Tutup menu navigasi"
-              className="lg:hidden p-2 -mt-2 -mr-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+              className="lg:hidden p-2 -mt-2 -mr-2 rounded-lg text-slate-400 hover:bg-gray-800 hover:text-white transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
@@ -74,7 +74,7 @@ export function AdminSidebar() {
             </div>
             <div className="min-w-0">
               <p className="font-semibold text-xs text-white truncate">{user.nama}</p>
-              <p className="text-xs text-gray-400 capitalize">{user.role}</p>
+              <p className="text-xs text-slate-400 capitalize">{user.role}</p>
             </div>
           </div>
         </div>
@@ -105,17 +105,17 @@ export function AdminSidebar() {
 
       {/* Footer */}
       <div className="px-3 pb-4 space-y-0.5 border-t border-gray-800 pt-3">
-        <Link href="/app" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-gray-800 hover:text-white transition-colors">
+        <Link href="/app" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-slate-500 hover:bg-gray-800 hover:text-white transition-colors">
           <ShoppingCart className="h-4 w-4" />
           Ke Sistem Kasir
         </Link>
-        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-gray-800 hover:text-white transition-colors">
+        <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-slate-500 hover:bg-gray-800 hover:text-white transition-colors">
           <Globe className="h-4 w-4" />
           Lihat Profil Publik
         </Link>
         <button
           onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-gray-500 hover:bg-red-900/30 hover:text-red-400 transition-colors"
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs text-slate-500 hover:bg-red-900/30 hover:text-red-400 transition-colors"
         >
           <LogOut className="h-4 w-4" />
           Logout

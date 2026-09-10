@@ -20,18 +20,18 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
   const adaPendamping = rest.length > 0;
 
   return (
-    <section id="berita" className="py-20 px-6 bg-gray-50">
+    <section id="berita" className="py-20 px-6 bg-surface-muted">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
           <div>
-            <span className="text-emerald-600 text-sm font-semibold uppercase tracking-widest">Informasi</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Berita & Pengumuman</h2>
+            <span className="text-brand-600 text-sm font-semibold uppercase tracking-widest">Informasi</span>
+            <h2 className="text-3xl md:text-4xl font-bold text-brand-900 mt-2">Berita & Pengumuman</h2>
           </div>
           {beritaList.length > 1 && (
             <Link
               href={`/berita/${featured.slug}`}
-              className="flex items-center gap-2 text-emerald-600 font-medium text-sm hover:text-emerald-700 transition-colors shrink-0"
+              className="flex items-center gap-2 text-brand-600 font-medium text-sm hover:text-brand-700 transition-colors shrink-0"
             >
               Baca berita terbaru <ArrowRight className="h-4 w-4" />
             </Link>
@@ -43,7 +43,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
             <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Newspaper className="h-10 w-10 text-gray-300" />
             </div>
-            <p className="text-gray-400 text-lg font-medium">Belum ada berita</p>
+            <p className="text-slate-400 text-lg font-medium">Belum ada berita</p>
             <p className="text-gray-300 text-sm mt-1">Berita akan segera hadir</p>
           </div>
         ) : (
@@ -76,7 +76,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                   )}
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-6">
-                    <span className="inline-block bg-emerald-500 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">
+                    <span className="inline-block bg-brand-500 text-white text-xs font-semibold px-3 py-1 rounded-full mb-3">
                       Terbaru
                     </span>
                     <h3 className="text-white font-bold text-xl leading-tight line-clamp-2 mb-2">
@@ -89,7 +89,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                           ? format(new Date(featured.tanggalPublikasi), "d MMM yyyy", { locale: id })
                           : "-"}
                       </span>
-                      <span className="flex items-center gap-1 text-emerald-300 font-medium group-hover:gap-2 transition-all">
+                      <span className="flex items-center gap-1 text-brand-300 font-medium group-hover:gap-2 transition-all">
                         Baca selengkapnya <ArrowUpRight className="h-3 w-3" />
                       </span>
                     </div>
@@ -116,15 +116,15 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-emerald-100 to-teal-100 flex items-center justify-center">
-                        <Newspaper className="h-6 w-6 text-emerald-400" />
+                        <Newspaper className="h-6 w-6 text-brand-400" />
                       </div>
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-gray-900 text-sm line-clamp-2 group-hover:text-emerald-700 transition-colors leading-snug">
+                    <h3 className="font-semibold text-brand-900 text-sm line-clamp-2 group-hover:text-brand-700 transition-colors leading-snug">
                       {berita.judul}
                     </h3>
-                    <p className="text-gray-400 text-xs mt-2 flex items-center gap-1">
+                    <p className="text-slate-400 text-xs mt-2 flex items-center gap-1">
                       <Calendar className="h-3 w-3" />
                       {berita.tanggalPublikasi
                         ? format(new Date(berita.tanggalPublikasi), "d MMM yyyy", { locale: id })

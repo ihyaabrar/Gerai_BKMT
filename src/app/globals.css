@@ -5,25 +5,26 @@
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 158 45% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 158 45% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 142.1 76.2% 36.3%;
-    --primary-foreground: 355.7 100% 97.3%;
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 142.1 76.2% 36.3%;
-    --radius: 0.5rem;
+    --popover-foreground: 158 45% 12%;
+    /* brand-600 — dipakai untuk semua aksi utama */
+    --primary: 155 61% 30%;
+    --primary-foreground: 150 60% 97%;
+    --secondary: 150 30% 96%;
+    --secondary-foreground: 158 45% 16%;
+    --muted: 150 25% 96%;
+    --muted-foreground: 158 12% 42%;
+    --accent: 150 40% 94%;
+    --accent-foreground: 158 45% 16%;
+    --destructive: 0 72% 48%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 150 20% 89%;
+    --input: 150 20% 89%;
+    --ring: 155 61% 30%;
+    --radius: 0.75rem;
   }
 }
 
@@ -32,7 +33,11 @@
     @apply border-border;
   }
   body {
-    @apply bg-white text-foreground;
+    @apply bg-surface-muted text-foreground;
+  }
+  /* Judul halaman publik memakai serif; antarmuka aplikasi tetap sans. */
+  .font-display {
+    letter-spacing: -0.015em;
   }
 }
 

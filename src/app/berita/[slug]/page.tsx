@@ -20,7 +20,7 @@ export default async function BeritaDetailPage({ params }: Props) {
   if (!berita) notFound();
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-surface-muted">
       {/* Header sederhana */}
       <header className="bg-emerald-800 text-white py-4 px-4">
         <div className="max-w-3xl mx-auto flex items-center gap-4">
@@ -40,11 +40,11 @@ export default async function BeritaDetailPage({ params }: Props) {
           />
         )}
 
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
+        <h1 className="text-3xl md:text-4xl font-bold text-brand-900 mb-4 leading-tight">
           {berita.judul}
         </h1>
 
-        <div className="flex items-center gap-4 text-sm text-gray-500 mb-8 pb-6 border-b border-gray-200">
+        <div className="flex items-center gap-4 text-sm text-slate-500 mb-8 pb-6 border-b border-gray-200">
           {berita.tanggalPublikasi && (
             <span className="flex items-center gap-1.5">
               <Calendar className="h-4 w-4" />
@@ -59,7 +59,7 @@ export default async function BeritaDetailPage({ params }: Props) {
           )}
         </div>
 
-        <div className="prose prose-emerald max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
+        <div className="prose prose-emerald max-w-none text-slate-700 leading-relaxed whitespace-pre-line">
           {/* Konten ditampilkan sebagai plain text — aman dari XSS */}
           {berita.konten}
         </div>
@@ -67,7 +67,7 @@ export default async function BeritaDetailPage({ params }: Props) {
         <div className="mt-10 pt-6 border-t border-gray-200">
           <Link
             href="/#berita"
-            className="inline-flex items-center gap-2 text-emerald-700 hover:text-emerald-800 font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-brand-700 hover:text-brand-800 font-medium transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
             Lihat berita lainnya

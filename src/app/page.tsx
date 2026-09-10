@@ -52,12 +52,12 @@ export default async function PublicProfilePage() {
         <GeraiSection gerai={gerai} />
       </main>
 
-      <footer className="bg-gray-900 text-gray-400 py-12 px-6">
+      <footer className="bg-gray-900 text-slate-400 py-12 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
             <div>
               <h3 className="text-white font-bold text-lg mb-3">{profil?.singkatan || "PD BKMT"}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed">
+              <p className="text-slate-500 text-sm leading-relaxed">
                 {profil?.deskripsi || "Pimpinan Daerah Badan Kontak Majelis Taklim Kabupaten Kubu Raya"}
               </p>
             </div>
@@ -65,7 +65,7 @@ export default async function PublicProfilePage() {
               <h4 className="text-white font-semibold mb-3">Navigasi</h4>
               <div className="space-y-2">
                 {["#beranda", "#profil", "#berita", "#pengurus", "#gerai"].map((href, i) => (
-                  <a key={href} href={href} className="block text-gray-500 hover:text-emerald-400 text-sm transition-colors">
+                  <a key={href} href={href} className="block text-slate-500 hover:text-brand-400 text-sm transition-colors">
                     {["Beranda", "Profil", "Berita", "Pengurus", "Gerai"][i]}
                   </a>
                 ))}
@@ -73,7 +73,7 @@ export default async function PublicProfilePage() {
             </div>
             <div>
               <h4 className="text-white font-semibold mb-3">Kontak</h4>
-              <div className="space-y-2 text-sm text-gray-500">
+              <div className="space-y-2 text-sm text-slate-500">
                 {profil?.alamat && <p>{profil.alamat}</p>}
                 {profil?.telepon && <p>{profil.telepon}</p>}
                 {profil?.email && <p>{profil.email}</p>}
@@ -81,8 +81,8 @@ export default async function PublicProfilePage() {
             </div>
           </div>
           <div className="border-t border-gray-800 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p className="text-gray-600 text-sm">© {new Date().getFullYear()} PD BKMT Kabupaten Kubu Raya</p>
-            <a href="/login" className="text-emerald-500 hover:text-emerald-400 text-sm transition-colors">
+            <p className="text-slate-600 text-sm">© {new Date().getFullYear()} PD BKMT Kabupaten Kubu Raya</p>
+            <a href="/login" className="text-emerald-500 hover:text-brand-400 text-sm transition-colors">
               Login Kasir →
             </a>
           </div>

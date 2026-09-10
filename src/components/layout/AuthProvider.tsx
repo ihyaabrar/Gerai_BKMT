@@ -36,8 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   if (status !== "authenticated") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <Loader2 className="h-6 w-6 animate-spin text-emerald-600" />
+      <div className="min-h-screen flex items-center justify-center bg-surface-muted">
+        <Loader2 className="h-6 w-6 animate-spin text-brand-600" />
       </div>
     );
   }

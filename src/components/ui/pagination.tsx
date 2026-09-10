@@ -52,7 +52,7 @@ export function Pagination({
 
   return (
     <div className="flex items-center justify-between px-4 py-3 border-t">
-      <div className="text-sm text-gray-700">
+      <div className="text-sm text-slate-700">
         Menampilkan <span className="font-medium">{startItem}</span> sampai{" "}
         <span className="font-medium">{endItem}</span> dari{" "}
         <span className="font-medium">{totalItems}</span> data

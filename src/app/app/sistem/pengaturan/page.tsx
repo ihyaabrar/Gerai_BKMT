@@ -244,7 +244,7 @@ export default function PengaturanPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Pengaturan</h1>
-        <p className="text-gray-500">Konfigurasi sistem</p>
+        <p className="text-slate-500">Konfigurasi sistem</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
@@ -305,7 +305,7 @@ export default function PengaturanPage() {
             }`}>
               Total persentase: {totalPersen}% {totalPersen === 100 ? "✓" : "(harus 100%)"}
             </div>
-            <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700"
+            <Button type="submit" className="w-full"
               size="lg" disabled={saving || totalPersen !== 100}>
               <Save className="h-4 w-4 mr-2" />
               {saving ? "Menyimpan..." : "Simpan Pengaturan"}
@@ -318,7 +318,7 @@ export default function PengaturanPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-blue-600" />
+            <Tag className="h-5 w-5 text-brand-600" />
             Kategori Barang
           </CardTitle>
         </CardHeader>
@@ -341,12 +341,12 @@ export default function PengaturanPage() {
             </Button>
           </div>
           {kategoriBarang.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">Belum ada kategori barang</p>
+            <p className="text-sm text-slate-400 text-center py-4">Belum ada kategori barang</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {kategoriBarang.map((k) => (
                 <div key={k.id}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-sm text-blue-800">
+                  className="flex items-center gap-1 px-3 py-1.5 bg-brand-50 border border-brand-200 rounded-full text-sm text-brand-800">
                   <span>{k.nama}</span>
                   <button
                     aria-label={`Hapus kategori ${k.nama}`}
@@ -389,7 +389,7 @@ export default function PengaturanPage() {
             </Button>
           </div>
           {kategoriPengeluaran.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-4">Belum ada kategori pengeluaran</p>
+            <p className="text-sm text-slate-400 text-center py-4">Belum ada kategori pengeluaran</p>
           ) : (
             <div className="flex flex-wrap gap-2">
               {kategoriPengeluaran.map((k) => (

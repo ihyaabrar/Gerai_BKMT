@@ -36,7 +36,7 @@ export default function Dashboard() {
         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent">
           Dashboard
         </h1>
-        <p className="text-gray-500 mt-1">Ringkasan aktivitas toko hari ini</p>
+        <p className="text-slate-500 mt-1">Ringkasan aktivitas toko hari ini</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -49,7 +49,7 @@ export default function Dashboard() {
           <Card key={card.title} className="relative overflow-hidden hover-lift border-0 shadow-md">
             <div className={`absolute top-0 right-0 w-24 h-24 bg-gradient-to-br ${card.gradient} opacity-10 rounded-full -mr-12 -mt-12`} />
             <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-              <CardTitle className="text-sm font-medium text-gray-500">{card.title}</CardTitle>
+              <CardTitle className="text-sm font-medium text-slate-500">{card.title}</CardTitle>
               <div className={`p-2 rounded-lg bg-gradient-to-br ${card.gradient}`}>
                 <card.icon className="h-4 w-4 text-white" />
               </div>
@@ -58,7 +58,7 @@ export default function Dashboard() {
               <div className={`text-2xl font-bold ${(card as any).warn ? "text-amber-600" : "text-gray-900"}`}>
                 {card.value}
               </div>
-              <p className="text-xs text-gray-400 mt-1">{card.sub}</p>
+              <p className="text-xs text-slate-400 mt-1">{card.sub}</p>
             </CardContent>
           </Card>
         ))}
@@ -73,10 +73,10 @@ export default function Dashboard() {
             Grafik Penjualan & Laba — 12 Bulan Terakhir
           </CardTitle>
           <div className="flex items-center gap-4 mt-1">
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
-              <div className="w-3 h-3 rounded-sm bg-emerald-500" /> Penjualan
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
+              <div className="w-3 h-3 rounded-sm bg-brand-500" /> Penjualan
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-gray-500">
+            <div className="flex items-center gap-1.5 text-xs text-slate-500">
               <div className="w-3 h-3 rounded-sm bg-indigo-500" /> Laba
             </div>
           </div>
@@ -98,27 +98,27 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {data.transaksiTerbaru.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-slate-400">
                 <Clock className="h-10 w-10 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Belum ada transaksi</p>
               </div>
             ) : (
               <div className="space-y-2">
                 {data.transaksiTerbaru.map((t: any, idx: number) => (
-                  <div key={t.id} className="flex justify-between items-center p-3 rounded-lg hover:bg-gray-50 transition-colors border border-gray-100">
+                  <div key={t.id} className="flex justify-between items-center p-3 rounded-lg hover:bg-surface-muted transition-colors border border-gray-100">
                     <div className="flex items-center gap-3">
                       <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white text-xs font-semibold shrink-0">
                         {idx + 1}
                       </div>
                       <div>
-                        <p className="font-medium text-sm text-gray-900">{t.nomorTransaksi}</p>
-                        <p className="text-xs text-gray-400">
+                        <p className="font-medium text-sm text-brand-900">{t.nomorTransaksi}</p>
+                        <p className="text-xs text-slate-400">
                           {t.member?.nama || "Umum"} · {new Date(t.tanggal).toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-emerald-600 text-sm">{formatRupiah(t.total)}</p>
+                      <p className="font-bold text-brand-600 text-sm">{formatRupiah(t.total)}</p>
                       <Badge variant="outline" className="text-xs mt-0.5">{t.metodeBayar}</Badge>
                     </div>
                   </div>
@@ -139,7 +139,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent>
             {data.produkTerlaris.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
+              <div className="text-center py-8 text-slate-400">
                 <Award className="h-10 w-10 mx-auto mb-2 opacity-30" />
                 <p className="text-sm">Belum ada data</p>
               </div>
@@ -151,8 +151,8 @@ export default function Dashboard() {
                       {idx + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm text-gray-900 truncate">{p.nama}</p>
-                      <p className="text-xs text-gray-400">{formatRupiah(p.hargaJual)}</p>
+                      <p className="font-medium text-sm text-brand-900 truncate">{p.nama}</p>
+                      <p className="text-xs text-slate-400">{formatRupiah(p.hargaJual)}</p>
                     </div>
                     <Badge className="bg-amber-100 text-amber-700 border-0 text-xs shrink-0">
                       {p.totalTerjual} terjual

@@ -46,7 +46,7 @@ export default function AdminProfilPage() {
     const id = `profil-${String(key)}`;
     return (
       <div key={key}>
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={id} className="block text-sm font-medium text-slate-700">
           {label}
         </label>
         {multiline ? (
@@ -75,10 +75,10 @@ export default function AdminProfilPage() {
   return (
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
-        <Building2 className="h-7 w-7 text-emerald-600" />
+        <Building2 className="h-7 w-7 text-brand-600" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Profil Organisasi</h1>
-          <p className="text-gray-500 text-sm">Informasi identitas PD BKMT Kubu Raya</p>
+          <h1 className="text-2xl font-bold text-brand-900">Profil Organisasi</h1>
+          <p className="text-slate-500 text-sm">Informasi identitas PD BKMT Kubu Raya</p>
         </div>
       </div>
 
@@ -93,13 +93,13 @@ export default function AdminProfilPage() {
         {field("Sejarah", "sejarah", "text", true)}
 
         <hr className="border-gray-200" />
-        <p className="text-sm font-semibold text-gray-700">Kontak & Media Sosial</p>
+        <p className="text-sm font-semibold text-slate-700">Kontak & Media Sosial</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {field("Email", "email", "email")}
           {field("Telepon", "telepon")}
           {field("Alamat", "alamat")}
           <div>
-            <p className="text-sm font-medium text-gray-700">Logo Organisasi</p>
+            <p className="text-sm font-medium text-slate-700">Logo Organisasi</p>
             <div className="mt-1">
               <ImageUpload
                 value={form.logoUrl}
@@ -117,7 +117,7 @@ export default function AdminProfilPage() {
           {field("Website", "website")}
         </div>
 
-        <Button type="submit" disabled={saving} className="w-full bg-emerald-600 hover:bg-emerald-700">
+        <Button type="submit" disabled={saving} className="w-full">
           <Save className="h-4 w-4 mr-2" />
           {saving ? "Menyimpan..." : "Simpan Profil"}
         </Button>

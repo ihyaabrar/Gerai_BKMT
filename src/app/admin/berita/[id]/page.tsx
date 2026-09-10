@@ -49,25 +49,25 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/admin/berita"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /></Button></Link>
-        <h1 className="text-2xl font-bold text-gray-900">Edit Berita</h1>
+        <h1 className="text-2xl font-bold text-brand-900">Edit Berita</h1>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="judul">Judul *</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="judul">Judul *</label>
           <Input id="judul" value={form.judul} onChange={(e) => setForm({ ...form, judul: e.target.value })} className="mt-1" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="ringkasan">Ringkasan</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="ringkasan">Ringkasan</label>
           <textarea id="ringkasan" value={form.ringkasan} onChange={(e) => setForm({ ...form, ringkasan: e.target.value })} rows={2}
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="konten">Konten *</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="konten">Konten *</label>
           <textarea id="konten" value={form.konten} onChange={(e) => setForm({ ...form, konten: e.target.value })} rows={10}
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <p className="text-sm font-medium text-gray-700">Gambar Berita</p>
+          <p className="text-sm font-medium text-slate-700">Gambar Berita</p>
           <div className="mt-1">
             <ImageUpload
               value={form.gambarUrl}
@@ -80,7 +80,7 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
           </div>
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="status">Status</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="status">Status</label>
           <select id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}
             className="mt-1 flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="draft">Draft</option>

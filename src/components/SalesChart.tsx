@@ -30,11 +30,11 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
     <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
-      <p className="font-semibold text-gray-700 mb-2">{label}</p>
+      <p className="font-semibold text-slate-700 mb-2">{label}</p>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center gap-2">
           <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.fill }} />
-          <span className="text-gray-500">{p.name}:</span>
+          <span className="text-slate-500">{p.name}:</span>
           <span className="font-medium">
             {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.value)}
           </span>
@@ -47,7 +47,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 export function SalesChart({ data }: SalesChartProps) {
   if (data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400 text-sm">
+      <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
         Belum ada data penjualan
       </div>
     );

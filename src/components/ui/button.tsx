@@ -2,36 +2,39 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link" | "gold";
   size?: "default" | "sm" | "lg" | "icon";
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
-    // ring-emerald-500 disetel eksplisit; tanpa ini Tailwind memakai warna
-    // ring bawaannya (biru) yang bertabrakan dengan identitas emerald.
     const baseStyles =
-      "inline-flex items-center justify-center rounded-md font-medium transition-colors " +
-      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 " +
+      "inline-flex items-center justify-center gap-2 rounded-xl font-semibold " +
+      "transition-all duration-150 active:scale-[0.98] " +
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 " +
       "focus-visible:ring-offset-2 focus-visible:ring-offset-white " +
       "disabled:pointer-events-none disabled:opacity-50";
-    
+
     const variants = {
-      default: "bg-emerald-600 text-white hover:bg-emerald-700",
-      destructive: "bg-red-600 text-white hover:bg-red-700",
-      outline: "border border-gray-300 bg-white hover:bg-gray-100",
-      secondary: "bg-gray-200 text-gray-900 hover:bg-gray-300",
-      ghost: "hover:bg-gray-100",
-      link: "text-emerald-600 underline-offset-4 hover:underline",
+      // Aksi utama: gradien hijau seperti pada desain
+      default:
+        "bg-brand-action text-white shadow-sm hover:brightness-110 hover:shadow-card",
+      destructive: "bg-red-600 text-white shadow-sm hover:bg-red-700",
+      outline:
+        "border border-brand-200 bg-white text-brand-800 hover:bg-brand-50 hover:border-brand-300",
+      secondary: "bg-brand-50 text-brand-800 hover:bg-brand-100",
+      ghost: "text-brand-800 hover:bg-brand-50",
+      link: "text-brand-600 underline-offset-4 hover:underline",
+      gold: "bg-gold-400 text-brand-950 shadow-sm hover:bg-gold-300",
     };
-    
+
     const sizes = {
-      default: "h-10 px-4 py-2",
-      sm: "h-9 rounded-md px-3",
-      lg: "h-11 rounded-md px-8",
-      icon: "h-10 w-10",
+      default: "h-10 px-4 text-sm",
+      sm: "h-9 rounded-lg px-3 text-sm",
+      lg: "h-12 px-6 text-base",
+      icon: "h-10 w-10 rounded-lg",
     };
-    
+
     return (
       <button
         className={cn(baseStyles, variants[variant], sizes[size], className)}

@@ -143,7 +143,7 @@ export default function PenjualanPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Riwayat Penjualan</h1>
-          <p className="text-gray-500">Data transaksi penjualan</p>
+          <p className="text-slate-500">Data transaksi penjualan</p>
         </div>
         <Button variant="outline"
           onClick={handleExportExcel}
@@ -162,7 +162,7 @@ export default function PenjualanPage() {
               Transaksi Terbaru
             </CardTitle>
             <div className="relative w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari transaksi..."
                 placeholder="Cari transaksi..."
                 value={search}
@@ -176,7 +176,7 @@ export default function PenjualanPage() {
           {loading ? (
             <TableSkeleton cols={7} />
           ) : penjualan.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               {search ? "Tidak ada data yang cocok" : "Belum ada transaksi"}
             </div>
           ) : (
@@ -196,7 +196,7 @@ export default function PenjualanPage() {
                   </thead>
                   <tbody>
                     {penjualan.map((p) => (
-                      <tr key={p.id} className="border-b hover:bg-gray-50">
+                      <tr key={p.id} className="border-b hover:bg-surface-muted">
                         <td className="py-3 px-4 font-medium">{p.nomorTransaksi}</td>
                         <td className="py-3 px-4">
                           {new Date(p.tanggal).toLocaleDateString("id-ID", {
@@ -209,14 +209,14 @@ export default function PenjualanPage() {
                         </td>
                         <td className="py-3 px-4">{p.member?.nama || "Umum"}</td>
                         <td className="py-3 px-4 text-right">{formatRupiah(p.subtotal)}</td>
-                        <td className="py-3 px-4 text-right text-emerald-600">
+                        <td className="py-3 px-4 text-right text-brand-600">
                           {p.diskon > 0 ? `-${formatRupiah(p.diskon)}` : "-"}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold">
                           {formatRupiah(p.total)}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                          <span className="px-2 py-1 bg-brand-100 text-brand-800 rounded-full text-xs font-medium">
                             {p.metodeBayar}
                           </span>
                         </td>

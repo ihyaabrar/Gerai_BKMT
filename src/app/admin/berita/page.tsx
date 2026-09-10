@@ -45,10 +45,10 @@ export default function AdminBeritaPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex items-center gap-3">
-          <FileText className="h-7 w-7 text-blue-600" />
+          <FileText className="h-7 w-7 text-brand-600" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Berita & Pengumuman</h1>
-            <p className="text-gray-500 text-sm">{beritaList.length} total berita</p>
+            <h1 className="text-2xl font-bold text-brand-900">Berita & Pengumuman</h1>
+            <p className="text-slate-500 text-sm">{beritaList.length} total berita</p>
           </div>
         </div>
         <Link href="/admin/berita/baru">
@@ -62,7 +62,7 @@ export default function AdminBeritaPage() {
         {loading ? (
           <TableSkeleton cols={4} />
         ) : beritaList.length === 0 ? (
-          <div className="text-center py-12 text-gray-400">
+          <div className="text-center py-12 text-slate-400">
             <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
             <p>Belum ada berita. Buat berita pertama!</p>
           </div>
@@ -70,20 +70,20 @@ export default function AdminBeritaPage() {
           // Tabel bisa di-scroll horizontal supaya tidak melebarkan halaman di HP
           <div className="overflow-x-auto">
           <table className="w-full min-w-[640px]">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-surface-muted border-b border-gray-200">
               <tr>
-                <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Judul</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-700">Status</th>
-                <th className="text-left px-4 py-3 text-sm font-semibold text-gray-700">Tanggal</th>
-                <th className="text-center px-4 py-3 text-sm font-semibold text-gray-700">Aksi</th>
+                <th className="text-left px-5 py-3 text-sm font-semibold text-slate-700">Judul</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">Status</th>
+                <th className="text-left px-4 py-3 text-sm font-semibold text-slate-700">Tanggal</th>
+                <th className="text-center px-4 py-3 text-sm font-semibold text-slate-700">Aksi</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {beritaList.map((b) => (
-                <tr key={b.id} className="hover:bg-gray-50">
+                <tr key={b.id} className="hover:bg-surface-muted">
                   <td className="px-5 py-4">
-                    <p className="font-medium text-gray-900 line-clamp-1">{b.judul}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">/berita/{b.slug}</p>
+                    <p className="font-medium text-brand-900 line-clamp-1">{b.judul}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">/berita/{b.slug}</p>
                   </td>
                   <td className="px-4 py-4 text-center">
                     <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium ${
@@ -93,13 +93,13 @@ export default function AdminBeritaPage() {
                       {b.status === "published" ? "Published" : "Draft"}
                     </span>
                   </td>
-                  <td className="px-4 py-4 text-sm text-gray-500">
+                  <td className="px-4 py-4 text-sm text-slate-500">
                     {b.tanggalPublikasi ? format(new Date(b.tanggalPublikasi), "d MMM yyyy") : "-"}
                   </td>
                   <td className="px-4 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <Link href={`/admin/berita/${b.id}`}>
-                        <Button aria-label="Edit" variant="ghost" size="sm"><Edit className="h-4 w-4 text-blue-600" /></Button>
+                        <Button aria-label="Edit" variant="ghost" size="sm"><Edit className="h-4 w-4 text-brand-600" /></Button>
                       </Link>
                       <Button aria-label={`Hapus ${b.judul}`} variant="ghost" size="sm" onClick={() => handleDelete(b.id, b.judul)}>
                         <Trash2 className="h-4 w-4 text-red-500" />

@@ -118,7 +118,7 @@ export default function SupplierPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Supplier</h1>
-          <p className="text-gray-500">Manajemen data pemasok barang</p>
+          <p className="text-slate-500">Manajemen data pemasok barang</p>
         </div>
         <Dialog
           open={open}
@@ -194,7 +194,7 @@ export default function SupplierPage() {
           {loading ? (
             <TableSkeleton cols={4} />
           ) : supplier.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <Truck className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>Belum ada supplier</p>
             </div>
@@ -214,10 +214,10 @@ export default function SupplierPage() {
                 </thead>
                 <tbody>
                   {supplier.map((s) => (
-                    <tr key={s.id} className="border-b hover:bg-gray-50">
+                    <tr key={s.id} className="border-b hover:bg-surface-muted">
                       <td className="py-3 px-4 font-medium">{s.nama}</td>
-                      <td className="py-3 px-4 text-gray-600">{s.telepon || "-"}</td>
-                      <td className="py-3 px-4 text-gray-600 max-w-[280px] truncate">
+                      <td className="py-3 px-4 text-slate-600">{s.telepon || "-"}</td>
+                      <td className="py-3 px-4 text-slate-600 max-w-[280px] truncate">
                         {s.alamat || "-"}
                       </td>
                       <td className="py-3 px-4">
@@ -228,7 +228,7 @@ export default function SupplierPage() {
                             aria-label={`Edit ${s.nama}`}
                             onClick={() => handleEdit(s)}
                           >
-                            <Edit className="h-4 w-4 text-gray-500" />
+                            <Edit className="h-4 w-4 text-slate-500" />
                           </Button>
                           <Button
                             variant="ghost"

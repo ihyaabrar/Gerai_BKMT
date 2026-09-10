@@ -65,7 +65,7 @@ export function HeroSection({ profil }: HeroSectionProps) {
                 {aksen && (
                   <>
                     {" "}
-                    <span className="text-emerald-300">{aksen}</span>
+                    <span className="text-brand-300">{aksen}</span>
                   </>
                 )}
               </>
@@ -87,7 +87,7 @@ export function HeroSection({ profil }: HeroSectionProps) {
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <a
             href="#profil"
-            className="px-8 py-3.5 bg-white text-emerald-800 rounded-full font-semibold text-sm shadow-xl hover:shadow-2xl hover:bg-emerald-50 transition-all"
+            className="px-8 py-3.5 bg-white text-brand-800 rounded-full font-semibold text-sm shadow-xl hover:shadow-2xl hover:bg-brand-50 transition-all"
           >
             Tentang Kami
           </a>
@@ -131,20 +131,20 @@ export function VisiMisiSection({ profil }: HeroSectionProps) {
     <section id="profil" className="py-20 px-6 bg-white">
       <div className="max-w-5xl mx-auto">
         <div className="text-center mb-14">
-          <span className="text-emerald-600 text-sm font-semibold uppercase tracking-widest">Tentang Kami</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Profil Organisasi</h2>
+          <span className="text-brand-600 text-sm font-semibold uppercase tracking-widest">Tentang Kami</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-brand-900 mt-2">Profil Organisasi</h2>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {profil?.visi && (
-            <div className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-100 rounded-2xl p-8 hover:shadow-lg transition-all">
+            <div className="group relative overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 border border-brand-100 rounded-2xl p-8 hover:shadow-lg transition-all">
               <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-200/30 rounded-full -translate-y-1/2 translate-x-1/2" />
               <div className="relative">
                 <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center mb-5 shadow-md">
                   <span className="text-white text-xl">🎯</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Visi</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">{profil.visi}</p>
+                <h3 className="text-xl font-bold text-brand-900 mb-3">Visi</h3>
+                <p className="text-slate-600 leading-relaxed text-sm">{profil.visi}</p>
               </div>
             </div>
           )}
@@ -155,20 +155,20 @@ export function VisiMisiSection({ profil }: HeroSectionProps) {
                 <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-500 rounded-xl flex items-center justify-center mb-5 shadow-md">
                   <span className="text-white text-xl">🚀</span>
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">Misi</h3>
-                <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-line">{profil.misi}</p>
+                <h3 className="text-xl font-bold text-brand-900 mb-3">Misi</h3>
+                <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-line">{profil.misi}</p>
               </div>
             </div>
           )}
         </div>
 
         {profil?.sejarah && (
-          <div className="mt-6 bg-gray-50 border border-gray-100 rounded-2xl p-8">
+          <div className="mt-6 bg-surface-muted border border-gray-100 rounded-2xl p-8">
             <div className="w-12 h-12 bg-gradient-to-br from-amber-500 to-orange-500 rounded-xl flex items-center justify-center mb-5 shadow-md">
               <span className="text-white text-xl">📜</span>
             </div>
-            <h3 className="text-xl font-bold text-gray-900 mb-3">Sejarah</h3>
-            <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-line">{profil.sejarah}</p>
+            <h3 className="text-xl font-bold text-brand-900 mb-3">Sejarah</h3>
+            <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-line">{profil.sejarah}</p>
           </div>
         )}
       </div>

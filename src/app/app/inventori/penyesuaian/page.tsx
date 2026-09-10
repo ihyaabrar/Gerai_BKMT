@@ -126,7 +126,7 @@ export default function PenyesuaianPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Penyesuaian Stok</h1>
-        <p className="text-gray-500">Stock opname dan koreksi stok</p>
+        <p className="text-slate-500">Stock opname dan koreksi stok</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -225,9 +225,9 @@ export default function PenyesuaianPage() {
                         ? "bg-red-50 border-red-200"
                         : "bg-blue-50 border-blue-200"
                     }`}>
-                      <p className="text-sm font-medium text-gray-700">Preview Stok</p>
+                      <p className="text-sm font-medium text-slate-700">Preview Stok</p>
                       <div className="flex justify-between mt-1 text-sm">
-                        <span className="text-gray-600">Stok saat ini: <strong>{selectedBarang.stok}</strong></span>
+                        <span className="text-slate-600">Stok saat ini: <strong>{selectedBarang.stok}</strong></span>
                         <span className={stokSetelah !== null && stokSetelah < 0 ? "text-red-600 font-bold" : "text-blue-700 font-bold"}>
                           Setelah: {stokSetelah}
                         </span>
@@ -240,7 +240,7 @@ export default function PenyesuaianPage() {
 
                   <Button
                     type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    className="w-full"
                     size="lg"
                     disabled={loading || (stokSetelah !== null && stokSetelah < 0)}
                   >
@@ -255,10 +255,10 @@ export default function PenyesuaianPage() {
                     <p className="text-sm font-semibold text-red-700 flex items-center gap-1">
                       <Trash2 className="h-4 w-4" /> Konfirmasi Hapus Barang
                     </p>
-                    <p className="text-sm text-gray-700 mt-1">
+                    <p className="text-sm text-slate-700 mt-1">
                       Barang <strong>{selectedBarang.nama}</strong> ({selectedBarang.kode}) akan dihapus dari sistem.
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Stok saat ini: {selectedBarang.stok}</p>
+                    <p className="text-xs text-slate-500 mt-1">Stok saat ini: {selectedBarang.stok}</p>
                   </div>
                   {!confirmHapus ? (
                     <Button
@@ -302,7 +302,7 @@ export default function PenyesuaianPage() {
           </CardHeader>
           <CardContent>
             {history.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-slate-500">
                 <ClipboardList className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                 <p>Belum ada riwayat penyesuaian</p>
               </div>
@@ -313,8 +313,8 @@ export default function PenyesuaianPage() {
                     <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
                         <p className="font-medium text-sm">{p.barang.nama}</p>
-                        <p className="text-xs text-gray-500">{p.barang.kode}</p>
-                        <p className="text-xs text-gray-500 mt-1">{p.alasan}</p>
+                        <p className="text-xs text-slate-500">{p.barang.kode}</p>
+                        <p className="text-xs text-slate-500 mt-1">{p.alasan}</p>
                       </div>
                       <div className="text-right">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -324,7 +324,7 @@ export default function PenyesuaianPage() {
                         }`}>
                           {p.jenis === "masuk" ? `+${p.qty}` : `-${p.qty}`}
                         </span>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-slate-400 mt-1">
                           {format(new Date(p.tanggal), "dd/MM/yy HH:mm")}
                         </p>
                       </div>

@@ -64,7 +64,7 @@ export default function StokPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Stok Barang</h1>
-        <p className="text-gray-500">Monitoring inventori real-time</p>
+        <p className="text-slate-500">Monitoring inventori real-time</p>
       </div>
 
       {/* Alert stok rendah/habis */}
@@ -95,8 +95,8 @@ export default function StokPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Barang</CardTitle>
-            <Package className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-slate-600">Total Barang</CardTitle>
+            <Package className="h-5 w-5 text-brand-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{barang.length}</div>
@@ -104,20 +104,20 @@ export default function StokPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Stok Rendah / Habis</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Stok Rendah / Habis</CardTitle>
             <AlertTriangle className="h-5 w-5 text-amber-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">
               {stokRendah.length + stokHabis.length}
             </div>
-            <p className="text-xs text-gray-400 mt-1">{stokHabis.length} habis · {stokRendah.length} rendah</p>
+            <p className="text-xs text-slate-400 mt-1">{stokHabis.length} habis · {stokRendah.length} rendah</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Nilai Inventori</CardTitle>
-            <Package className="h-5 w-5 text-emerald-600" />
+            <CardTitle className="text-sm font-medium text-slate-600">Nilai Inventori</CardTitle>
+            <Package className="h-5 w-5 text-brand-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatRupiah(nilaiInventori)}</div>
@@ -146,7 +146,7 @@ export default function StokPage() {
               ))}
             </div>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari barang..."
                 placeholder="Cari barang..."
                 value={search}
@@ -160,7 +160,7 @@ export default function StokPage() {
           {loading ? (
             <TableSkeleton cols={8} />
           ) : filtered.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>Tidak ada barang ditemukan</p>
             </div>
@@ -186,13 +186,13 @@ export default function StokPage() {
                       <tr key={b.id} className={`border-b hover:bg-gray-50 ${b.stok === 0 ? "bg-red-50" : b.stok <= b.stokMinimum ? "bg-amber-50" : ""}`}>
                         <td className="py-3 px-4 font-medium text-sm">{b.kode}</td>
                         <td className="py-3 px-4">{b.nama}</td>
-                        <td className="py-3 px-4 text-gray-500 text-sm">{b.kategori || "-"}</td>
+                        <td className="py-3 px-4 text-slate-500 text-sm">{b.kategori || "-"}</td>
                         <td className="py-3 px-4 text-right text-sm">{formatRupiah(b.hargaBeli)}</td>
                         <td className="py-3 px-4 text-right text-sm">{formatRupiah(b.hargaJual)}</td>
                         <td className="py-3 px-4 text-center font-semibold">
-                          {b.stok} <span className="text-xs text-gray-400">{b.satuan}</span>
+                          {b.stok} <span className="text-xs text-slate-400">{b.satuan}</span>
                         </td>
-                        <td className="py-3 px-4 text-center text-xs text-gray-400">{b.stokMinimum}</td>
+                        <td className="py-3 px-4 text-center text-xs text-slate-400">{b.stokMinimum}</td>
                         <td className="py-3 px-4 text-center">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
                             {status.label}

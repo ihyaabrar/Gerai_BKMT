@@ -8,7 +8,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <DashboardShell
         brand="BKMT Kubu Raya"
         brandLabel="Admin Panel"
-        brandAccent="from-violet-500 to-purple-600"
+        brandAccent="bg-gold-400"
         sidebar={<AdminSidebar />}
       >
         {children}

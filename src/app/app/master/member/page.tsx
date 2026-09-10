@@ -117,7 +117,7 @@ export default function MemberPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Member</h1>
-          <p className="text-gray-500">Data pelanggan setia</p>
+          <p className="text-slate-500">Data pelanggan setia</p>
         </div>
         <Button onClick={openAdd}>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -133,7 +133,7 @@ export default function MemberPage() {
               Daftar Member
             </CardTitle>
             <div className="relative w-60">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari member..."
                 placeholder="Cari member..."
                 value={search}
@@ -145,7 +145,7 @@ export default function MemberPage() {
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>{search ? "Member tidak ditemukan" : "Belum ada member"}</p>
             </div>
@@ -164,11 +164,11 @@ export default function MemberPage() {
                 </thead>
                 <tbody>
                   {filtered.map((m) => (
-                    <tr key={m.id} className="border-b hover:bg-gray-50">
+                    <tr key={m.id} className="border-b hover:bg-surface-muted">
                       <td className="py-3 px-4 font-medium text-sm">{m.kode}</td>
                       <td className="py-3 px-4">{m.nama}</td>
-                      <td className="py-3 px-4 text-gray-600">{m.telepon || "-"}</td>
-                      <td className="py-3 px-4 text-gray-600 max-w-[200px] truncate">{m.alamat || "-"}</td>
+                      <td className="py-3 px-4 text-slate-600">{m.telepon || "-"}</td>
+                      <td className="py-3 px-4 text-slate-600 max-w-[200px] truncate">{m.alamat || "-"}</td>
                       <td className="py-3 px-4 text-center">
                         <span className="px-2 py-1 bg-cyan-100 text-cyan-800 rounded-full text-xs font-medium">
                           {m.poin}
@@ -177,7 +177,7 @@ export default function MemberPage() {
                       <td className="py-3 px-4 text-center">
                         <div className="flex justify-center gap-1">
                           <Button aria-label={`Edit ${m.nama}`} variant="ghost" size="sm" onClick={() => openEdit(m)}>
-                            <Edit className="h-4 w-4 text-blue-600" />
+                            <Edit className="h-4 w-4 text-brand-600" />
                           </Button>
                           <Button aria-label={`Hapus ${m.nama}`} variant="ghost" size="sm" onClick={() => handleDelete(m.id, m.nama)}>
                             <Trash2 className="h-4 w-4 text-red-500" />

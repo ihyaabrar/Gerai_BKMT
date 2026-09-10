@@ -120,7 +120,7 @@ export default function LaporanPage() {
         <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
           Laporan Penjualan
         </h1>
-        <p className="text-gray-600 mt-2">Ringkasan dan statistik penjualan periode tertentu</p>
+        <p className="text-slate-600 mt-2">Ringkasan dan statistik penjualan periode tertentu</p>
       </div>
 
       <Card className="border-0 shadow-lg animate-fadeIn" style={{ animationDelay: '0.1s' }}>
@@ -135,7 +135,7 @@ export default function LaporanPage() {
         <CardContent>
           <div className="flex gap-4 items-end flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium text-gray-700" htmlFor="tanggal-mulai">Tanggal Mulai</label>
+              <label className="text-sm font-medium text-slate-700" htmlFor="tanggal-mulai">Tanggal Mulai</label>
               <Input id="tanggal-mulai"
                 type="date"
                 value={form.startDate}
@@ -144,7 +144,7 @@ export default function LaporanPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium text-gray-700" htmlFor="tanggal-akhir">Tanggal Akhir</label>
+              <label className="text-sm font-medium text-slate-700" htmlFor="tanggal-akhir">Tanggal Akhir</label>
               <Input id="tanggal-akhir"
                 type="date"
                 value={form.endDate}
@@ -193,16 +193,16 @@ export default function LaporanPage() {
             <Card className="relative overflow-hidden hover-lift animate-fadeIn border-0 shadow-lg" style={{ animationDelay: '0.3s' }}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500 to-teal-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Penjualan</CardTitle>
+                <CardTitle className="text-sm font-medium text-slate-600">Total Penjualan</CardTitle>
                 <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
                   <DollarSign className="h-4 w-4 text-white" />
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-brand-900">
                   {formatRupiah(data.totalPenjualan)}
                 </div>
-                <p className="text-sm text-emerald-600 mt-2 font-medium">
+                <p className="text-sm text-brand-600 mt-2 font-medium">
                   {data.totalTransaksi} transaksi
                 </p>
               </CardContent>
@@ -211,16 +211,16 @@ export default function LaporanPage() {
             <Card className="relative overflow-hidden hover-lift animate-fadeIn border-0 shadow-lg" style={{ animationDelay: '0.4s' }}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-gray-600">Total Laba</CardTitle>
+                <CardTitle className="text-sm font-medium text-slate-600">Total Laba</CardTitle>
                 <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
                   <TrendingUp className="h-4 w-4 text-white" />
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-brand-900">
                   {formatRupiah(data.totalLaba)}
                 </div>
-                <p className="text-sm text-blue-600 mt-2 font-medium">
+                <p className="text-sm text-brand-600 mt-2 font-medium">
                   Margin:{" "}
                   {data.totalPenjualan > 0
                     ? ((data.totalLaba / data.totalPenjualan) * 100).toFixed(1)
@@ -233,13 +233,13 @@ export default function LaporanPage() {
             <Card className="relative overflow-hidden hover-lift animate-fadeIn border-0 shadow-lg" style={{ animationDelay: '0.5s' }}>
               <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-500 to-purple-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
               <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-gray-600">Rata-rata Transaksi</CardTitle>
+                <CardTitle className="text-sm font-medium text-slate-600">Rata-rata Transaksi</CardTitle>
                 <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600">
                   <ShoppingCart className="h-4 w-4 text-white" />
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-gray-900">
+                <div className="text-3xl font-bold text-brand-900">
                   {formatRupiah(
                     data.totalTransaksi > 0 ? data.totalPenjualan / data.totalTransaksi : 0
                   )}
@@ -271,7 +271,7 @@ export default function LaporanPage() {
                         className="flex items-center gap-4 animate-slideInRight"
                         style={{ animationDelay: `${0.7 + idx * 0.05}s` }}
                       >
-                        <div className="w-24 text-sm font-medium text-gray-700">
+                        <div className="w-24 text-sm font-medium text-slate-700">
                           {format(new Date(item.date), "dd MMM")}
                         </div>
                         <div className="flex-1">
@@ -289,7 +289,7 @@ export default function LaporanPage() {
                           </div>
                         </div>
                         {percentage <= 20 && (
-                          <div className="w-32 text-sm font-semibold text-gray-700">
+                          <div className="w-32 text-sm font-semibold text-slate-700">
                             {formatRupiah(item.total)}
                           </div>
                         )}
@@ -298,7 +298,7 @@ export default function LaporanPage() {
                   })}
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-slate-500">
                   <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                   <p>Tidak ada data penjualan pada periode ini</p>
                 </div>
@@ -321,10 +321,10 @@ export default function LaporanPage() {
                   <table className="w-full min-w-[600px]">
                     <thead>
                       <tr className="border-b-2 border-gray-200">
-                        <th className="text-left p-4 text-sm font-semibold text-gray-700">Ranking</th>
-                        <th className="text-left p-4 text-sm font-semibold text-gray-700">Produk</th>
-                        <th className="text-right p-4 text-sm font-semibold text-gray-700">Qty Terjual</th>
-                        <th className="text-right p-4 text-sm font-semibold text-gray-700">Total Penjualan</th>
+                        <th className="text-left p-4 text-sm font-semibold text-slate-700">Ranking</th>
+                        <th className="text-left p-4 text-sm font-semibold text-slate-700">Produk</th>
+                        <th className="text-right p-4 text-sm font-semibold text-slate-700">Qty Terjual</th>
+                        <th className="text-right p-4 text-sm font-semibold text-slate-700">Total Penjualan</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -340,7 +340,7 @@ export default function LaporanPage() {
                             </div>
                           </td>
                           <td className="p-4">
-                            <p className="font-semibold text-gray-900">{p.nama}</p>
+                            <p className="font-semibold text-brand-900">{p.nama}</p>
                           </td>
                           <td className="p-4 text-right">
                             <Badge variant="outline" className="font-semibold">
@@ -348,7 +348,7 @@ export default function LaporanPage() {
                             </Badge>
                           </td>
                           <td className="p-4 text-right">
-                            <p className="font-bold text-emerald-600 text-lg">
+                            <p className="font-bold text-brand-600 text-lg">
                               {formatRupiah(p.total)}
                             </p>
                           </td>
@@ -358,7 +358,7 @@ export default function LaporanPage() {
                   </table>
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-slate-500">
                   <TrendingUp className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                   <p>Tidak ada data produk pada periode ini</p>
                 </div>
@@ -371,12 +371,12 @@ export default function LaporanPage() {
       {!data && !loading && (
         <Card className="border-0 shadow-lg animate-scaleIn" style={{ animationDelay: '0.2s' }}>
           <CardContent className="py-16">
-            <div className="text-center text-gray-500">
+            <div className="text-center text-slate-500">
               <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center animate-bounce-soft">
                 <BarChart3 className="h-10 w-10 text-white" />
               </div>
-              <p className="text-lg font-medium text-gray-700 mb-2">Belum Ada Laporan</p>
-              <p className="text-gray-500">Pilih periode dan klik "Generate Laporan" untuk melihat data</p>
+              <p className="text-lg font-medium text-slate-700 mb-2">Belum Ada Laporan</p>
+              <p className="text-slate-500">Pilih periode dan klik "Generate Laporan" untuk melihat data</p>
             </div>
           </CardContent>
         </Card>

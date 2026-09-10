@@ -117,7 +117,7 @@ export default function ReturPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Retur Barang</h1>
-          <p className="text-gray-500">Pengembalian barang rusak/kadaluarsa</p>
+          <p className="text-slate-500">Pengembalian barang rusak/kadaluarsa</p>
         </div>
         <Button onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -136,7 +136,7 @@ export default function ReturPage() {
           {loading ? (
             <TableSkeleton cols={5} />
           ) : retur.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               Belum ada data retur
             </div>
           ) : (
@@ -152,7 +152,7 @@ export default function ReturPage() {
                         <h3 className="font-semibold text-lg">
                           {r.barang.kode} - {r.barang.nama}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-500">
                           Tanggal: {format(new Date(r.tanggal), "dd/MM/yyyy HH:mm")}
                         </p>
                         <p className="text-sm mt-2">

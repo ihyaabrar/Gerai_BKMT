@@ -8,12 +8,12 @@ interface GeraiSectionProps {
 
 export function GeraiSection({ gerai }: GeraiSectionProps) {
   return (
-    <section id="gerai" className="py-20 px-6 bg-gray-50">
+    <section id="gerai" className="py-20 px-6 bg-surface-muted">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
-          <span className="text-emerald-600 text-sm font-semibold uppercase tracking-widest">Unit Usaha</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Gerai BKMT</h2>
-          <p className="text-gray-500 mt-3">Unit usaha ekonomi produktif PD BKMT Kabupaten Kubu Raya</p>
+          <span className="text-brand-600 text-sm font-semibold uppercase tracking-widest">Unit Usaha</span>
+          <h2 className="text-3xl md:text-4xl font-bold text-brand-900 mt-2">Gerai BKMT</h2>
+          <p className="text-slate-500 mt-3">Unit usaha ekonomi produktif PD BKMT Kabupaten Kubu Raya</p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
@@ -22,32 +22,32 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
             {gerai ? (
               <>
                 <div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{gerai.nama}</h3>
+                  <h3 className="text-2xl font-bold text-brand-900 mb-3">{gerai.nama}</h3>
                   {gerai.deskripsi && (
-                    <p className="text-gray-600 leading-relaxed">{gerai.deskripsi}</p>
+                    <p className="text-slate-600 leading-relaxed">{gerai.deskripsi}</p>
                   )}
                 </div>
 
                 <div className="space-y-4">
                   {gerai.alamat && (
                     <div className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                      <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center shrink-0">
-                        <MapPin className="h-5 w-5 text-emerald-600" />
+                      <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center shrink-0">
+                        <MapPin className="h-5 w-5 text-brand-600" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 font-medium mb-0.5">Alamat</p>
-                        <p className="text-gray-700 text-sm">{gerai.alamat}</p>
+                        <p className="text-xs text-slate-400 font-medium mb-0.5">Alamat</p>
+                        <p className="text-slate-700 text-sm">{gerai.alamat}</p>
                       </div>
                     </div>
                   )}
                   {gerai.telepon && (
                     <div className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
-                      <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center shrink-0">
-                        <Phone className="h-5 w-5 text-blue-600" />
+                      <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center shrink-0">
+                        <Phone className="h-5 w-5 text-brand-600" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 font-medium mb-0.5">Telepon</p>
-                        <a href={`tel:${gerai.telepon}`} className="text-gray-700 text-sm hover:text-emerald-600 transition-colors">
+                        <p className="text-xs text-slate-400 font-medium mb-0.5">Telepon</p>
+                        <a href={`tel:${gerai.telepon}`} className="text-slate-700 text-sm hover:text-brand-600 transition-colors">
                           {gerai.telepon}
                         </a>
                       </div>
@@ -59,8 +59,8 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
                         <Clock className="h-5 w-5 text-amber-600" />
                       </div>
                       <div>
-                        <p className="text-xs text-gray-400 font-medium mb-0.5">Jam Operasional</p>
-                        <p className="text-gray-700 text-sm">{gerai.jamOperasional}</p>
+                        <p className="text-xs text-slate-400 font-medium mb-0.5">Jam Operasional</p>
+                        <p className="text-slate-700 text-sm">{gerai.jamOperasional}</p>
                       </div>
                     </div>
                   )}
@@ -69,7 +69,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
             ) : (
               <div className="p-8 bg-white rounded-2xl border border-gray-100 text-center">
                 <ShoppingBag className="h-12 w-12 text-gray-200 mx-auto mb-3" />
-                <p className="text-gray-400">Informasi gerai sedang dipersiapkan</p>
+                <p className="text-slate-400">Informasi gerai sedang dipersiapkan</p>
               </div>
             )}
           </div>
@@ -84,7 +84,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
 
             <div className="relative">
               <div className="w-14 h-14 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-6 border border-white/20">
-                <ShoppingBag className="h-7 w-7 text-emerald-300" />
+                <ShoppingBag className="h-7 w-7 text-brand-300" />
               </div>
 
               <h4 className="text-2xl font-bold mb-3">Sistem Kasir Digital</h4>
@@ -96,7 +96,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
                 {["Manajemen stok real-time", "Laporan keuangan otomatis", "Sistem bagi hasil nasabah"].map((f) => (
                   <div key={f} className="flex items-center gap-3 text-sm text-emerald-100">
                     <div className="w-5 h-5 bg-emerald-400/30 rounded-full flex items-center justify-center shrink-0">
-                      <span className="text-emerald-300 text-xs">✓</span>
+                      <span className="text-brand-300 text-xs">✓</span>
                     </div>
                     {f}
                   </div>
@@ -105,7 +105,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
 
               <Link
                 href="/login"
-                className="flex items-center justify-center gap-2 w-full bg-white text-emerald-800 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-emerald-50 transition-all shadow-lg"
+                className="flex items-center justify-center gap-2 w-full bg-white text-brand-800 px-6 py-3.5 rounded-xl font-semibold text-sm hover:bg-brand-50 transition-all shadow-lg"
               >
                 <LogIn className="h-4 w-4" />
                 Login ke Sistem Kasir

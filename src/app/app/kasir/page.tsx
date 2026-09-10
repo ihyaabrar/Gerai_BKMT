@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
 import { cn, formatRupiah } from "@/lib/utils";
@@ -204,20 +205,25 @@ export default function KasirPage() {
   const selectedMember = memberList.find((m) => m.id === memberId);
 
   return (
-    <div className="space-y-4 pb-24 lg:pb-0">
-      <h1 className="text-2xl sm:text-3xl font-bold">Kasir</h1>
+    <div className="space-y-5 pb-24 lg:pb-0">
+      <div>
+        <h1 className="text-2xl sm:text-3xl font-bold text-brand-900">Kasir</h1>
+        <p className="text-sm text-slate-500 mt-0.5">
+          Proses transaksi penjualan dengan cepat, mudah, dan aman
+        </p>
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Product Grid */}
         <div className="lg:col-span-2 space-y-4">
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
+              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
               <Input aria-label="Cari barang atau scan barcode..."
-                placeholder="Cari barang atau scan barcode..."
+                placeholder="Cari produk, scan barcode, atau ketik nama..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
+                className="pl-11"
               />
             </div>
             <div className="flex gap-2">
@@ -225,10 +231,7 @@ export default function KasirPage() {
               <Button
                 variant={memberId ? "default" : "outline"}
                 onClick={() => setShowMember(true)}
-                className={cn(
-                  "flex-1 sm:flex-none min-w-0",
-                  memberId && "bg-violet-600 hover:bg-violet-700"
-                )}
+                className="flex-1 sm:flex-none min-w-0"
               >
                 <User className="mr-2 h-4 w-4 shrink-0" />
                 <span className="truncate">
@@ -239,37 +242,58 @@ export default function KasirPage() {
           </div>
 
           {filteredBarang.length === 0 ? (
-            <div className="text-center py-16 text-gray-400">
+            <div className="text-center py-16 text-slate-400">
               <Search className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>Barang tidak ditemukan</p>
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
-              {filteredBarang.map((barang) => (
-                <Card
-                  key={barang.id}
-                  className={`cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 ${
-                    barang.stok <= 0 ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
-                  onClick={() => handleAddToCart(barang)}
-                >
-                  <CardContent className="p-3 sm:p-4">
-                    <p className="font-semibold text-sm leading-tight break-words">
-                      {barang.nama}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{barang.kode}</p>
-                    <p className="text-sm sm:text-base font-bold text-emerald-600 mt-2 break-words">
-                      {formatRupiah(barang.hargaJual)}
-                    </p>
-                    <p className={`text-xs mt-1 ${
-                      barang.stok === 0 ? "text-red-600 font-medium" :
-                      barang.stok <= 5 ? "text-amber-600" : "text-gray-400"
-                    }`}>
-                      {barang.stok === 0 ? "Habis" : `Stok: ${barang.stok}`}
-                    </p>
-                  </CardContent>
-                </Card>
-              ))}
+              {filteredBarang.map((barang) => {
+                const habis = barang.stok <= 0;
+                const menipis = !habis && barang.stok <= 5;
+                return (
+                  <button
+                    key={barang.id}
+                    type="button"
+                    disabled={habis}
+                    onClick={() => handleAddToCart(barang)}
+                    className={cn(
+                      "group text-left rounded-card border bg-white p-3.5 shadow-card transition-all",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2",
+                      habis
+                        ? "opacity-55 cursor-not-allowed border-slate-200"
+                        : "border-brand-100/70 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300"
+                    )}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="font-semibold text-sm leading-snug text-brand-900 break-words">
+                        {barang.nama}
+                      </p>
+                      {habis ? (
+                        <Badge variant="destructive" className="shrink-0">Habis</Badge>
+                      ) : menipis ? (
+                        <Badge variant="warning" className="shrink-0">Menipis</Badge>
+                      ) : null}
+                    </div>
+                    <p className="text-[11px] text-slate-400 mt-1">{barang.kode}</p>
+                    <div className="mt-3 flex items-end justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-base font-bold text-brand-700 break-words">
+                          {formatRupiah(barang.hargaJual)}
+                        </p>
+                        <p className="text-[11px] text-slate-500 mt-0.5">
+                          Stok: {barang.stok}
+                        </p>
+                      </div>
+                      {!habis && (
+                        <span className="shrink-0 h-8 w-8 rounded-lg bg-brand-600 text-white flex items-center justify-center transition-colors group-hover:bg-brand-700">
+                          <Plus className="h-4 w-4" />
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -278,41 +302,56 @@ export default function KasirPage() {
         <Card className="h-fit lg:sticky lg:top-4">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <ShoppingCart className="h-5 w-5" />
-              Keranjang
+              <span className="h-8 w-8 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center shrink-0">
+                <ShoppingCart className="h-[18px] w-[18px]" />
+              </span>
+              Keranjang Belanja
               {items.length > 0 && (
-                <span className="ml-auto bg-emerald-600 text-white text-xs rounded-full px-2 py-0.5">
-                  {items.reduce((s, i) => s + i.qty, 0)}
-                </span>
+                <Badge className="ml-auto">
+                  {items.reduce((s, i) => s + i.qty, 0)} item
+                </Badge>
               )}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {items.length === 0 ? (
-              <div className="text-center py-8 text-gray-400">
-                <ShoppingCart className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                <p className="text-sm">Keranjang kosong</p>
+              <div className="text-center py-10 text-slate-400">
+                <div className="h-14 w-14 rounded-2xl bg-brand-50 flex items-center justify-center mx-auto mb-3">
+                  <ShoppingCart className="h-7 w-7 text-brand-300" />
+                </div>
+                <p className="text-sm font-medium text-slate-500">Keranjang kosong</p>
+                <p className="text-xs mt-0.5">Pilih produk untuk mulai transaksi</p>
               </div>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
                 {items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-2 border-b pb-2">
+                  <div
+                    key={item.id}
+                    className="flex items-center gap-2 rounded-xl bg-surface-sunken/60 p-2.5"
+                  >
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{item.nama}</p>
-                      <p className="text-xs text-gray-500">{formatRupiah(item.hargaJual)}</p>
+                      <p className="font-semibold text-sm truncate text-brand-900">
+                        {item.nama}
+                      </p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {formatRupiah(item.hargaJual)} &times; {item.qty} ={" "}
+                        <span className="font-semibold text-brand-700">
+                          {formatRupiah(item.hargaJual * item.qty)}
+                        </span>
+                      </p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
                       <Button
                         aria-label={`Kurangi jumlah ${item.nama}`}
                         size="icon"
                         variant="outline"
-                        className="h-6 w-6"
+                        className="h-7 w-7 rounded-lg"
                         onClick={() => updateQty(item.id, item.qty - 1)}
                       >
                         <Minus className="h-3 w-3" />
                       </Button>
                       <span
-                        className="w-7 text-center text-sm font-medium"
+                        className="w-7 text-center text-sm font-bold text-brand-900"
                         aria-live="polite"
                         aria-label={`Jumlah ${item.nama}: ${item.qty}`}
                       >
@@ -322,14 +361,14 @@ export default function KasirPage() {
                         aria-label={`Tambah jumlah ${item.nama}`}
                         size="icon"
                         variant="outline"
-                        className="h-6 w-6"
+                        className="h-7 w-7 rounded-lg"
                         onClick={() => updateQty(item.id, item.qty + 1)}
                         disabled={item.qty >= item.stok}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
-                    <Button aria-label={`Hapus ${item.nama} dari keranjang`} size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-700"
+                    <Button aria-label={`Hapus ${item.nama} dari keranjang`} size="icon" variant="ghost" className="h-7 w-7 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50"
                       onClick={() => removeItem(item.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -338,25 +377,32 @@ export default function KasirPage() {
               </div>
             )}
 
-            <div className="space-y-1.5 border-t pt-3 text-sm">
-              <div className="flex justify-between text-gray-600">
-                <span>Subtotal</span>
-                <span>{formatRupiah(getSubtotal())}</span>
+            <div className="space-y-2 border-t border-brand-100 pt-3.5 text-sm">
+              <div className="flex justify-between text-slate-600">
+                <span>Subtotal ({items.reduce((s, i) => s + i.qty, 0)} item)</span>
+                <span className="font-medium">{formatRupiah(getSubtotal())}</span>
               </div>
               {diskon > 0 && (
-                <div className="flex justify-between text-emerald-600">
+                <div className="flex justify-between text-brand-600">
                   <span>Diskon Member ({diskon}%)</span>
-                  <span>-{formatRupiah(getSubtotal() * diskon / 100)}</span>
+                  <span className="font-medium">
+                    -{formatRupiah((getSubtotal() * diskon) / 100)}
+                  </span>
                 </div>
               )}
-              <div className="flex justify-between text-base font-bold border-t pt-1.5">
-                <span>Total</span>
-                <span className="text-emerald-600">{formatRupiah(getTotal())}</span>
-              </div>
+            </div>
+
+            <div className="rounded-xl bg-brand-deep px-4 py-3.5 flex items-center justify-between">
+              <span className="text-sm font-semibold text-brand-100">
+                Total Pembayaran
+              </span>
+              <span className="text-xl font-extrabold text-white">
+                {formatRupiah(getTotal())}
+              </span>
             </div>
 
             <Button
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              className="w-full"
               size="lg"
               onClick={() => setShowPayment(true)}
               disabled={items.length === 0}
@@ -374,21 +420,17 @@ export default function KasirPage() {
         melewati seluruh katalog setiap kali ingin menyelesaikan transaksi.
       */}
       {items.length > 0 && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-3">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-brand-100 shadow-[0_-6px_20px_-8px_rgba(14,59,38,0.25)] px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-slate-500">
                 {items.reduce((n, i) => n + i.qty, 0)} item
               </p>
-              <p className="text-lg font-bold text-emerald-600 truncate">
+              <p className="text-lg font-extrabold text-brand-700 truncate">
                 {formatRupiah(getTotal())}
               </p>
             </div>
-            <Button
-              className="bg-emerald-600 hover:bg-emerald-700 shrink-0"
-              size="lg"
-              onClick={() => setShowPayment(true)}
-            >
+            <Button className="shrink-0" size="lg" onClick={() => setShowPayment(true)}>
               <CreditCard className="mr-2 h-5 w-5" />
               Bayar
             </Button>
@@ -403,9 +445,11 @@ export default function KasirPage() {
             <DialogTitle>Pembayaran</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-              <p className="text-sm text-gray-600">Total Bayar</p>
-              <p className="text-3xl font-bold text-emerald-600">{formatRupiah(getTotal())}</p>
+            <div className="rounded-xl bg-brand-deep px-4 py-4">
+              <p className="text-sm text-brand-200">Total Bayar</p>
+              <p className="text-3xl font-extrabold text-white mt-0.5">
+                {formatRupiah(getTotal())}
+              </p>
             </div>
 
             <div>
@@ -421,7 +465,6 @@ export default function KasirPage() {
                   <Button
                     key={m}
                     variant={metodeBayar === m ? "default" : "outline"}
-                    className={metodeBayar === m ? "bg-emerald-600 hover:bg-emerald-700" : ""}
                     onClick={() => setMetodeBayar(m)}
                   >
                     {m}
@@ -456,16 +499,16 @@ export default function KasirPage() {
             </div>
 
             {bayar && parseFloat(bayar) >= getTotal() && (
-              <div className="bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <p className="text-sm text-gray-600">Kembalian</p>
-                <p className="text-2xl font-bold text-blue-600">
+              <div className="bg-brand-50 p-3 rounded-lg border border-brand-200">
+                <p className="text-sm text-slate-600">Kembalian</p>
+                <p className="text-2xl font-bold text-brand-600">
                   {formatRupiah(parseFloat(bayar) - getTotal())}
                 </p>
               </div>
             )}
 
             <Button
-              className="w-full bg-emerald-600 hover:bg-emerald-700"
+              className="w-full"
               size="lg"
               onClick={handlePayment}
               disabled={processing}
@@ -490,7 +533,7 @@ export default function KasirPage() {
               autoFocus
             />
             <div className="space-y-2 max-h-80 overflow-y-auto">
-              <Button variant="outline" className="w-full justify-start text-gray-500"
+              <Button variant="outline" className="w-full justify-start text-slate-500"
                 onClick={handleRemoveMember}>
                 Tanpa Member
               </Button>
@@ -508,7 +551,7 @@ export default function KasirPage() {
                 </Button>
               ))}
               {filteredMember.length === 0 && (
-                <p className="text-center text-gray-400 py-4 text-sm">Member tidak ditemukan</p>
+                <p className="text-center text-slate-400 py-4 text-sm">Member tidak ditemukan</p>
               )}
             </div>
           </div>
@@ -522,7 +565,7 @@ export default function KasirPage() {
             <DialogTitle>Transaksi Berhasil</DialogTitle>
           </DialogHeader>
           {receiptData && <PrintReceipt data={receiptData} />}
-          <Button onClick={() => setShowReceipt(false)} className="w-full bg-emerald-600 hover:bg-emerald-700">
+          <Button onClick={() => setShowReceipt(false)} className="w-full">
             Selesai
           </Button>
         </DialogContent>

@@ -86,12 +86,11 @@ export default function BackupPage() {
       <div className="flex flex-wrap gap-4 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Backup Data</h1>
-          <p className="text-gray-500">Unduh salinan seluruh data dalam format JSON</p>
+          <p className="text-slate-500">Unduh salinan seluruh data dalam format JSON</p>
         </div>
         <Button
           onClick={handleDownload}
           disabled={downloading || loading}
-          className="bg-emerald-600 hover:bg-emerald-700"
         >
           {downloading ? (
             <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Menyiapkan...</>
@@ -130,17 +129,17 @@ export default function BackupPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               <Loader2 className="h-5 w-5 animate-spin mx-auto" />
             </div>
           ) : !statistik ? (
-            <p className="text-center py-8 text-gray-400">Statistik tidak tersedia</p>
+            <p className="text-center py-8 text-slate-400">Statistik tidak tersedia</p>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {(Object.keys(LABEL) as (keyof Statistik)[]).map((key) => (
                 <div key={key} className="p-4 border rounded-xl">
-                  <p className="text-xs text-gray-500">{LABEL[key]}</p>
-                  <p className="text-xl font-bold text-gray-900 mt-1">
+                  <p className="text-xs text-slate-500">{LABEL[key]}</p>
+                  <p className="text-xl font-bold text-brand-900 mt-1">
                     {statistik[key].toLocaleString("id-ID")}
                   </p>
                 </div>

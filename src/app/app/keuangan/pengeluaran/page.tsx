@@ -164,7 +164,7 @@ export default function PengeluaranPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Pengeluaran</h1>
-          <p className="text-gray-500">Catat pengeluaran operasional</p>
+          <p className="text-slate-500">Catat pengeluaran operasional</p>
         </div>
         <div className="flex gap-2">
           <Button onClick={handleExportExcel} variant="outline">
@@ -257,7 +257,7 @@ export default function PengeluaranPage() {
               Riwayat Pengeluaran
             </CardTitle>
             <div className="relative w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari pengeluaran..."
                 placeholder="Cari pengeluaran..."
                 value={search}
@@ -271,7 +271,7 @@ export default function PengeluaranPage() {
           {loading ? (
             <TableSkeleton cols={5} />
           ) : filteredData.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               {search ? "Tidak ada data yang cocok" : "Belum ada data pengeluaran"}
             </div>
           ) : (
@@ -289,10 +289,10 @@ export default function PengeluaranPage() {
                   </thead>
                   <tbody>
                     {paginatedData.map((p) => (
-                      <tr key={p.id} className="border-b hover:bg-gray-50">
+                      <tr key={p.id} className="border-b hover:bg-surface-muted">
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <Calendar className="h-4 w-4 text-slate-400" />
                             {format(new Date(p.tanggal), "dd/MM/yyyy")}
                           </div>
                         </td>

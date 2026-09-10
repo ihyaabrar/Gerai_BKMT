@@ -75,7 +75,7 @@ export default function LoginPage() {
         <div className="relative">
           <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
             Sistem POS &<br />
-            <span className="text-emerald-300">Inventory Digital</span>
+            <span className="text-brand-300">Inventory Digital</span>
           </h1>
           <p className="text-emerald-100/70 text-base leading-relaxed mb-8">
             Kelola penjualan, stok barang, dan laporan keuangan Gerai BKMT secara efisien dan terintegrasi.
@@ -84,7 +84,7 @@ export default function LoginPage() {
             {["Manajemen stok real-time", "Laporan keuangan otomatis", "Sistem bagi hasil nasabah", "Multi-role access"].map((f) => (
               <div key={f} className="flex items-center gap-3 text-sm text-emerald-100">
                 <div className="w-5 h-5 bg-emerald-400/30 rounded-full flex items-center justify-center shrink-0">
-                  <span className="text-emerald-300 text-xs">✓</span>
+                  <span className="text-brand-300 text-xs">✓</span>
                 </div>
                 {f}
               </div>
@@ -102,24 +102,24 @@ export default function LoginPage() {
       </div>
 
       {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-gray-50">
+      <div className="flex-1 flex items-center justify-center p-8 bg-surface-muted">
         <div className="w-full max-w-md">
           {/* Mobile back link */}
-          <Link href="/" className="lg:hidden flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm mb-8 transition-colors">
+          <Link href="/" className="lg:hidden flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm mb-8 transition-colors">
             <ArrowLeft className="h-4 w-4" />
             Kembali ke beranda
           </Link>
 
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-gray-900">Selamat datang</h2>
-            <p className="text-gray-500 mt-2">Masuk ke sistem kasir Gerai BKMT</p>
+            <h2 className="text-3xl font-bold text-brand-900">Selamat datang</h2>
+            <p className="text-slate-500 mt-2">Masuk ke sistem kasir Gerai BKMT</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="login-username" className="block text-sm font-medium text-gray-700 mb-2">Username</label>
+              <label htmlFor="login-username" className="block text-sm font-medium text-slate-700 mb-2">Username</label>
               <div className="relative">
-                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   id="login-username"
                   type="text"
@@ -135,9 +135,9 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-sm font-medium text-gray-700 mb-2">Password</label>
+              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-2">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   id="login-password"
                   type="password"
@@ -167,23 +167,23 @@ export default function LoginPage() {
           {/* Demo accounts — hanya tampil di luar produksi */}
           {process.env.NODE_ENV !== "production" && (
           <div className="mt-8 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">Akun Demo</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Akun Demo</p>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setForm({ username: "admin", password: "admin123" })}
-                className="p-3 bg-emerald-50 hover:bg-emerald-100 border border-emerald-100 rounded-xl text-left transition-colors"
+                className="p-3 bg-brand-50 hover:bg-brand-100 border border-brand-100 rounded-xl text-left transition-colors"
               >
-                <p className="text-xs font-bold text-emerald-700">Master</p>
-                <p className="text-xs text-gray-500 mt-0.5">admin / admin123</p>
+                <p className="text-xs font-bold text-brand-700">Master</p>
+                <p className="text-xs text-slate-500 mt-0.5">admin / admin123</p>
               </button>
               <button
                 type="button"
                 onClick={() => setForm({ username: "kasir", password: "kasir123" })}
-                className="p-3 bg-blue-50 hover:bg-blue-100 border border-blue-100 rounded-xl text-left transition-colors"
+                className="p-3 bg-brand-50 hover:bg-brand-100 border border-blue-100 rounded-xl text-left transition-colors"
               >
                 <p className="text-xs font-bold text-blue-700">Kasir</p>
-                <p className="text-xs text-gray-500 mt-0.5">kasir / kasir123</p>
+                <p className="text-xs text-slate-500 mt-0.5">kasir / kasir123</p>
               </button>
             </div>
           </div>

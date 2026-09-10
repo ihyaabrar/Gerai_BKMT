@@ -164,7 +164,7 @@ export default function DistribusiPage() {
       <div className="flex items-center justify-center h-96">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-500">Memuat data...</p>
+          <p className="text-slate-500">Memuat data...</p>
         </div>
       </div>
     );
@@ -173,7 +173,7 @@ export default function DistribusiPage() {
   if (!data) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Gagal memuat data</p>
+        <p className="text-slate-500">Gagal memuat data</p>
       </div>
     );
   }
@@ -195,7 +195,7 @@ export default function DistribusiPage() {
         <div className="flex flex-wrap gap-3 justify-between items-center">
           <div className="animate-fadeIn">
             <h1 className="text-2xl sm:text-3xl font-bold">Distribusi Laba</h1>
-            <p className="text-gray-500">Sistem bagi hasil otomatis</p>
+            <p className="text-slate-500">Sistem bagi hasil otomatis</p>
           </div>
 
           <div className="flex gap-2 no-print">
@@ -308,7 +308,7 @@ export default function DistribusiPage() {
                 <div>
                   <div className="flex justify-between mb-2">
                     <span className="font-medium">Pengelola</span>
-                    <span className="font-bold text-emerald-600">{data.persenPengelola}%</span>
+                    <span className="font-bold text-brand-600">{data.persenPengelola}%</span>
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
                     <div
@@ -330,20 +330,20 @@ export default function DistribusiPage() {
             <CardContent>
               <div className="space-y-4">
                 <div className="flex justify-between items-center p-3 bg-violet-50 rounded-lg border border-violet-200">
-                  <span className="text-gray-700">Total Nasabah Aktif</span>
+                  <span className="text-slate-700">Total Nasabah Aktif</span>
                   <span className="text-2xl font-bold text-violet-600">
                     {data.distribusiNasabah.length}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <span className="text-gray-700">Total Investasi</span>
-                  <span className="text-lg font-bold text-blue-600">
+                <div className="flex justify-between items-center p-3 bg-brand-50 rounded-lg border border-brand-200">
+                  <span className="text-slate-700">Total Investasi</span>
+                  <span className="text-lg font-bold text-brand-600">
                     {formatRupiah(data.totalInvestasi)}
                   </span>
                 </div>
-                <div className="flex justify-between items-center p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                  <span className="text-gray-700">Rata-rata Bagi Hasil</span>
-                  <span className="text-lg font-bold text-emerald-600">
+                <div className="flex justify-between items-center p-3 bg-brand-50 rounded-lg border border-brand-200">
+                  <span className="text-slate-700">Rata-rata Bagi Hasil</span>
+                  <span className="text-lg font-bold text-brand-600">
                     {formatRupiah(rataRataBagiHasil)}
                   </span>
                 </div>
@@ -374,12 +374,12 @@ export default function DistribusiPage() {
                     <div className="flex justify-between items-start mb-3">
                       <div>
                         <h3 className="font-semibold text-lg">{n.nama}</h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-500">
                           Investasi: {formatRupiah(n.jumlahInvestasi)} ({persenInvestasi.toFixed(1)}%)
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm text-gray-600">Bagi Hasil</p>
+                        <p className="text-sm text-slate-600">Bagi Hasil</p>
                         <p className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
                           {formatRupiah(n.bagian)}
                         </p>
@@ -399,8 +399,8 @@ export default function DistribusiPage() {
             {data.distribusiNasabah.length === 0 && (
               <div className="text-center py-12">
                 <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">Belum ada data nasabah aktif</p>
-                <p className="text-gray-400 text-sm mt-2">Tambahkan nasabah di menu Master Data</p>
+                <p className="text-slate-500 text-lg">Belum ada data nasabah aktif</p>
+                <p className="text-slate-400 text-sm mt-2">Tambahkan nasabah di menu Master Data</p>
               </div>
             )}
           </CardContent>
@@ -413,20 +413,20 @@ export default function DistribusiPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-lg border-2 border-emerald-200 hover-lift transition-all-smooth">
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-lg border-2 border-brand-200 hover-lift transition-all-smooth">
                 <div>
                   <span className="font-semibold text-emerald-900">Gaji Pegawai</span>
-                  <p className="text-sm text-emerald-600">20% dari bagian pengelola</p>
+                  <p className="text-sm text-brand-600">20% dari bagian pengelola</p>
                 </div>
-                <span className="text-2xl font-bold text-emerald-700">
+                <span className="text-2xl font-bold text-brand-700">
                   {formatRupiah(data.bagianPengelola * 0.2)}
                 </span>
               </div>
 
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 hover-lift transition-all-smooth">
+              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-brand-200 hover-lift transition-all-smooth">
                 <div>
                   <span className="font-semibold text-blue-900">Kontribusi Pemilik/Organisasi</span>
-                  <p className="text-sm text-blue-600">20% dari bagian pengelola</p>
+                  <p className="text-sm text-brand-600">20% dari bagian pengelola</p>
                 </div>
                 <span className="text-2xl font-bold text-blue-700">
                   {formatRupiah(data.bagianPengelola * 0.2)}
@@ -455,24 +455,24 @@ export default function DistribusiPage() {
 
               <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 hover-lift transition-all-smooth">
                 <div>
-                  <span className="font-semibold text-gray-900">Operasional & Lainnya</span>
-                  <p className="text-sm text-gray-600">30% dari bagian pengelola</p>
+                  <span className="font-semibold text-brand-900">Operasional & Lainnya</span>
+                  <p className="text-sm text-slate-600">30% dari bagian pengelola</p>
                 </div>
-                <span className="text-2xl font-bold text-gray-700">
+                <span className="text-2xl font-bold text-slate-700">
                   {formatRupiah(data.bagianPengelola * 0.3)}
                 </span>
               </div>
             </div>
 
             <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-              <p className="text-sm font-semibold text-gray-700 mb-3">📋 Rincian Pembagian:</p>
-              <ul className="text-sm text-gray-600 space-y-2">
+              <p className="text-sm font-semibold text-slate-700 mb-3">📋 Rincian Pembagian:</p>
+              <ul className="text-sm text-slate-600 space-y-2">
                 <li className="flex items-start gap-2">
-                  <span className="text-emerald-600">•</span>
+                  <span className="text-brand-600">•</span>
                   <span>20% untuk gaji pegawai/karyawan</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-blue-600">•</span>
+                  <span className="text-brand-600">•</span>
                   <span>20% untuk kontribusi pemilik/organisasi</span>
                 </li>
                 <li className="flex items-start gap-2">
@@ -484,7 +484,7 @@ export default function DistribusiPage() {
                   <span>10% untuk dana pengembangan usaha</span>
                 </li>
                 <li className="flex items-start gap-2">
-                  <span className="text-gray-600">•</span>
+                  <span className="text-slate-600">•</span>
                   <span>30% untuk operasional dan kebutuhan lainnya</span>
                 </li>
               </ul>

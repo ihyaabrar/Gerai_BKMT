@@ -150,7 +150,7 @@ export default function NasabahPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Nasabah / Investor</h1>
-          <p className="text-gray-500">Data investor dan kepemilikan</p>
+          <p className="text-slate-500">Data investor dan kepemilikan</p>
         </div>
         <Button onClick={openAdd}>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -161,7 +161,7 @@ export default function NasabahPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-500">Total Investasi</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Total Investasi</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-violet-600">{formatRupiah(totalInvestasi)}</p>
@@ -169,18 +169,18 @@ export default function NasabahPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-500">Laba Bulan Ini</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Laba Bulan Ini</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-emerald-600">{formatRupiah(totalLabaBulanIni)}</p>
+            <p className="text-2xl font-bold text-brand-600">{formatRupiah(totalLabaBulanIni)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-500">Bagian Nasabah (30%)</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Bagian Nasabah (30%)</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-blue-600">{formatRupiah(bagianNasabahTotal)}</p>
+            <p className="text-2xl font-bold text-brand-600">{formatRupiah(bagianNasabahTotal)}</p>
           </CardContent>
         </Card>
       </div>
@@ -193,7 +193,7 @@ export default function NasabahPage() {
               Daftar Nasabah
             </CardTitle>
             <div className="relative w-60">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari nasabah..."
                 placeholder="Cari nasabah..."
                 value={search}
@@ -205,7 +205,7 @@ export default function NasabahPage() {
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>{search ? "Nasabah tidak ditemukan" : "Belum ada nasabah"}</p>
             </div>
@@ -227,12 +227,12 @@ export default function NasabahPage() {
                     const porsi = totalInvestasi > 0 ? (n.jumlahInvestasi / totalInvestasi) * 100 : 0;
                     const bagiHasil = bagianNasabahTotal * (porsi / 100);
                     return (
-                      <tr key={n.id} className="border-b hover:bg-gray-50">
+                      <tr key={n.id} className="border-b hover:bg-surface-muted">
                         <td className="py-3 px-4">
                           <p className="font-medium">{n.nama}</p>
-                          <p className="text-xs text-gray-400">{n.alamat || "-"}</p>
+                          <p className="text-xs text-slate-400">{n.alamat || "-"}</p>
                         </td>
-                        <td className="py-3 px-4 text-gray-600">{n.telepon || "-"}</td>
+                        <td className="py-3 px-4 text-slate-600">{n.telepon || "-"}</td>
                         <td className="py-3 px-4 text-right font-semibold">
                           {formatRupiah(n.jumlahInvestasi)}
                         </td>
@@ -241,13 +241,13 @@ export default function NasabahPage() {
                             {porsi.toFixed(1)}%
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right text-emerald-600 font-medium">
+                        <td className="py-3 px-4 text-right text-brand-600 font-medium">
                           {formatRupiah(bagiHasil)}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex justify-center gap-1">
                             <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(n)}>
-                              <Edit className="h-4 w-4 text-blue-600" />
+                              <Edit className="h-4 w-4 text-brand-600" />
                             </Button>
                             <Button aria-label={`Hapus ${n.nama}`} variant="ghost" size="sm" onClick={() => handleDelete(n.id, n.nama)}>
                               <Trash2 className="h-4 w-4 text-red-500" />

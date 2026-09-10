@@ -45,30 +45,30 @@ export default function AdminGeraiPage() {
       <div className="flex items-center gap-3">
         <Store className="h-7 w-7 text-amber-600" />
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Informasi Gerai</h1>
-          <p className="text-gray-500 text-sm">Data operasional Gerai BKMT</p>
+          <h1 className="text-2xl font-bold text-brand-900">Informasi Gerai</h1>
+          <p className="text-slate-500 text-sm">Data operasional Gerai BKMT</p>
         </div>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="nama-gerai">Nama Gerai *</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="nama-gerai">Nama Gerai *</label>
           <Input id="nama-gerai" value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="alamat">Alamat *</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="alamat">Alamat *</label>
           <textarea id="alamat" value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} rows={3}
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="jam-operasional">Jam Operasional</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="jam-operasional">Jam Operasional</label>
           <Input id="jam-operasional" value={form.jamOperasional} onChange={(e) => setForm({ ...form, jamOperasional: e.target.value })} placeholder="Senin-Jumat 08.00-17.00" className="mt-1" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="nomor-telepon">Nomor Telepon</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="nomor-telepon">Nomor Telepon</label>
           <Input id="nomor-telepon" value={form.telepon} onChange={(e) => setForm({ ...form, telepon: e.target.value })} placeholder="08xx" className="mt-1" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700" htmlFor="deskripsi-layanan">Deskripsi Layanan</label>
+          <label className="text-sm font-medium text-slate-700" htmlFor="deskripsi-layanan">Deskripsi Layanan</label>
           <textarea id="deskripsi-layanan" value={form.deskripsi} onChange={(e) => setForm({ ...form, deskripsi: e.target.value })} rows={4}
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
         </div>

@@ -133,7 +133,7 @@ export default function ShiftPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Shift Kasir</h1>
-          <p className="text-gray-500">Manajemen shift dan rekap kasir</p>
+          <p className="text-slate-500">Manajemen shift dan rekap kasir</p>
         </div>
         <div className="flex gap-2">
           {!activeShift ? (
@@ -207,7 +207,7 @@ export default function ShiftPage() {
           {loading ? (
             <TableSkeleton cols={4} />
           ) : shifts.filter((s) => s.jamTutup).length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               Belum ada riwayat shift
             </div>
           ) : (
@@ -227,24 +227,24 @@ export default function ShiftPage() {
                     <div key={s.id} className="border rounded-lg p-4">
                       <div className="flex flex-wrap gap-3 justify-between items-start">
                         <div className="flex gap-4">
-                          <div className="bg-blue-100 p-3 rounded-lg">
-                            <User className="h-6 w-6 text-blue-600" />
+                          <div className="bg-brand-100 p-3 rounded-lg">
+                            <User className="h-6 w-6 text-brand-600" />
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg">{s.user.nama}</h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-slate-500">
                               {format(new Date(s.jamBuka), "dd/MM/yyyy HH:mm")} -{" "}
                               {format(new Date(s.jamTutup!), "HH:mm")} ({durasi} menit)
                             </p>
                             <div className="grid grid-cols-2 gap-4 mt-3">
                               <div>
-                                <p className="text-xs text-gray-500">Saldo Awal</p>
+                                <p className="text-xs text-slate-500">Saldo Awal</p>
                                 <p className="font-semibold">
                                   {formatRupiah(s.saldoAwal)}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">
+                                <p className="text-xs text-slate-500">
                                   Total Penjualan ({s.jumlahTransaksi ?? 0} transaksi)
                                 </p>
                                 <p className="font-semibold text-green-600">
@@ -252,13 +252,13 @@ export default function ShiftPage() {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Saldo Akhir</p>
+                                <p className="text-xs text-slate-500">Saldo Akhir</p>
                                 <p className="font-semibold">
                                   {formatRupiah(s.saldoAkhir || 0)}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Selisih</p>
+                                <p className="text-xs text-slate-500">Selisih</p>
                                 <p
                                   className={`font-semibold ${
                                     selisih === 0
@@ -273,7 +273,7 @@ export default function ShiftPage() {
                               </div>
                             </div>
                             {s.catatan && (
-                              <p className="text-sm mt-2 text-gray-600">
+                              <p className="text-sm mt-2 text-slate-600">
                                 Catatan: {s.catatan}
                               </p>
                             )}
