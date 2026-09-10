@@ -57,7 +57,7 @@ export default function AdminPengurusPage() {
           </div>
         </div>
         <Link href="/admin/pengurus/baru">
-          <Button className="bg-violet-600 hover:bg-violet-700">
+          <Button>
             <Plus className="h-4 w-4 mr-2" /> Tambah Pengurus
           </Button>
         </Link>
