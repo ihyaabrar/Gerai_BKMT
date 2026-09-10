@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { Globe, LogOut, LayoutDashboard, FileText, Users, Store, Building2, ShoppingCart, X } from "lucide-react";
+import { Globe, LogOut, LayoutDashboard, FileText, Users, Store, Building2, ShoppingCart, X, Image as ImageIcon, CalendarDays } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useSidebar } from "@/components/layout/DashboardShell";
 
@@ -13,6 +13,8 @@ const adminMenuItems = [
   { icon: FileText, label: "Berita", href: "/admin/berita" },
   { icon: Users, label: "Pengurus", href: "/admin/pengurus" },
   { icon: Store, label: "Info Gerai", href: "/admin/gerai" },
+  { icon: ImageIcon, label: "Galeri", href: "/admin/galeri" },
+  { icon: CalendarDays, label: "Agenda", href: "/admin/agenda" },
 ];
 
 export function AdminSidebar() {

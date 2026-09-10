@@ -11,6 +11,8 @@ const JUDUL: Record<string, string> = {
   "/admin/berita": "Berita & Pengumuman",
   "/admin/pengurus": "Pengurus",
   "/admin/gerai": "Informasi Gerai",
+  "/admin/galeri": "Galeri",
+  "/admin/agenda": "Agenda Kegiatan",
 };
 
 /**

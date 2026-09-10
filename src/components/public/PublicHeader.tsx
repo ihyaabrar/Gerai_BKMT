@@ -27,6 +27,7 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
     { label: "Profil", href: "#profil" },
     { label: "Berita", href: "#berita" },
     { label: "Pengurus", href: "#pengurus" },
+    { label: "Galeri", href: "#galeri" },
     { label: "Gerai", href: "#gerai" },
   ];
 

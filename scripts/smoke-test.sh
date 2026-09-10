@@ -27,16 +27,18 @@ echo "[Tanpa login]"
 for ep in /api/barang /api/penjualan /api/dashboard /api/laporan /api/backup /api/pengaturan /api/shift /api/member /api/supplier /api/nasabah /api/retur /api/penyesuaian /api/pengeluaran /api/barang-masuk /api/kategori-barang /api/user; do
   chk "401 $ep" 401 "$(code $B$ep)"
 done
+chk "401 /api/admin/galeri" 401 "$(code $B/api/admin/galeri)"
+chk "401 /api/admin/agenda" 401 "$(code $B/api/admin/agenda)"
 chk "401 cookie sesi dipalsukan" 401 "$(code -H 'Cookie: session={\"id\":\"x\",\"role\":\"master\"}' $B/api/barang)"
 chk "401 tanda tangan diubah" 401 "$(code -H 'Cookie: session=eyJhIjoxfQ.aaaa' $B/api/barang)"
 
 echo "[Publik tetap terbuka]"
-for ep in / /login /api/public/profil /api/public/berita /api/public/pengurus /api/public/gerai; do
+for ep in / /login /api/public/profil /api/public/berita /api/public/pengurus /api/public/gerai /api/public/galeri /api/public/agenda; do
   chk "200 $ep" 200 "$(code $B$ep)"
 done
 
 echo "[Role kasir]"
-for ep in /api/laporan /api/nasabah /api/backup /api/user; do chk "403 kasir $ep" 403 "$(code -b "$k_txt" $B$ep)"; done
+for ep in /api/laporan /api/nasabah /api/backup /api/user /api/admin/galeri /api/admin/agenda; do chk "403 kasir $ep" 403 "$(code -b "$k_txt" $B$ep)"; done
 chk "403 kasir buat pengguna" 403 "$(code -b "$k_txt" -X POST $B/api/user -H 'Content-Type: application/json' -d '{}')"
 chk "307 kasir buka /app/sistem/pengguna" 307 "$(code -b "$k_txt" $B/app/sistem/pengguna)"
 chk "200 kasir ganti password sendiri" 400 "$(code -b "$k_txt" -X POST $B/api/auth/password -H 'Content-Type: application/json' -d '{}')"
@@ -47,7 +49,7 @@ chk "307 kasir buka /admin" 307 "$(code -b "$k_txt" $B/admin)"
 chk "307 kasir buka /app/keuangan/laporan" 307 "$(code -b "$k_txt" $B/app/keuangan/laporan)"
 
 echo "[Role admin]"
-for ep in /api/laporan /api/nasabah /api/backup /api/barang /api/user; do chk "200 admin $ep" 200 "$(code -b "$a_txt" $B$ep)"; done
+for ep in /api/laporan /api/nasabah /api/backup /api/barang /api/user /api/admin/galeri /api/admin/agenda; do chk "200 admin $ep" 200 "$(code -b "$a_txt" $B$ep)"; done
 chk "200 admin buka /admin" 200 "$(code -b "$a_txt" $B/admin)"
 
 echo "[Redirect halaman tanpa login]"
