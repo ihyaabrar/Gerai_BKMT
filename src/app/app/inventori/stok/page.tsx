@@ -12,6 +12,7 @@ import { TableSkeleton } from "@/components/ui/skeleton";
 interface Barang {
   id: string;
   kode: string;
+  gambarUrl: string | null;
   nama: string;
   kategori: string | null;
   hargaBeli: number;
@@ -183,9 +184,23 @@ export default function StokPage() {
                   {filtered.map((b) => {
                     const status = getStatus(b);
                     return (
-                      <tr key={b.id} className={`border-b hover:bg-gray-50 ${b.stok === 0 ? "bg-red-50" : b.stok <= b.stokMinimum ? "bg-amber-50" : ""}`}>
+                      <tr key={b.id} className={`border-b border-border/70 hover:bg-surface-muted ${b.stok === 0 ? "bg-rose-50/40" : b.stok <= b.stokMinimum ? "bg-amber-50/40" : ""}`}>
                         <td className="py-3 px-4 font-medium text-sm">{b.kode}</td>
-                        <td className="py-3 px-4">{b.nama}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Foto produk; inisial nama dipakai bila belum ada */}
+                            <div className="h-9 w-9 rounded-lg bg-surface-sunken border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                              {b.gambarUrl ? (
+                                <img src={b.gambarUrl} alt="" className="h-full w-full object-cover" />
+                              ) : (
+                                <span className="text-xs font-bold text-brand-300">
+                                  {b.nama.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <span className="truncate">{b.nama}</span>
+                          </div>
+                        </td>
                         <td className="py-3 px-4 text-slate-500 text-sm">{b.kategori || "-"}</td>
                         <td className="py-3 px-4 text-right text-sm">{formatRupiah(b.hargaBeli)}</td>
                         <td className="py-3 px-4 text-right text-sm">{formatRupiah(b.hargaJual)}</td>

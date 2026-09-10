@@ -29,6 +29,7 @@ function parseBarang(body: any, { partial = false } = {}) {
 
   if (has("barcode")) data.barcode = optionalString(body.barcode, "Barcode", { max: 50 });
   if (has("kategori")) data.kategori = optionalString(body.kategori, "Kategori", { max: 100 });
+  if (has("gambarUrl")) data.gambarUrl = optionalString(body.gambarUrl, "Gambar", { max: 500 });
   if (has("satuan")) data.satuan = optionalString(body.satuan, "Satuan", { max: 20 }) ?? "pcs";
   if (has("stok")) data.stok = requireInt(body.stok, "Stok", { min: 0 });
   if (has("stokMinimum")) data.stokMinimum = requireInt(body.stokMinimum, "Stok minimum", { min: 0 });

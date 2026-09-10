@@ -44,80 +44,106 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left panel — branding */}
-      <div
-        className="hidden lg:flex lg:w-1/2 flex-col justify-between p-12 relative overflow-hidden"
-        style={{ background: "linear-gradient(135deg, #064e3b 0%, #065f46 40%, #047857 100%)" }}
-      >
-        {/* Decorative */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            backgroundImage: "radial-gradient(circle, #fff 1px, transparent 1px)",
-            backgroundSize: "28px 28px",
-          }}
+    <div className="min-h-screen lg:grid lg:grid-cols-2">
+      {/* Panel kiri — identitas, memakai ilustrasi masjid */}
+      <div className="hidden lg:flex flex-col justify-between bg-brand-hero border-r border-border p-12 relative overflow-hidden">
+        <div className="relative flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center">
+            <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
+          </div>
+          <div className="leading-tight">
+            <p className="font-bold text-slate-900">PD BKMT Kubu Raya</p>
+            <p className="text-xs text-slate-500">Bersama Umat, Membangun Masyarakat</p>
+          </div>
+        </div>
+
+        <div className="relative max-w-md">
+          <h1 className="font-display text-4xl font-bold text-slate-900 leading-tight tracking-tight">
+            Sistem Kasir &amp;<br />
+            <span className="text-brand-600">Inventori Gerai</span>
+          </h1>
+          <p className="mt-4 text-slate-600 leading-relaxed">
+            Kelola penjualan, stok barang, dan laporan keuangan Gerai BKMT secara
+            efisien dan terintegrasi.
+          </p>
+
+          <ul className="mt-7 space-y-2.5">
+            {[
+              "Manajemen stok real-time",
+              "Laporan keuangan otomatis",
+              "Sistem bagi hasil nasabah",
+              "Hak akses per peran",
+            ].map((f) => (
+              <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
+                <span className="h-5 w-5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 text-xs">
+                  &#10003;
+                </span>
+                {f}
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-7 font-script text-xl text-brand-600">
+            Umat Bersama, Masa Depan Lebih Baik
+          </p>
+        </div>
+
+        <img
+          src="/images/masjid.webp"
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute -right-16 -bottom-10 w-[420px] opacity-90 select-none"
         />
 
-        {/* Logo */}
         <div className="relative">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-sm">BK</span>
-            </div>
-            <span className="text-white font-bold text-lg">BKMT Kubu Raya</span>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="relative">
-          <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
-            Sistem POS &<br />
-            <span className="text-brand-300">Inventory Digital</span>
-          </h1>
-          <p className="text-emerald-100/70 text-base leading-relaxed mb-8">
-            Kelola penjualan, stok barang, dan laporan keuangan Gerai BKMT secara efisien dan terintegrasi.
-          </p>
-          <div className="space-y-3">
-            {["Manajemen stok real-time", "Laporan keuangan otomatis", "Sistem bagi hasil nasabah", "Multi-role access"].map((f) => (
-              <div key={f} className="flex items-center gap-3 text-sm text-emerald-100">
-                <div className="w-5 h-5 bg-emerald-400/30 rounded-full flex items-center justify-center shrink-0">
-                  <span className="text-brand-300 text-xs">✓</span>
-                </div>
-                {f}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Back to public */}
-        <div className="relative">
-          <Link href="/" className="flex items-center gap-2 text-emerald-200/70 hover:text-white text-sm transition-colors">
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-brand-700 transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
             Kembali ke halaman publik
           </Link>
         </div>
       </div>
 
-      {/* Right panel — form */}
-      <div className="flex-1 flex items-center justify-center p-8 bg-surface-muted">
-        <div className="w-full max-w-md">
-          {/* Mobile back link */}
-          <Link href="/" className="lg:hidden flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm mb-8 transition-colors">
+      {/* Panel kanan — formulir */}
+      <div className="flex items-center justify-center p-6 sm:p-8 bg-white min-h-screen lg:min-h-0">
+        <div className="w-full max-w-sm">
+          <Link
+            href="/"
+            className="lg:hidden inline-flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm mb-8 transition-colors"
+          >
             <ArrowLeft className="h-4 w-4" />
             Kembali ke beranda
           </Link>
 
-          <div className="mb-8">
-            <h2 className="text-3xl font-bold text-slate-900">Selamat datang</h2>
-            <p className="text-slate-500 mt-2">Masuk ke sistem kasir Gerai BKMT</p>
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center">
+              <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
+            </div>
+            <div className="leading-tight">
+              <p className="font-bold text-slate-900 text-sm">PD BKMT Kubu Raya</p>
+              <p className="text-xs text-slate-500">Sistem Kasir &amp; Inventori</p>
+            </div>
+          </div>
+
+          <div className="mb-7">
+            <h2 className="font-display text-3xl font-bold text-slate-900 tracking-tight">
+              Selamat datang
+            </h2>
+            <p className="text-slate-500 mt-1.5 text-sm">
+              Masuk untuk mulai mengelola Gerai BKMT.
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="login-username" className="block text-sm font-medium text-slate-700 mb-2">Username</label>
+              <label
+                htmlFor="login-username"
+                className="block text-sm font-medium text-slate-700 mb-1.5"
+              >
+                Username
+              </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -129,13 +155,18 @@ export default function LoginPage() {
                   required
                   disabled={loading}
                   autoFocus
-                  className="pl-10 h-12 bg-white border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="pl-10 h-11"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="login-password" className="block text-sm font-medium text-slate-700 mb-2">Password</label>
+              <label
+                htmlFor="login-password"
+                className="block text-sm font-medium text-slate-700 mb-1.5"
+              >
+                Password
+              </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
@@ -146,7 +177,7 @@ export default function LoginPage() {
                   placeholder="Masukkan password"
                   required
                   disabled={loading}
-                  className="pl-10 h-12 bg-white border-gray-200 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="pl-10 h-11"
                 />
               </div>
             </div>
@@ -154,7 +185,7 @@ export default function LoginPage() {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all text-sm"
+              className="w-full h-11"
             >
               {loading ? (
                 <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Memproses...</>
@@ -166,13 +197,13 @@ export default function LoginPage() {
 
           {/* Demo accounts — hanya tampil di luar produksi */}
           {process.env.NODE_ENV !== "production" && (
-          <div className="mt-8 p-5 bg-white rounded-xl border border-gray-100 shadow-sm">
+          <div className="mt-8 p-5 rounded-card border border-border bg-surface-muted">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Akun Demo</p>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setForm({ username: "admin", password: "admin123" })}
-                className="p-3 bg-brand-50 hover:bg-brand-100 border border-border rounded-xl text-left transition-colors"
+                className="p-3 bg-white hover:bg-brand-50 border border-border rounded-lg text-left transition-colors"
               >
                 <p className="text-xs font-bold text-brand-700">Master</p>
                 <p className="text-xs text-slate-500 mt-0.5">admin / admin123</p>
@@ -180,9 +211,9 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setForm({ username: "kasir", password: "kasir123" })}
-                className="p-3 bg-brand-50 hover:bg-brand-100 border border-blue-100 rounded-xl text-left transition-colors"
+                className="p-3 bg-white hover:bg-brand-50 border border-border rounded-lg text-left transition-colors"
               >
-                <p className="text-xs font-bold text-blue-700">Kasir</p>
+                <p className="text-xs font-bold text-sky-700">Kasir</p>
                 <p className="text-xs text-slate-500 mt-0.5">kasir / kasir123</p>
               </button>
             </div>

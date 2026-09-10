@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
         const satuan = optionalString(body?.satuan, "Satuan", { max: 20 }) ?? "pcs";
         const barcode = optionalString(body?.barcode, "Barcode", { max: 50 });
         const kategori = optionalString(body?.kategori, "Kategori", { max: 100 });
+        const gambarUrl = optionalString(body?.gambarUrl, "Gambar", { max: 500 });
 
         if (hargaJual < hargaBeli) {
           throw new ValidationError("Harga jual tidak boleh lebih kecil dari harga beli");
@@ -65,6 +66,7 @@ export async function POST(request: NextRequest) {
             barcode,
             nama,
             kategori,
+            gambarUrl,
             hargaBeli,
             hargaJual,
             stok,

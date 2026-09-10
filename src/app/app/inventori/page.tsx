@@ -16,6 +16,7 @@ import { toast } from "sonner";
 interface Barang {
   id: string;
   kode: string;
+  gambarUrl: string | null;
   nama: string;
   kategori: string | null;
   hargaBeli: number;
@@ -286,8 +287,21 @@ export default function InventoriPage() {
                           className="border-b border-border last:border-0"
                         >
                           <td className="py-3 pr-4">
-                            <p className="font-semibold text-slate-900">{b.nama}</p>
-                            <p className="text-xs text-slate-400 mt-0.5">{b.kode}</p>
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="h-9 w-9 rounded-lg bg-surface-sunken border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                                {b.gambarUrl ? (
+                                  <img src={b.gambarUrl} alt="" className="h-full w-full object-cover" />
+                                ) : (
+                                  <span className="text-xs font-bold text-brand-300">
+                                    {b.nama.charAt(0).toUpperCase()}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-semibold text-slate-900 truncate">{b.nama}</p>
+                                <p className="text-xs text-slate-400 mt-0.5">{b.kode}</p>
+                              </div>
+                            </div>
                           </td>
                           <td className="py-3 px-4 text-slate-600">
                             {b.kategori || "-"}

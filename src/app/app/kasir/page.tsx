@@ -22,6 +22,7 @@ interface Barang {
   hargaJual: number;
   stok: number;
   kategori: string | null;
+  gambarUrl: string | null;
 }
 
 interface Member {
@@ -265,6 +266,21 @@ export default function KasirPage() {
                         : "border-brand-100/70 hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300"
                     )}
                   >
+                    {/* Foto produk; bila belum ada, tampilkan inisial nama */}
+                    <div className="relative mb-3 aspect-[4/3] rounded-lg overflow-hidden bg-surface-sunken border border-border flex items-center justify-center">
+                      {barang.gambarUrl ? (
+                        <img
+                          src={barang.gambarUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-2xl font-bold text-brand-200">
+                          {barang.nama.charAt(0).toUpperCase()}
+                        </span>
+                      )}
+                    </div>
+
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-semibold text-sm leading-snug text-slate-900 break-words">
                         {barang.nama}

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { generateBarcode, formatRupiah } from "@/lib/utils";
 import { PackagePlus, Package, Search, Plus, RefreshCw, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 
 interface Barang {
   id: string;
@@ -48,6 +49,7 @@ export default function BarangMasukPage() {
     stok: "",
     stokMinimum: "5",
     satuan: "pcs",
+    gambarUrl: "",
   });
 
   useEffect(() => {
@@ -170,6 +172,7 @@ export default function BarangMasukPage() {
         stok: "",
         stokMinimum: "5",
         satuan: "pcs",
+        gambarUrl: "",
       });
       fetchBarang();
     } catch {
@@ -534,6 +537,21 @@ export default function BarangMasukPage() {
                     className="mt-1"
                   />
                 </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-slate-700">Foto Produk</p>
+                <p className="text-xs text-slate-400 mt-0.5 mb-2">
+                  Tampil di halaman kasir dan daftar stok. Opsional.
+                </p>
+                <ImageUpload
+                  value={formBaru.gambarUrl}
+                  onChange={(url) => setFormBaru({ ...formBaru, gambarUrl: url })}
+                  folder="barang"
+                  label="Pilih Foto Produk"
+                  shape="square"
+                  previewSize="md"
+                />
               </div>
 
               {/* Preview Total Pengeluaran */}

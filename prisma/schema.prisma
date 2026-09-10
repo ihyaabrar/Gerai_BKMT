@@ -27,6 +27,7 @@ model Barang {
   barcode       String?  @unique
   nama          String
   kategori      String?
+  gambarUrl     String?
   hargaBeli     Float
   hargaJual     Float
   stok          Int      @default(0)
