@@ -9,23 +9,22 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
     const baseStyles =
-      "inline-flex items-center justify-center gap-2 rounded-xl font-semibold " +
-      "transition-all duration-150 active:scale-[0.98] " +
+      "inline-flex items-center justify-center gap-2 rounded-lg font-semibold " +
+      "transition-colors duration-150 " +
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 " +
       "focus-visible:ring-offset-2 focus-visible:ring-offset-white " +
       "disabled:pointer-events-none disabled:opacity-50";
 
     const variants = {
-      // Aksi utama: gradien hijau seperti pada desain
-      default:
-        "bg-brand-action text-white shadow-sm hover:brightness-110 hover:shadow-card",
-      destructive: "bg-red-600 text-white shadow-sm hover:bg-red-700",
+      // Aksi utama: hijau rata tanpa gradien
+      default: "bg-brand-600 text-white hover:bg-brand-700",
+      destructive: "bg-red-600 text-white hover:bg-red-700",
       outline:
-        "border border-brand-200 bg-white text-brand-800 hover:bg-brand-50 hover:border-brand-300",
-      secondary: "bg-brand-50 text-brand-800 hover:bg-brand-100",
-      ghost: "text-brand-800 hover:bg-brand-50",
+        "border border-border bg-white text-slate-700 hover:bg-surface-sunken hover:text-brand-800",
+      secondary: "bg-surface-sunken text-slate-700 hover:bg-brand-50 hover:text-brand-800",
+      ghost: "text-slate-600 hover:bg-surface-sunken hover:text-brand-800",
       link: "text-brand-600 underline-offset-4 hover:underline",
-      gold: "bg-gold-400 text-brand-950 shadow-sm hover:bg-gold-300",
+      gold: "bg-gold-400 text-brand-950 hover:bg-gold-300",
     };
 
     const sizes = {

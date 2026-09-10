@@ -139,7 +139,7 @@ export default function BackupPage() {
               {(Object.keys(LABEL) as (keyof Statistik)[]).map((key) => (
                 <div key={key} className="p-4 border rounded-xl">
                   <p className="text-xs text-slate-500">{LABEL[key]}</p>
-                  <p className="text-xl font-bold text-brand-900 mt-1">
+                  <p className="text-xl font-bold text-slate-900 mt-1">
                     {statistik[key].toLocaleString("id-ID")}
                   </p>
                 </div>

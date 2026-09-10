@@ -84,13 +84,13 @@ export function DashboardShell({
       </a>
 
       <div className="lg:flex">
-        <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 bg-brand-deep text-white px-4 h-14 shadow-lg">
+        <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 bg-white border-b border-border text-slate-900 px-4 h-14">
           <button
             type="button"
             onClick={() => setOpen(true)}
             aria-label="Buka menu navigasi"
             aria-expanded={open}
-            className="p-2 -ml-2 rounded-lg hover:bg-gray-800 transition-colors"
+            className="p-2 -ml-2 rounded-lg text-slate-600 hover:bg-surface-sunken transition-colors"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -102,7 +102,7 @@ export function DashboardShell({
             </div>
             <div className="min-w-0 leading-tight">
               {brandLabel && (
-                <p className="text-[10px] text-brand-300 uppercase tracking-widest">
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest">
                   {brandLabel}
                 </p>
               )}

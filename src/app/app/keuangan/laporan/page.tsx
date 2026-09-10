@@ -199,7 +199,7 @@ export default function LaporanPage() {
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-brand-900">
+                <div className="text-3xl font-bold text-slate-900">
                   {formatRupiah(data.totalPenjualan)}
                 </div>
                 <p className="text-sm text-brand-600 mt-2 font-medium">
@@ -217,7 +217,7 @@ export default function LaporanPage() {
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-brand-900">
+                <div className="text-3xl font-bold text-slate-900">
                   {formatRupiah(data.totalLaba)}
                 </div>
                 <p className="text-sm text-brand-600 mt-2 font-medium">
@@ -239,7 +239,7 @@ export default function LaporanPage() {
                 </div>
               </CardHeader>
               <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-brand-900">
+                <div className="text-3xl font-bold text-slate-900">
                   {formatRupiah(
                     data.totalTransaksi > 0 ? data.totalPenjualan / data.totalTransaksi : 0
                   )}
@@ -340,7 +340,7 @@ export default function LaporanPage() {
                             </div>
                           </td>
                           <td className="p-4">
-                            <p className="font-semibold text-brand-900">{p.nama}</p>
+                            <p className="font-semibold text-slate-900">{p.nama}</p>
                           </td>
                           <td className="p-4 text-right">
                             <Badge variant="outline" className="font-semibold">
@@ -372,7 +372,7 @@ export default function LaporanPage() {
         <Card className="border-0 shadow-lg animate-scaleIn" style={{ animationDelay: '0.2s' }}>
           <CardContent className="py-16">
             <div className="text-center text-slate-500">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center animate-bounce-soft">
+              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center animate-bounce-soft">
                 <BarChart3 className="h-10 w-10 text-white" />
               </div>
               <p className="text-lg font-medium text-slate-700 mb-2">Belum Ada Laporan</p>

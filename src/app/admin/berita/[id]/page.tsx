@@ -49,7 +49,7 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/admin/berita"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /></Button></Link>
-        <h1 className="text-2xl font-bold text-brand-900">Edit Berita</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Edit Berita</h1>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
         <div>

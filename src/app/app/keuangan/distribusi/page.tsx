@@ -455,7 +455,7 @@ export default function DistribusiPage() {
 
               <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 hover-lift transition-all-smooth">
                 <div>
-                  <span className="font-semibold text-brand-900">Operasional & Lainnya</span>
+                  <span className="font-semibold text-slate-900">Operasional & Lainnya</span>
                   <p className="text-sm text-slate-600">30% dari bagian pengelola</p>
                 </div>
                 <span className="text-2xl font-bold text-slate-700">

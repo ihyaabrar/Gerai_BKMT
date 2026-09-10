@@ -26,7 +26,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-12 gap-4">
           <div>
             <span className="text-brand-600 text-sm font-semibold uppercase tracking-widest">Informasi</span>
-            <h2 className="text-3xl md:text-4xl font-bold text-brand-900 mt-2">Berita & Pengumuman</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Berita & Pengumuman</h2>
           </div>
           {beritaList.length > 1 && (
             <Link
@@ -40,7 +40,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
 
         {beritaList.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Newspaper className="h-10 w-10 text-gray-300" />
             </div>
             <p className="text-slate-400 text-lg font-medium">Belum ada berita</p>
@@ -105,7 +105,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                 <Link
                   key={berita.id}
                   href={`/berita/${berita.slug}`}
-                  className="group flex gap-4 bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-all"
+                  className="group flex gap-4 bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-all"
                 >
                   <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
                     {berita.gambarUrl ? (
@@ -121,7 +121,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-brand-900 text-sm line-clamp-2 group-hover:text-brand-700 transition-colors leading-snug">
+                    <h3 className="font-semibold text-slate-900 text-sm line-clamp-2 group-hover:text-brand-700 transition-colors leading-snug">
                       {berita.judul}
                     </h3>
                     <p className="text-slate-400 text-xs mt-2 flex items-center gap-1">

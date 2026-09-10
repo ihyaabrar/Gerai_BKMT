@@ -16,7 +16,7 @@ interface Pengurus {
 const TINGKATAN_COLOR: Record<string, string> = {
   PD: "bg-emerald-100 text-emerald-700",
   PC: "bg-blue-100 text-blue-700",
-  Permata: "bg-violet-100 text-violet-700",
+  Permata: "bg-violet-50 text-violet-600",
 };
 
 export default function AdminPengurusPage() {
@@ -52,7 +52,7 @@ export default function AdminPengurusPage() {
         <div className="flex items-center gap-3">
           <Users className="h-7 w-7 text-violet-600" />
           <div>
-            <h1 className="text-2xl font-bold text-brand-900">Pengurus</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Pengurus</h1>
             <p className="text-slate-500 text-sm">{list.length} total pengurus</p>
           </div>
         </div>
@@ -87,7 +87,7 @@ export default function AdminPengurusPage() {
             <tbody className="divide-y divide-gray-100">
               {list.map((p) => (
                 <tr key={p.id} className="hover:bg-surface-muted">
-                  <td className="px-5 py-4 font-medium text-brand-900">{p.nama}</td>
+                  <td className="px-5 py-4 font-medium text-slate-900">{p.nama}</td>
                   <td className="px-4 py-4 text-sm text-slate-600">{p.jabatan}</td>
                   <td className="px-4 py-4 text-center">
                     <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${TINGKATAN_COLOR[p.tingkatan] || "bg-gray-100 text-gray-600"}`}>

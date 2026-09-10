@@ -31,28 +31,28 @@ const PINTASAN = [
     label: "Barang Masuk",
     desc: "Pencatatan stok masuk dari supplier",
     icon: PackagePlus,
-    warna: "bg-brand-100 text-brand-700",
+    warna: "bg-brand-50 text-brand-600",
   },
   {
     href: "/app/inventori/stok",
     label: "Stok Barang",
     desc: "Lihat dan kelola stok produk",
     icon: Boxes,
-    warna: "bg-gold-100 text-gold-700",
+    warna: "bg-gold-50 text-gold-600",
   },
   {
     href: "/app/inventori/penyesuaian",
     label: "Penyesuaian Stok",
     desc: "Koreksi stok barang di gudang",
     icon: ClipboardCheck,
-    warna: "bg-sky-100 text-sky-700",
+    warna: "bg-sky-50 text-sky-600",
   },
   {
     href: "/app/inventori/retur",
     label: "Retur Barang",
     desc: "Kelola barang retur dan rusak",
     icon: Undo2,
-    warna: "bg-rose-100 text-rose-700",
+    warna: "bg-rose-50 text-rose-600",
   },
 ];
 
@@ -103,7 +103,7 @@ export default function InventoriPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-brand-900">Inventori</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Inventori</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Kelola stok barang, barang masuk, penyesuaian, dan retur dengan mudah
         </p>
@@ -115,20 +115,20 @@ export default function InventoriPage() {
           <Link
             key={p.href}
             href={p.href}
-            className="group rounded-card border border-brand-100/70 bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+            className="group rounded-card border border-border bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
           >
             <div className="flex items-start justify-between gap-3">
               <span
                 className={cn(
-                  "h-11 w-11 rounded-2xl flex items-center justify-center shrink-0",
+                  "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
                   p.warna
                 )}
               >
-                <p.icon className="h-5 w-5" />
+                <p.icon className="h-[18px] w-[18px]" />
               </span>
               <ArrowRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500" />
             </div>
-            <p className="mt-3.5 font-bold text-brand-900">{p.label}</p>
+            <p className="mt-3.5 font-semibold text-slate-900">{p.label}</p>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">{p.desc}</p>
           </Link>
         ))}
@@ -148,25 +148,25 @@ export default function InventoriPage() {
                     label: "Total Produk",
                     nilai: barang.length,
                     icon: Package,
-                    warna: "bg-brand-100 text-brand-700",
+                    warna: "bg-brand-50 text-brand-600",
                   },
                   {
                     label: "Stok Aman",
                     nilai: ringkasan.aman.length,
                     icon: ShieldCheck,
-                    warna: "bg-sky-100 text-sky-700",
+                    warna: "bg-sky-50 text-sky-600",
                   },
                   {
                     label: "Stok Menipis",
                     nilai: ringkasan.menipis.length,
                     icon: AlertTriangle,
-                    warna: "bg-amber-100 text-amber-700",
+                    warna: "bg-amber-50 text-amber-600",
                   },
                   {
                     label: "Stok Habis",
                     nilai: ringkasan.habis.length,
                     icon: XCircle,
-                    warna: "bg-rose-100 text-rose-700",
+                    warna: "bg-rose-50 text-rose-600",
                   },
                 ].map((r) => (
                   <div
@@ -181,7 +181,7 @@ export default function InventoriPage() {
                     >
                       <r.icon className="h-4 w-4" />
                     </span>
-                    <p className="mt-2.5 text-xl font-extrabold text-brand-900">
+                    <p className="mt-2.5 text-xl font-extrabold text-slate-900">
                       {r.nilai}
                     </p>
                     <p className="text-[11px] text-slate-500">{r.label}</p>
@@ -191,22 +191,23 @@ export default function InventoriPage() {
             </CardContent>
           </Card>
 
-          <Card className="bg-brand-deep border-0">
+          <Card className="bg-brand-50/50">
             <CardContent className="p-5 pt-5">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <p className="text-sm text-brand-200">Nilai Persediaan</p>
-                  <p className="mt-1.5 text-2xl font-extrabold text-white break-words">
-                    {formatRupiah(ringkasan.nilai)}
-                  </p>
-                  <p className="text-xs text-brand-300 mt-1.5">
-                    Dihitung dari harga beli &times; stok
-                  </p>
-                </div>
-                <span className="shrink-0 h-11 w-11 rounded-2xl bg-white/10 text-gold-300 flex items-center justify-center">
-                  <Wallet className="h-5 w-5" />
-                </span>
-              </div>
+              <span className="inline-flex h-9 w-9 rounded-lg bg-brand-50 text-brand-600 items-center justify-center">
+                <Wallet className="h-[18px] w-[18px]" />
+              </span>
+              <p className="mt-3.5 text-[13px] font-medium text-slate-500">
+                Nilai Persediaan
+              </p>
+              <p
+                title={formatRupiah(ringkasan.nilai)}
+                className="mt-1 text-[22px] font-bold text-slate-900 truncate tracking-tight"
+              >
+                {formatRupiah(ringkasan.nilai)}
+              </p>
+              <p className="text-xs text-slate-400 mt-1.5">
+                Dihitung dari harga beli &times; stok
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -267,7 +268,7 @@ export default function InventoriPage() {
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[560px] text-sm">
                   <thead>
-                    <tr className="border-b border-brand-100 text-left text-slate-500">
+                    <tr className="border-b border-border text-left text-slate-500">
                       <th className="py-2.5 pr-4 font-semibold">Produk</th>
                       <th className="py-2.5 px-4 font-semibold">Kategori</th>
                       <th className="py-2.5 px-4 font-semibold text-right">Harga</th>
@@ -282,19 +283,19 @@ export default function InventoriPage() {
                       return (
                         <tr
                           key={b.id}
-                          className="border-b border-brand-100/60 last:border-0"
+                          className="border-b border-border last:border-0"
                         >
                           <td className="py-3 pr-4">
-                            <p className="font-semibold text-brand-900">{b.nama}</p>
+                            <p className="font-semibold text-slate-900">{b.nama}</p>
                             <p className="text-xs text-slate-400 mt-0.5">{b.kode}</p>
                           </td>
                           <td className="py-3 px-4 text-slate-600">
                             {b.kategori || "-"}
                           </td>
-                          <td className="py-3 px-4 text-right font-medium text-brand-900">
+                          <td className="py-3 px-4 text-right font-medium text-slate-900">
                             {formatRupiah(b.hargaJual)}
                           </td>
-                          <td className="py-3 px-4 text-center font-bold text-brand-900">
+                          <td className="py-3 px-4 text-center font-bold text-slate-900">
                             {b.stok}{" "}
                             <span className="font-normal text-xs text-slate-400">
                               {b.satuan}

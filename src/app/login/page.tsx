@@ -111,7 +111,7 @@ export default function LoginPage() {
           </Link>
 
           <div className="mb-8">
-            <h2 className="text-3xl font-bold text-brand-900">Selamat datang</h2>
+            <h2 className="text-3xl font-bold text-slate-900">Selamat datang</h2>
             <p className="text-slate-500 mt-2">Masuk ke sistem kasir Gerai BKMT</p>
           </div>
 
@@ -166,13 +166,13 @@ export default function LoginPage() {
 
           {/* Demo accounts — hanya tampil di luar produksi */}
           {process.env.NODE_ENV !== "production" && (
-          <div className="mt-8 p-5 bg-white rounded-2xl border border-gray-100 shadow-sm">
+          <div className="mt-8 p-5 bg-white rounded-xl border border-gray-100 shadow-sm">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Akun Demo</p>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setForm({ username: "admin", password: "admin123" })}
-                className="p-3 bg-brand-50 hover:bg-brand-100 border border-brand-100 rounded-xl text-left transition-colors"
+                className="p-3 bg-brand-50 hover:bg-brand-100 border border-border rounded-xl text-left transition-colors"
               >
                 <p className="text-xs font-bold text-brand-700">Master</p>
                 <p className="text-xs text-slate-500 mt-0.5">admin / admin123</p>

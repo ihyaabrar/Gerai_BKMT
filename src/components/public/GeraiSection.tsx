@@ -12,7 +12,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <span className="text-brand-600 text-sm font-semibold uppercase tracking-widest">Unit Usaha</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-900 mt-2">Gerai BKMT</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Gerai BKMT</h2>
           <p className="text-slate-500 mt-3">Unit usaha ekonomi produktif PD BKMT Kabupaten Kubu Raya</p>
         </div>
 
@@ -22,7 +22,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
             {gerai ? (
               <>
                 <div>
-                  <h3 className="text-2xl font-bold text-brand-900 mb-3">{gerai.nama}</h3>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">{gerai.nama}</h3>
                   {gerai.deskripsi && (
                     <p className="text-slate-600 leading-relaxed">{gerai.deskripsi}</p>
                   )}
@@ -30,7 +30,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
 
                 <div className="space-y-4">
                   {gerai.alamat && (
-                    <div className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
                       <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center shrink-0">
                         <MapPin className="h-5 w-5 text-brand-600" />
                       </div>
@@ -41,7 +41,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
                     </div>
                   )}
                   {gerai.telepon && (
-                    <div className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
                       <div className="w-10 h-10 bg-brand-100 rounded-xl flex items-center justify-center shrink-0">
                         <Phone className="h-5 w-5 text-brand-600" />
                       </div>
@@ -54,7 +54,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
                     </div>
                   )}
                   {gerai.jamOperasional && (
-                    <div className="flex items-start gap-4 p-4 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="flex items-start gap-4 p-4 bg-white rounded-xl border border-gray-100 shadow-sm">
                       <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center shrink-0">
                         <Clock className="h-5 w-5 text-amber-600" />
                       </div>
@@ -67,7 +67,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
                 </div>
               </>
             ) : (
-              <div className="p-8 bg-white rounded-2xl border border-gray-100 text-center">
+              <div className="p-8 bg-white rounded-xl border border-gray-100 text-center">
                 <ShoppingBag className="h-12 w-12 text-gray-200 mx-auto mb-3" />
                 <p className="text-slate-400">Informasi gerai sedang dipersiapkan</p>
               </div>
@@ -83,7 +83,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
             <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
 
             <div className="relative">
-              <div className="w-14 h-14 bg-white/10 backdrop-blur rounded-2xl flex items-center justify-center mb-6 border border-white/20">
+              <div className="w-14 h-14 bg-white/10 backdrop-blur rounded-xl flex items-center justify-center mb-6 border border-white/20">
                 <ShoppingBag className="h-7 w-7 text-brand-300" />
               </div>
 

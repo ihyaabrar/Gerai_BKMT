@@ -40,6 +40,7 @@ const menuItems = [
     icon: Users,
     label: "Master Data",
     submenu: [
+      { label: "Ringkasan", href: "/app/master" },
       { label: "Member", href: "/app/master/member" },
       { label: "Nasabah", href: "/app/master/nasabah" },
       { label: "Supplier", href: "/app/master/supplier" },
@@ -49,6 +50,7 @@ const menuItems = [
     icon: Settings,
     label: "Sistem",
     submenu: [
+      { label: "Ringkasan", href: "/app/sistem" },
       { label: "Shift Kasir", href: "/app/sistem/shift" },
       { label: "Pengaturan", href: "/app/sistem/pengaturan", restricted: true },
       { label: "Backup", href: "/app/sistem/backup", restricted: true },
@@ -104,7 +106,7 @@ export function Sidebar() {
         className={cn(
           // Mobile: drawer melayang di atas konten.
           "fixed inset-y-0 left-0 z-50 w-[272px] max-w-[85vw] bg-brand-deep text-white",
-          "flex flex-col transition-transform duration-200 ease-out shadow-panel",
+          "flex flex-col transition-transform duration-200 ease-out",
           open ? "translate-x-0" : "-translate-x-full",
           // Desktop: kolom tetap yang menempel saat halaman di-scroll.
           "lg:static lg:translate-x-0 lg:max-w-none lg:h-screen lg:sticky lg:top-0 lg:shrink-0"
@@ -113,7 +115,7 @@ export function Sidebar() {
         {/* Identitas */}
         <div className="p-5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-11 h-11 rounded-2xl bg-gold-400 flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center shrink-0">
               <span className="text-brand-950 font-extrabold text-xs tracking-tight">
                 BKMT
               </span>
@@ -178,7 +180,7 @@ export function Sidebar() {
                             className={cn(
                               "block px-3 py-2 rounded-lg text-[13px] transition-colors",
                               isSubActive
-                                ? "bg-brand-500 text-white font-semibold shadow-sm"
+                                ? "bg-white/10 text-white font-semibold"
                                 : "text-brand-300 hover:bg-white/5 hover:text-white"
                             )}
                           >
@@ -199,7 +201,7 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-colors",
                   isActive
-                    ? "bg-brand-500 text-white shadow-lg shadow-brand-950/40"
+                    ? "bg-brand-600 text-white"
                     : "text-brand-200 hover:bg-white/5 hover:text-white"
                 )}
               >
@@ -210,20 +212,11 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Slogan — aksen tulisan tangan seperti di desain */}
-        <div className="mx-3 mb-3 rounded-2xl bg-white/5 border border-white/10 px-4 py-3">
-          <p className="font-script text-[17px] leading-tight text-gold-300">
-            Bersama Umat,
-            <br />
-            Membangun Masyarakat
-          </p>
-        </div>
-
         {/* Akun & tautan bawah */}
         <div className="px-3 pb-4 space-y-1 border-t border-white/10 pt-3">
           {user && (
             <div className="flex items-center gap-3 px-3.5 py-2.5 mb-1">
-              <div className="w-9 h-9 rounded-xl bg-brand-500 flex items-center justify-center shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
                 <span className="text-white text-xs font-bold">
                   {user.nama.charAt(0)}
                 </span>

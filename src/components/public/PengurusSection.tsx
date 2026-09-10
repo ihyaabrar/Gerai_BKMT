@@ -37,7 +37,7 @@ export function PengurusSection({ pengurusList }: PengurusSectionProps) {
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-14">
           <span className="text-brand-600 text-sm font-semibold uppercase tracking-widest">Struktur</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-brand-900 mt-2">Susunan Pengurus</h2>
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mt-2">Susunan Pengurus</h2>
           <p className="text-slate-500 mt-3 max-w-xl mx-auto">
             Kepengurusan PD BKMT Kabupaten Kubu Raya yang berkomitmen melayani umat
           </p>
@@ -45,7 +45,7 @@ export function PengurusSection({ pengurusList }: PengurusSectionProps) {
 
         {pengurusList.length === 0 ? (
           <div className="text-center py-20">
-            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+            <div className="w-20 h-20 bg-gray-100 rounded-xl flex items-center justify-center mx-auto mb-4">
               <Users className="h-10 w-10 text-gray-300" />
             </div>
             <p className="text-slate-400 text-lg font-medium">Data pengurus sedang dipersiapkan</p>
@@ -63,7 +63,7 @@ export function PengurusSection({ pengurusList }: PengurusSectionProps) {
                       <Users className="h-5 w-5 text-white" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-brand-900">{TINGKATAN_LABEL[tingkatan]}</h3>
+                      <h3 className="text-lg font-bold text-slate-900">{TINGKATAN_LABEL[tingkatan]}</h3>
                       <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${TINGKATAN_BADGE[tingkatan]}`}>
                         {list.length} orang
                       </span>
@@ -80,7 +80,7 @@ export function PengurusSection({ pengurusList }: PengurusSectionProps) {
                             <img
                               src={p.fotoUrl}
                               alt={p.nama}
-                              className="w-20 h-20 rounded-2xl object-cover shadow-md group-hover:shadow-lg transition-all group-hover:-translate-y-1"
+                              className="w-20 h-20 rounded-xl object-cover shadow-md group-hover:shadow-lg transition-all group-hover:-translate-y-1"
                             />
                           ) : (
                             <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${TINGKATAN_GRADIENT[tingkatan]} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:-translate-y-1`}>
@@ -90,7 +90,7 @@ export function PengurusSection({ pengurusList }: PengurusSectionProps) {
                             </div>
                           )}
                         </div>
-                        <p className="font-semibold text-brand-900 text-xs leading-tight line-clamp-2">{p.nama}</p>
+                        <p className="font-semibold text-slate-900 text-xs leading-tight line-clamp-2">{p.nama}</p>
                         <p className={`text-xs mt-1 font-medium ${
                           tingkatan === "PD" ? "text-emerald-600" :
                           tingkatan === "PC" ? "text-blue-600" : "text-violet-600"

@@ -17,21 +17,21 @@ const PINTASAN = [
     label: "Penjualan",
     desc: "Pemasukan dari penjualan produk",
     icon: Receipt,
-    warna: "bg-brand-100 text-brand-700",
+    warna: "bg-brand-50 text-brand-600",
   },
   {
     href: "/app/keuangan/pengeluaran",
     label: "Pengeluaran",
     desc: "Kelola biaya operasional dan pengeluaran",
     icon: Wallet,
-    warna: "bg-gold-100 text-gold-700",
+    warna: "bg-gold-50 text-gold-600",
   },
   {
     href: "/app/keuangan/distribusi",
     label: "Distribusi Laba",
     desc: "Pembagian keuntungan usaha",
     icon: PieChart,
-    warna: "bg-sky-100 text-sky-700",
+    warna: "bg-sky-50 text-sky-600",
     adminSaja: true,
   },
   {
@@ -39,7 +39,7 @@ const PINTASAN = [
     label: "Laporan Keuangan",
     desc: "Lihat laporan dan rekapitulasi lengkap",
     icon: FileBarChart,
-    warna: "bg-violet-100 text-violet-700",
+    warna: "bg-violet-50 text-violet-600",
     adminSaja: true,
   },
 ];
@@ -97,21 +97,21 @@ export default function KeuanganPage() {
       label: "Total Penjualan",
       nilai: formatRupiah(ringkasan?.penjualan ?? 0),
       icon: TrendingUp,
-      warna: "bg-brand-100 text-brand-700",
+      warna: "bg-brand-50 text-brand-600",
       negatif: false,
     },
     {
       label: "Total Pengeluaran",
       nilai: formatRupiah(ringkasan?.pengeluaran ?? 0),
       icon: TrendingDown,
-      warna: "bg-rose-100 text-rose-700",
+      warna: "bg-rose-50 text-rose-600",
       negatif: false,
     },
     {
       label: "Laba Bersih",
       nilai: formatRupiah(labaBersih),
       icon: Coins,
-      warna: "bg-gold-100 text-gold-700",
+      warna: "bg-gold-50 text-gold-600",
       // Angka negatif diberi warna peringatan, bukan disembunyikan —
       // pengeluaran yang melebihi laba memang perlu terlihat.
       negatif: labaBersih < 0,
@@ -120,7 +120,7 @@ export default function KeuanganPage() {
       label: "Margin Laba",
       nilai: `${margin.toFixed(1)}%`,
       icon: Percent,
-      warna: "bg-sky-100 text-sky-700",
+      warna: "bg-sky-50 text-sky-600",
       negatif: margin < 0,
     },
   ];
@@ -133,7 +133,7 @@ export default function KeuanganPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-brand-900">Keuangan</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Keuangan</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Pantau penjualan, pengeluaran, distribusi laba, dan laporan keuangan
         </p>
@@ -144,7 +144,7 @@ export default function KeuanganPage() {
           <Link
             key={p.href}
             href={p.href}
-            className="group rounded-card border border-brand-100/70 bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+            className="group rounded-card border border-border bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
           >
             <div className="flex items-start justify-between gap-3">
               <span
@@ -157,7 +157,7 @@ export default function KeuanganPage() {
               </span>
               <ArrowRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500" />
             </div>
-            <p className="mt-3.5 font-bold text-brand-900">{p.label}</p>
+            <p className="mt-3.5 font-bold text-slate-900">{p.label}</p>
             <p className="text-xs text-slate-500 mt-1 leading-relaxed">{p.desc}</p>
           </Link>
         ))}
@@ -166,11 +166,11 @@ export default function KeuanganPage() {
       {!isAdmin ? (
         <Card>
           <CardContent className="p-6 pt-6 flex items-start gap-4">
-            <span className="shrink-0 h-11 w-11 rounded-2xl bg-surface-sunken text-slate-500 flex items-center justify-center">
+            <span className="shrink-0 h-11 w-11 rounded-xl bg-surface-sunken text-slate-500 flex items-center justify-center">
               <Lock className="h-5 w-5" />
             </span>
             <div>
-              <p className="font-semibold text-brand-900">
+              <p className="font-semibold text-slate-900">
                 Ringkasan keuangan hanya untuk pengelola
               </p>
               <p className="text-sm text-slate-500 mt-1 leading-relaxed">
@@ -183,7 +183,7 @@ export default function KeuanganPage() {
       ) : (
         <>
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-base font-bold text-brand-900">
+            <h2 className="text-base font-bold text-slate-900">
               Ringkasan {bulanIni}
             </h2>
           </div>
@@ -256,7 +256,7 @@ export default function KeuanganPage() {
                     <div key={b.label}>
                       <div className="flex items-center justify-between text-sm mb-1.5">
                         <span className="text-slate-600">{b.label}</span>
-                        <span className="font-semibold text-brand-900">
+                        <span className="font-semibold text-slate-900">
                           {formatRupiah(b.nilai)}
                         </span>
                       </div>

@@ -76,12 +76,12 @@ export default function AdminDashboard() {
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
           <p className="text-slate-500 text-sm">Selamat datang kembali,</p>
-          <h1 className="text-2xl font-bold text-brand-900 mt-0.5">{user?.nama || "Admin"} 👋</h1>
+          <h1 className="text-2xl font-bold text-slate-900 mt-0.5">{user?.nama || "Admin"} 👋</h1>
         </div>
         <Link
           href="/"
           target="_blank"
-          className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium bg-brand-50 px-4 py-2 rounded-xl border border-brand-100 transition-colors"
+          className="flex items-center gap-2 text-sm text-brand-600 hover:text-brand-700 font-medium bg-brand-50 px-4 py-2 rounded-xl border border-border transition-colors"
         >
           <TrendingUp className="h-4 w-4" />
           Lihat Halaman Publik
@@ -89,7 +89,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Progress */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+      <div className="bg-white rounded-xl border border-gray-100 p-6 shadow-sm">
         <div className="flex items-center justify-between mb-3">
           <p className="text-sm font-semibold text-slate-700">Kelengkapan Konten</p>
           <span className="text-sm font-bold text-brand-600">{completedCount}/4 selesai</span>
@@ -115,7 +115,7 @@ export default function AdminDashboard() {
             <Link
               key={card.href}
               href={card.href}
-              className="group bg-white rounded-2xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 transition-all"
+              className="group bg-white rounded-xl border border-gray-100 p-6 hover:shadow-lg hover:border-gray-200 transition-all"
             >
               <div className="flex items-start justify-between mb-5">
                 <div className={`w-12 h-12 bg-gradient-to-br ${card.gradient} rounded-2xl flex items-center justify-center shadow-md`}>
@@ -126,7 +126,7 @@ export default function AdminDashboard() {
                   : <AlertCircle className="h-5 w-5 text-amber-400" />
                 }
               </div>
-              <h3 className="font-bold text-brand-900 mb-1">{card.label}</h3>
+              <h3 className="font-bold text-slate-900 mb-1">{card.label}</h3>
               <p className="text-slate-500 text-sm mb-4">{card.desc}</p>
               <div className="flex items-center justify-between">
                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${

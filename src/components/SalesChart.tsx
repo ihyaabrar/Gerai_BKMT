@@ -1,8 +1,9 @@
 "use client";
 
 import {
-  BarChart,
-  Bar,
+  ComposedChart,
+  Line,
+  Area,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -29,11 +30,14 @@ const formatRupiahShort = (value: number) => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-brand-100 rounded-xl shadow-card p-3 text-sm">
+    <div className="bg-white border border-border rounded-xl shadow-card p-3 text-sm">
       <p className="font-semibold text-slate-700 mb-2">{label}</p>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full" style={{ background: p.fill }} />
+          <div
+            className="w-2.5 h-2.5 rounded-full"
+            style={{ background: p.stroke || p.fill }}
+          />
           <span className="text-slate-500">{p.name}:</span>
           <span className="font-medium">
             {new Intl.NumberFormat("id-ID", { style: "currency", currency: "IDR", minimumFractionDigits: 0 }).format(p.value)}
@@ -54,9 +58,15 @@ export function SalesChart({ data }: SalesChartProps) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={280}>
-      <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barGap={4}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#E5F1E9" vertical={false} />
+    <ResponsiveContainer width="100%" height={260}>
+      <ComposedChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+        <defs>
+          <linearGradient id="isiPenjualan" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#2F9862" stopOpacity={0.16} />
+            <stop offset="100%" stopColor="#2F9862" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#EEF3F0" vertical={false} />
         <XAxis
           dataKey="bulan"
           tick={{ fontSize: 12, fill: "#94a3b8" }}
@@ -70,10 +80,34 @@ export function SalesChart({ data }: SalesChartProps) {
           tickLine={false}
           width={48}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: "#F1FAF4" }} />
-        <Bar dataKey="penjualan" name="Penjualan" fill="#2F9862" radius={[4, 4, 0, 0]} maxBarSize={40} />
-        <Bar dataKey="laba" name="Laba" fill="#F5C518" radius={[4, 4, 0, 0]} maxBarSize={40} />
-      </BarChart>
+        <Tooltip content={<CustomTooltip />} cursor={{ stroke: "#BCE4CB", strokeWidth: 1 }} />
+        {/* Grafik garis dengan area lembut — lebih tenang daripada batang */}
+        <Area
+          type="monotone"
+          dataKey="penjualan"
+          name="Penjualan"
+          stroke="none"
+          fill="url(#isiPenjualan)"
+        />
+        <Line
+          type="monotone"
+          dataKey="penjualan"
+          name="Penjualan"
+          stroke="#1E7A4D"
+          strokeWidth={2.5}
+          dot={{ r: 3, fill: "#1E7A4D", strokeWidth: 0 }}
+          activeDot={{ r: 5 }}
+        />
+        <Line
+          type="monotone"
+          dataKey="laba"
+          name="Laba"
+          stroke="#E0AC08"
+          strokeWidth={2}
+          strokeDasharray="4 4"
+          dot={false}
+        />
+      </ComposedChart>
     </ResponsiveContainer>
   );
 }

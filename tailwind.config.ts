@@ -46,8 +46,8 @@ const config: Config = {
         },
         surface: {
           DEFAULT: "#FFFFFF",
-          muted: "#F6FBF7", // latar halaman bernuansa mint
-          sunken: "#EEF7F1",
+          muted: "#FBFDFC", // latar halaman nyaris putih
+          sunken: "#F4F8F6",
         },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -95,20 +95,21 @@ const config: Config = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
-        card: "1rem",
+        card: "0.875rem",
       },
       boxShadow: {
-        // Bayangan lembut bernuansa hijau, bukan abu-abu netral
-        card: "0 1px 2px rgba(14, 59, 38, 0.04), 0 8px 24px -12px rgba(14, 59, 38, 0.16)",
-        "card-hover":
-          "0 2px 4px rgba(14, 59, 38, 0.06), 0 16px 36px -16px rgba(14, 59, 38, 0.24)",
-        panel: "0 24px 60px -32px rgba(7, 37, 24, 0.45)",
+        // Gaya minimalis: bayangan nyaris tak terlihat, kedalaman
+        // dibentuk oleh garis tepi tipis, bukan oleh bayangan tebal.
+        card: "0 1px 2px rgba(15, 42, 30, 0.04)",
+        "card-hover": "0 4px 16px -6px rgba(15, 42, 30, 0.12)",
+        panel: "0 20px 48px -28px rgba(7, 37, 24, 0.35)",
       },
       backgroundImage: {
         // Gradien yang berulang di sidebar, footer, dan banner sambutan
-        "brand-deep": "linear-gradient(160deg, #0E3B26 0%, #072518 100%)",
-        "brand-hero": "linear-gradient(135deg, #F1FAF4 0%, #DDF2E4 55%, #BCE4CB 100%)",
-        "brand-action": "linear-gradient(135deg, #1E7A4D 0%, #17603D 100%)",
+        // Sidebar tetap hijau tua tapi rata, tanpa gradasi mencolok.
+        "brand-deep": "linear-gradient(180deg, #10402A 0%, #0C3421 100%)",
+        // Latar hero halaman publik: mint sangat muda memudar ke putih.
+        "brand-hero": "linear-gradient(150deg, #F2FAF5 0%, #FFFFFF 60%)",
       },
     },
   },

@@ -30,11 +30,11 @@ const IKON_AKTIVITAS = {
 } as const;
 
 const WARNA_AKTIVITAS = {
-  penjualan: "bg-brand-100 text-brand-700",
-  stok: "bg-sky-100 text-sky-700",
-  retur: "bg-amber-100 text-amber-700",
-  pengeluaran: "bg-rose-100 text-rose-700",
-  member: "bg-violet-100 text-violet-700",
+  penjualan: "bg-brand-50 text-brand-600",
+  stok: "bg-sky-50 text-sky-600",
+  retur: "bg-amber-50 text-amber-600",
+  pengeluaran: "bg-rose-50 text-rose-600",
+  member: "bg-violet-50 text-violet-600",
 } as const;
 
 /** Indikator naik/turun pada kartu ringkasan. */
@@ -87,7 +87,8 @@ export default function Dashboard() {
       title: "Penjualan Hari Ini",
       value: formatRupiah(data.penjualanHariIni),
       icon: DollarSign,
-      warna: "bg-brand-100 text-brand-700",
+      warna: "bg-brand-50 text-brand-700",
+      latar: "bg-brand-50/50",
       tren: data.tren?.penjualan ?? null,
       satuan: "dari kemarin",
     },
@@ -95,7 +96,8 @@ export default function Dashboard() {
       title: "Laba Bulan Ini",
       value: formatRupiah(data.labaKotor ?? 0),
       icon: TrendingUp,
-      warna: "bg-gold-100 text-gold-700",
+      warna: "bg-gold-50 text-gold-600",
+      latar: "bg-gold-50/40",
       tren: data.tren?.laba ?? null,
       satuan: "dari bulan lalu",
     },
@@ -103,7 +105,8 @@ export default function Dashboard() {
       title: "Stok Rendah",
       value: `${data.stokRendah} produk`,
       icon: AlertTriangle,
-      warna: "bg-rose-100 text-rose-700",
+      warna: "bg-rose-50 text-rose-600",
+      latar: "bg-rose-50/40",
       tren: null,
       satuan: data.stokRendah > 0 ? "Perlu restock segera" : "Semua stok aman",
     },
@@ -111,7 +114,8 @@ export default function Dashboard() {
       title: "Produk Aktif",
       value: `${data.totalBarang} produk`,
       icon: Package,
-      warna: "bg-sky-100 text-sky-700",
+      warna: "bg-sky-50 text-sky-600",
+      latar: "bg-sky-50/40",
       tren: data.tren?.produk ?? null,
       satuan: "dari bulan lalu",
     },
@@ -119,71 +123,48 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Banner sambutan */}
-      <section className="relative overflow-hidden rounded-card bg-brand-deep px-6 py-7 sm:px-8 sm:py-9 text-white">
-        {/* Ornamen latar — pengganti ilustrasi sampai asetnya tersedia */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0 opacity-[0.13]"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 82% 18%, #8DCFAA 0, transparent 42%), radial-gradient(circle at 96% 78%, #F5C518 0, transparent 34%)",
-          }}
-        />
-        <div className="relative max-w-3xl">
-          <p className="text-brand-200 text-sm">Assalamu&rsquo;alaikum 👋</p>
-          <h1 className="mt-1.5 text-2xl sm:text-3xl lg:text-4xl font-extrabold leading-tight">
-            Selamat datang{user?.nama ? `, ${user.nama.split(" ")[0]}` : ""}
-            <br className="hidden sm:block" /> di Gerai BKMT Kubu Raya
+      {/* Sambutan — ringkas, tanpa panel berwarna tebal */}
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="text-2xl sm:text-[28px] font-bold text-slate-900 tracking-tight">
+            Selamat datang{user?.nama ? `, ${user.nama.split(" ")[0]}` : ""}!
           </h1>
-          <p className="mt-2.5 text-brand-100/80 text-sm sm:text-base leading-relaxed">
-            Kelola usaha umat dengan mudah, transparan, dan penuh manfaat.
+          <p className="text-sm text-slate-500 mt-1">
+            Mari bersama membangun ekonomi umat melalui Gerai BKMT.
           </p>
-
-          <ul className="mt-5 flex flex-wrap gap-2">
-            {NILAI_UTAMA.map((n) => (
-              <li
-                key={n}
-                className="rounded-full bg-white/10 border border-white/15 px-3.5 py-1.5 text-xs font-medium text-brand-50"
-              >
-                {n}
-              </li>
-            ))}
-          </ul>
         </div>
-
-        <p className="relative mt-6 font-script text-xl text-gold-300 sm:absolute sm:right-8 sm:bottom-7 sm:mt-0 sm:text-2xl">
-          Umat Bersama, Masa Depan Lebih Baik
+        <p className="hidden sm:block font-script text-xl text-brand-600">
+          Bersama Umat, Membangun Masyarakat
         </p>
-      </section>
+      </div>
 
       {/* Ringkasan */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {kartu.map((c) => (
-          <Card key={c.title}>
-            <CardContent className="p-5 pt-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <p className="text-sm font-medium text-slate-500">{c.title}</p>
-                  <p
-                    title={String(c.value)}
-                    className="mt-1.5 text-xl sm:text-2xl font-extrabold text-brand-900 truncate"
-                  >
-                    {c.value}
-                  </p>
-                </div>
-                <span
-                  className={cn(
-                    "shrink-0 h-11 w-11 rounded-2xl flex items-center justify-center",
-                    c.warna
-                  )}
-                >
-                  <c.icon className="h-5 w-5" />
-                </span>
-              </div>
-              <Tren nilai={c.tren} satuan={c.satuan} />
-            </CardContent>
-          </Card>
+          <div
+            key={c.title}
+            className={cn(
+              "rounded-card border border-border p-5 transition-colors",
+              c.latar
+            )}
+          >
+            <span
+              className={cn(
+                "inline-flex h-9 w-9 rounded-lg items-center justify-center",
+                c.warna
+              )}
+            >
+              <c.icon className="h-[18px] w-[18px]" />
+            </span>
+            <p className="mt-3.5 text-[13px] font-medium text-slate-500">{c.title}</p>
+            <p
+              title={String(c.value)}
+              className="mt-1 text-[22px] font-bold text-slate-900 truncate tracking-tight"
+            >
+              {c.value}
+            </p>
+            <Tren nilai={c.tren} satuan={c.satuan} />
+          </div>
         ))}
       </div>
 
@@ -193,7 +174,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-9 w-9 rounded-xl bg-brand-100 text-brand-700 flex items-center justify-center">
+                <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
                   <BarChart3 className="h-[18px] w-[18px]" />
                 </span>
                 Grafik Penjualan &amp; Laba
@@ -218,7 +199,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-9 w-9 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center">
+                <span className="h-8 w-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
                   <Clock className="h-[18px] w-[18px]" />
                 </span>
                 Transaksi Terbaru
@@ -238,11 +219,11 @@ export default function Dashboard() {
                 <p className="text-sm">Belum ada transaksi</p>
               </div>
             ) : (
-              <ul className="divide-y divide-brand-100/70">
+              <ul className="divide-y divide-border">
                 {data.transaksiTerbaru.map((t: any) => (
                   <li key={t.id} className="flex items-center gap-3 py-2.5 first:pt-0">
                     <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm text-brand-900 truncate">
+                      <p className="font-semibold text-sm text-slate-900 truncate">
                         {t.nomorTransaksi}
                       </p>
                       <p className="text-xs text-slate-400 mt-0.5">
@@ -274,7 +255,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2.5">
-              <span className="h-9 w-9 rounded-xl bg-gold-100 text-gold-700 flex items-center justify-center">
+              <span className="h-8 w-8 rounded-lg bg-gold-50 text-gold-600 flex items-center justify-center">
                 <Award className="h-[18px] w-[18px]" />
               </span>
               Produk Terlaris
@@ -291,7 +272,7 @@ export default function Dashboard() {
                       {idx + 1}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-brand-900 truncate">
+                      <p className="font-semibold text-sm text-slate-900 truncate">
                         {p.nama}
                       </p>
                       <p className="text-xs text-slate-400">
@@ -312,7 +293,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-9 w-9 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center">
+                <span className="h-8 w-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
                   <Boxes className="h-[18px] w-[18px]" />
                 </span>
                 Status Inventori
@@ -335,12 +316,12 @@ export default function Dashboard() {
                 {data.barangStokRendah.slice(0, 5).map((b: any) => (
                   <li key={b.id} className="flex items-center gap-3">
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm text-brand-900 truncate">
+                      <p className="font-semibold text-sm text-slate-900 truncate">
                         {b.nama}
                       </p>
                       <p className="text-xs text-slate-400">{b.kode}</p>
                     </div>
-                    <span className="text-sm font-bold text-brand-900 shrink-0">
+                    <span className="text-sm font-bold text-slate-900 shrink-0">
                       {b.stok}
                     </span>
                     <Badge
@@ -359,7 +340,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-2 xl:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2.5">
-              <span className="h-9 w-9 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center">
+              <span className="h-8 w-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
                 <Minus className="h-[18px] w-[18px] rotate-90" />
               </span>
               Aktivitas Hari Ini
@@ -385,7 +366,7 @@ export default function Dashboard() {
                         <Ikon className="h-4 w-4" />
                       </span>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-brand-900 truncate">
+                        <p className="text-sm font-medium text-slate-900 truncate">
                           {a.judul}
                         </p>
                         <p className="text-xs text-slate-400 mt-0.5 truncate">

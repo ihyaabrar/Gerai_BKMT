@@ -77,7 +77,7 @@ export default function AdminProfilPage() {
       <div className="flex items-center gap-3">
         <Building2 className="h-7 w-7 text-brand-600" />
         <div>
-          <h1 className="text-2xl font-bold text-brand-900">Profil Organisasi</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Profil Organisasi</h1>
           <p className="text-slate-500 text-sm">Informasi identitas PD BKMT Kubu Raya</p>
         </div>
       </div>

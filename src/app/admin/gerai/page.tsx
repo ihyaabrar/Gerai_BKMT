@@ -45,7 +45,7 @@ export default function AdminGeraiPage() {
       <div className="flex items-center gap-3">
         <Store className="h-7 w-7 text-amber-600" />
         <div>
-          <h1 className="text-2xl font-bold text-brand-900">Informasi Gerai</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Informasi Gerai</h1>
           <p className="text-slate-500 text-sm">Data operasional Gerai BKMT</p>
         </div>
       </div>

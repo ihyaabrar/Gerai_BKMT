@@ -47,7 +47,7 @@ export default function AdminBeritaPage() {
         <div className="flex items-center gap-3">
           <FileText className="h-7 w-7 text-brand-600" />
           <div>
-            <h1 className="text-2xl font-bold text-brand-900">Berita & Pengumuman</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Berita & Pengumuman</h1>
             <p className="text-slate-500 text-sm">{beritaList.length} total berita</p>
           </div>
         </div>
@@ -82,7 +82,7 @@ export default function AdminBeritaPage() {
               {beritaList.map((b) => (
                 <tr key={b.id} className="hover:bg-surface-muted">
                   <td className="px-5 py-4">
-                    <p className="font-medium text-brand-900 line-clamp-1">{b.judul}</p>
+                    <p className="font-medium text-slate-900 line-clamp-1">{b.judul}</p>
                     <p className="text-xs text-slate-400 mt-0.5">/berita/{b.slug}</p>
                   </td>
                   <td className="px-4 py-4 text-center">

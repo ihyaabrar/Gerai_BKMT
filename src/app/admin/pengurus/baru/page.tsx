@@ -40,7 +40,7 @@ export default function PengurusBaruPage() {
     <div className="max-w-xl space-y-6">
       <div className="flex items-center gap-3">
         <Link href="/admin/pengurus"><Button variant="ghost" size="sm"><ArrowLeft className="h-4 w-4" /></Button></Link>
-        <h1 className="text-2xl font-bold text-brand-900">Tambah Pengurus</h1>
+        <h1 className="text-2xl font-bold text-slate-900">Tambah Pengurus</h1>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

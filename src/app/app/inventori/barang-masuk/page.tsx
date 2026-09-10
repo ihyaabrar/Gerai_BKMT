@@ -270,7 +270,7 @@ export default function BarangMasukPage() {
                   >
                     <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
-                        <p className="font-bold text-brand-900">{barang.nama}</p>
+                        <p className="font-bold text-slate-900">{barang.nama}</p>
                         <p className="text-sm text-slate-500">{barang.kode} • {barang.barcode}</p>
                         <p className="text-xs text-slate-400 mt-1">{barang.kategori}</p>
                       </div>
@@ -306,7 +306,7 @@ export default function BarangMasukPage() {
               {selectedBarang ? (
                 <div className="space-y-4">
                   <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-brand-200">
-                    <p className="font-bold text-brand-900 mb-1">{selectedBarang.nama}</p>
+                    <p className="font-bold text-slate-900 mb-1">{selectedBarang.nama}</p>
                     <p className="text-sm text-slate-600">{selectedBarang.kode}</p>
                     <div className="mt-3 pt-3 border-t border-brand-200">
                       <div className="flex justify-between text-sm mb-1">

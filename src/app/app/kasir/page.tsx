@@ -207,7 +207,7 @@ export default function KasirPage() {
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-brand-900">Kasir</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Kasir</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Proses transaksi penjualan dengan cepat, mudah, dan aman
         </p>
@@ -266,7 +266,7 @@ export default function KasirPage() {
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-sm leading-snug text-brand-900 break-words">
+                      <p className="font-semibold text-sm leading-snug text-slate-900 break-words">
                         {barang.nama}
                       </p>
                       {habis ? (
@@ -278,7 +278,7 @@ export default function KasirPage() {
                     <p className="text-[11px] text-slate-400 mt-1">{barang.kode}</p>
                     <div className="mt-3 flex items-end justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-base font-bold text-brand-700 break-words">
+                        <p className="text-[15px] font-bold text-slate-900 break-words">
                           {formatRupiah(barang.hargaJual)}
                         </p>
                         <p className="text-[11px] text-slate-500 mt-0.5">
@@ -286,7 +286,7 @@ export default function KasirPage() {
                         </p>
                       </div>
                       {!habis && (
-                        <span className="shrink-0 h-8 w-8 rounded-lg bg-brand-600 text-white flex items-center justify-center transition-colors group-hover:bg-brand-700">
+                        <span className="shrink-0 h-7 w-7 rounded-lg bg-brand-600 text-white flex items-center justify-center transition-colors group-hover:bg-brand-700">
                           <Plus className="h-4 w-4" />
                         </span>
                       )}
@@ -302,7 +302,7 @@ export default function KasirPage() {
         <Card className="h-fit lg:sticky lg:top-4">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
-              <span className="h-8 w-8 rounded-lg bg-brand-100 text-brand-700 flex items-center justify-center shrink-0">
+              <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                 <ShoppingCart className="h-[18px] w-[18px]" />
               </span>
               Keranjang Belanja
@@ -316,7 +316,7 @@ export default function KasirPage() {
           <CardContent className="space-y-4">
             {items.length === 0 ? (
               <div className="text-center py-10 text-slate-400">
-                <div className="h-14 w-14 rounded-2xl bg-brand-50 flex items-center justify-center mx-auto mb-3">
+                <div className="h-14 w-14 rounded-xl bg-brand-50 flex items-center justify-center mx-auto mb-3">
                   <ShoppingCart className="h-7 w-7 text-brand-300" />
                 </div>
                 <p className="text-sm font-medium text-slate-500">Keranjang kosong</p>
@@ -330,7 +330,7 @@ export default function KasirPage() {
                     className="flex items-center gap-2 rounded-xl bg-surface-sunken/60 p-2.5"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="font-semibold text-sm truncate text-brand-900">
+                      <p className="font-semibold text-sm truncate text-slate-900">
                         {item.nama}
                       </p>
                       <p className="text-xs text-slate-500 mt-0.5">
@@ -351,7 +351,7 @@ export default function KasirPage() {
                         <Minus className="h-3 w-3" />
                       </Button>
                       <span
-                        className="w-7 text-center text-sm font-bold text-brand-900"
+                        className="w-7 text-center text-sm font-bold text-slate-900"
                         aria-live="polite"
                         aria-label={`Jumlah ${item.nama}: ${item.qty}`}
                       >
@@ -377,7 +377,7 @@ export default function KasirPage() {
               </div>
             )}
 
-            <div className="space-y-2 border-t border-brand-100 pt-3.5 text-sm">
+            <div className="space-y-2 border-t border-border pt-3.5 text-sm">
               <div className="flex justify-between text-slate-600">
                 <span>Subtotal ({items.reduce((s, i) => s + i.qty, 0)} item)</span>
                 <span className="font-medium">{formatRupiah(getSubtotal())}</span>
@@ -392,11 +392,9 @@ export default function KasirPage() {
               )}
             </div>
 
-            <div className="rounded-xl bg-brand-deep px-4 py-3.5 flex items-center justify-between">
-              <span className="text-sm font-semibold text-brand-100">
-                Total Pembayaran
-              </span>
-              <span className="text-xl font-extrabold text-white">
+            <div className="flex items-baseline justify-between border-t border-border pt-3.5">
+              <span className="text-[15px] font-semibold text-slate-900">Total</span>
+              <span className="text-2xl font-bold text-brand-600 tracking-tight">
                 {formatRupiah(getTotal())}
               </span>
             </div>
@@ -420,13 +418,13 @@ export default function KasirPage() {
         melewati seluruh katalog setiap kali ingin menyelesaikan transaksi.
       */}
       {items.length > 0 && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-brand-100 shadow-[0_-6px_20px_-8px_rgba(14,59,38,0.25)] px-4 py-3">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-border shadow-[0_-6px_20px_-8px_rgba(14,59,38,0.25)] px-4 py-3">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">
                 {items.reduce((n, i) => n + i.qty, 0)} item
               </p>
-              <p className="text-lg font-extrabold text-brand-700 truncate">
+              <p className="text-lg font-bold text-brand-600 truncate">
                 {formatRupiah(getTotal())}
               </p>
             </div>
@@ -445,9 +443,9 @@ export default function KasirPage() {
             <DialogTitle>Pembayaran</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="rounded-xl bg-brand-deep px-4 py-4">
-              <p className="text-sm text-brand-200">Total Bayar</p>
-              <p className="text-3xl font-extrabold text-white mt-0.5">
+            <div className="rounded-xl bg-brand-50/60 border border-border px-4 py-4">
+              <p className="text-sm text-slate-500">Total Bayar</p>
+              <p className="text-3xl font-bold text-brand-600 mt-0.5 tracking-tight">
                 {formatRupiah(getTotal())}
               </p>
             </div>
