@@ -64,7 +64,9 @@ export default function PengaturanPage() {
   const fetchKategoriBarang = async () => {
     try {
       const res = await fetch("/api/kategori-barang");
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setKategoriBarang(data);
     } catch { /* ignore */ }
   };
@@ -72,7 +74,9 @@ export default function PengaturanPage() {
   const fetchKategoriPengeluaran = async () => {
     try {
       const res = await fetch("/api/kategori-pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setKategoriPengeluaran(data);
     } catch { /* ignore */ }
   };
@@ -114,7 +118,11 @@ export default function PengaturanPage() {
           persenPengelola: p,
         }),
       });
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menyimpan pengaturan");
+        return;
+      }
       toast.success("Pengaturan berhasil disimpan");
     } catch {
       toast.error("Gagal menyimpan pengaturan");
@@ -210,7 +218,7 @@ export default function PengaturanPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Pengaturan</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Pengaturan</h1>
         <p className="text-gray-500">Konfigurasi sistem</p>
       </div>
 
@@ -252,7 +260,7 @@ export default function PengaturanPage() {
               <Input required type="number" min="0" max="100" value={form.diskonMember}
                 onChange={(e) => handleChange("diskonMember", e.target.value)} className="mt-1" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Persentase Nasabah (%)</label>
                 <Input required type="number" min="0" max="100" value={form.persenNasabah}

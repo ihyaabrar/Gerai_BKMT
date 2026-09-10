@@ -52,7 +52,7 @@ export default function EditPengurusPage({ params }: { params: { id: string } })
         <h1 className="text-2xl font-bold text-gray-900">Edit Pengurus</h1>
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="col-span-2">
             <label className="text-sm font-medium text-gray-700">Nama Lengkap *</label>
             <Input value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />

@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle, Search } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface Barang {
   id: string;
@@ -29,8 +30,9 @@ export default function StokPage() {
 
   useEffect(() => {
     fetch("/api/barang")
-      .then((r) => r.json())
-      .then((data) => setBarang(data))
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setBarang(Array.isArray(data) ? data : []))
+      .catch(() => toast.error("Gagal memuat data stok"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -60,7 +62,7 @@ export default function StokPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Stok Barang</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Stok Barang</h1>
         <p className="text-gray-500">Monitoring inventori real-time</p>
       </div>
 
@@ -163,7 +165,7 @@ export default function StokPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[760px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Kode</th>

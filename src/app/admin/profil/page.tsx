@@ -68,7 +68,7 @@ export default function AdminProfilPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {field("Nama Lengkap Organisasi *", "nama")}
           {field("Singkatan", "singkatan")}
         </div>
@@ -79,7 +79,7 @@ export default function AdminProfilPage() {
 
         <hr className="border-gray-200" />
         <p className="text-sm font-semibold text-gray-700">Kontak & Media Sosial</p>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {field("Email", "email", "email")}
           {field("Telepon", "telepon")}
           {field("Alamat", "alamat")}

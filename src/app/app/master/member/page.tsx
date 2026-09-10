@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserPlus, Users, Search, Edit, Trash2 } from "lucide-react";
-import { generateKode } from "@/lib/utils";
 import { toast } from "sonner";
 
 interface Member {
@@ -31,9 +30,14 @@ export default function MemberPage() {
   }, []);
 
   const fetchMembers = async () => {
-    const res = await fetch("/api/member");
-    const data = await res.json();
-    setMembers(data);
+    try {
+      const res = await fetch("/api/member");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setMembers(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat data member");
+    }
   };
 
   const openAdd = () => {
@@ -60,18 +64,19 @@ export default function MemberPage() {
           body: JSON.stringify({ id: editId, ...form }),
         });
       } else {
-        const lastNumber = members.length > 0
-          ? parseInt(members[members.length - 1].kode.replace(/\D/g, "")) || members.length
-          : 0;
-        const kode = generateKode("MBR", lastNumber);
+        // Kode member dibuat server supaya tidak bentrok.
         res = await fetch("/api/member", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...form, kode }),
+          body: JSON.stringify(form),
         });
       }
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menyimpan member");
+        return;
+      }
       toast.success(editId ? "Member berhasil diupdate" : "Member berhasil ditambahkan");
       setShowForm(false);
       fetchMembers();
@@ -102,9 +107,9 @@ export default function MemberPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Member</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Member</h1>
           <p className="text-gray-500">Data pelanggan setia</p>
         </div>
         <Button onClick={openAdd}>
@@ -115,7 +120,7 @@ export default function MemberPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Daftar Member
@@ -139,7 +144,7 @@ export default function MemberPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[700px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Kode</th>

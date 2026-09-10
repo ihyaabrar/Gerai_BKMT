@@ -192,9 +192,9 @@ export default function DistribusiPage() {
       `}</style>
 
       <div className="space-y-6">
-        <div className="flex justify-between items-center">
+        <div className="flex flex-wrap gap-3 justify-between items-center">
           <div className="animate-fadeIn">
-            <h1 className="text-3xl font-bold">Distribusi Laba</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Distribusi Laba</h1>
             <p className="text-gray-500">Sistem bagi hasil otomatis</p>
           </div>
 

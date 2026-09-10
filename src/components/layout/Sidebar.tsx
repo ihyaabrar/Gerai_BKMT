@@ -5,10 +5,11 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, ShoppingCart, Package, Wallet, Users, Settings,
-  ChevronDown, LogOut, Globe, Shield, ChevronRight,
+  ChevronDown, LogOut, Globe, Shield, ChevronRight, X,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
+import { useSidebar } from "@/components/layout/DashboardShell";
 
 const menuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/app" },
@@ -54,10 +55,24 @@ const menuItems = [
 ];
 
 export function Sidebar() {
+  const { open, close } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout, canAccess } = useAuthStore();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+
+  // Buka otomatis submenu yang memuat halaman aktif, supaya pengguna
+  // tidak kehilangan konteks setelah reload.
+  useEffect(() => {
+    const parent = menuItems.find(
+      (item) => "submenu" in item && item.submenu?.some((s) => pathname === s.href)
+    );
+    if (parent) {
+      setOpenMenus((prev) =>
+        prev.includes(parent.label) ? prev : [...prev, parent.label]
+      );
+    }
+  }, [pathname]);
 
   const toggleMenu = (label: string) => {
     setOpenMenus((prev) =>
@@ -66,27 +81,53 @@ export function Sidebar() {
   };
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
-    logout();
-    router.push("/login");
+    await logout();
+    router.replace("/login");
   };
 
   const isAdmin = user?.role === "master" || user?.role === "admin";
 
   return (
-    <aside className="w-64 bg-gray-900 text-white min-h-screen flex flex-col">
-      {/* Header */}
-      <div className="p-5 border-b border-gray-800">
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xs">BK</span>
+    <>
+      {/* Latar gelap saat drawer terbuka di mobile */}
+      {open && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+          onClick={close}
+          aria-hidden="true"
+        />
+      )}
+
+      <aside
+        className={cn(
+          // Mobile: drawer melayang di atas konten.
+          "fixed inset-y-0 left-0 z-50 w-64 max-w-[85vw] bg-gray-900 text-white",
+          "flex flex-col transition-transform duration-200 ease-out",
+          open ? "translate-x-0" : "-translate-x-full",
+          // Desktop: kolom tetap yang ikut menempel saat halaman di-scroll.
+          "lg:static lg:translate-x-0 lg:max-w-none lg:h-screen lg:sticky lg:top-0 lg:shrink-0"
+        )}
+      >
+        {/* Header */}
+        <div className="p-5 border-b border-gray-800 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center shadow-lg shrink-0">
+              <span className="text-white font-bold text-xs">BK</span>
+            </div>
+            <div className="min-w-0">
+              <p className="font-bold text-sm text-white truncate">Gerai BKMT</p>
+              <p className="text-gray-500 text-xs">POS &amp; Inventory</p>
+            </div>
           </div>
-          <div>
-            <p className="font-bold text-sm text-white">Gerai BKMT</p>
-            <p className="text-gray-500 text-xs">POS & Inventory</p>
-          </div>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Tutup menu navigasi"
+            className="lg:hidden p-2 -mr-2 rounded-lg text-gray-400 hover:bg-gray-800 hover:text-white transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
-      </div>
 
       {/* User info */}
       {user && (
@@ -203,6 +244,7 @@ export function Sidebar() {
           Logout
         </button>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 }

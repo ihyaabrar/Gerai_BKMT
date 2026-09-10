@@ -40,7 +40,7 @@ export default function AdminPengurusPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap gap-3 items-center justify-between">
         <div className="flex items-center gap-3">
           <Users className="h-7 w-7 text-violet-600" />
           <div>
@@ -64,7 +64,9 @@ export default function AdminPengurusPage() {
             <p>Belum ada pengurus. Tambahkan pengurus pertama!</p>
           </div>
         ) : (
-          <table className="w-full">
+          // Tabel bisa di-scroll horizontal supaya tidak melebarkan halaman di HP
+          <div className="overflow-x-auto">
+          <table className="w-full min-w-[640px]">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
                 <th className="text-left px-5 py-3 text-sm font-semibold text-gray-700">Nama</th>
@@ -99,6 +101,7 @@ export default function AdminPengurusPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
       </div>
     </div>

@@ -5,7 +5,7 @@ import { requireAdminAuth } from "@/lib/auth-middleware";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {

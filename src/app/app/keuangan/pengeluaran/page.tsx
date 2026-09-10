@@ -44,7 +44,9 @@ export default function PengeluaranPage() {
   const fetchKategori = async () => {
     try {
       const res = await fetch("/api/kategori-pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setKategoriList(data);
       if (data.length > 0) {
         setForm((f) => ({ ...f, kategori: f.kategori || data[0].nama }));
@@ -57,11 +59,13 @@ export default function PengeluaranPage() {
   const fetchPengeluaran = async () => {
     try {
       const res = await fetch("/api/pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setPengeluaran(data);
-      setFilteredData(data);
-    } catch (error) {
-      console.error("Failed to fetch pengeluaran:", error);
+      const rows = Array.isArray(data) ? data : [];
+      setPengeluaran(rows);
+      setFilteredData(rows);
+    } catch {
+      toast.error("Gagal memuat data pengeluaran");
     } finally {
       setLoading(false);
     }
@@ -146,9 +150,9 @@ export default function PengeluaranPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Pengeluaran</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Pengeluaran</h1>
           <p className="text-gray-500">Catat pengeluaran operasional</p>
         </div>
         <div className="flex gap-2">
@@ -240,7 +244,7 @@ export default function PengeluaranPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
               Riwayat Pengeluaran
@@ -266,7 +270,7 @@ export default function PengeluaranPage() {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[640px]">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-3">Tanggal</th>

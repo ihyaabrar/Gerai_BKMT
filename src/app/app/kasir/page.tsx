@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useCartStore } from "@/store/cart";
 import { useAuthStore } from "@/store/auth";
-import { formatRupiah } from "@/lib/utils";
+import { cn, formatRupiah } from "@/lib/utils";
 import { Search, Trash2, Plus, Minus, User, CreditCard, ShoppingCart } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PrintReceipt } from "@/components/PrintReceipt";
@@ -54,15 +54,25 @@ export default function KasirPage() {
   }, []);
 
   const fetchBarang = async () => {
-    const res = await fetch("/api/barang");
-    const data = await res.json();
-    setBarangList(data);
+    try {
+      const res = await fetch("/api/barang");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setBarangList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat daftar barang");
+    }
   };
 
   const fetchMember = async () => {
-    const res = await fetch("/api/member");
-    const data = await res.json();
-    setMemberList(data);
+    try {
+      const res = await fetch("/api/member");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setMemberList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat daftar member");
+    }
   };
 
   const fetchPengaturan = async () => {
@@ -150,24 +160,30 @@ export default function KasirPage() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) throw new Error();
-
       const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(data?.error || "Gagal memproses pembayaran");
+        return;
+      }
+
+      // Struk memakai angka hasil hitungan server (harga, diskon, total),
+      // bukan angka dari keranjang, supaya struk selalu cocok dengan database.
       const receipt = {
         nomorTransaksi: data.nomorTransaksi,
-        tanggal: new Date(),
-        items: items.map((item) => ({
-          nama: item.nama,
-          qty: item.qty,
-          harga: item.hargaJual,
-          subtotal: item.hargaJual * item.qty,
+        tanggal: new Date(data.tanggal ?? Date.now()),
+        items: (data.detail ?? []).map((d: any) => ({
+          nama: d.barang?.nama ?? "-",
+          qty: d.qty,
+          harga: d.hargaJual,
+          subtotal: d.subtotal,
         })),
-        subtotal: getSubtotal(),
-        diskon,
-        total,
-        bayar: bayarNum,
-        kembalian,
-        member: selectedMember?.nama,
+        subtotal: data.subtotal,
+        diskon: data.diskon,
+        total: data.total,
+        bayar: data.bayar,
+        kembalian: data.kembalian,
+        member: data.member?.nama,
         kasir: user?.nama || "Kasir",
       };
 
@@ -188,13 +204,13 @@ export default function KasirPage() {
   const selectedMember = memberList.find((m) => m.id === memberId);
 
   return (
-    <div className="space-y-4">
-      <h1 className="text-3xl font-bold">Kasir</h1>
+    <div className="space-y-4 pb-24 lg:pb-0">
+      <h1 className="text-2xl sm:text-3xl font-bold">Kasir</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Product Grid */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
               <Input
@@ -204,15 +220,22 @@ export default function KasirPage() {
                 className="pl-10"
               />
             </div>
-            <BarcodeScanner onScan={handleBarcodeScanned} />
-            <Button
-              variant={memberId ? "default" : "outline"}
-              onClick={() => setShowMember(true)}
-              className={memberId ? "bg-violet-600 hover:bg-violet-700" : ""}
-            >
-              <User className="mr-2 h-4 w-4" />
-              {selectedMember ? selectedMember.nama : "Member"}
-            </Button>
+            <div className="flex gap-2">
+              <BarcodeScanner onScan={handleBarcodeScanned} />
+              <Button
+                variant={memberId ? "default" : "outline"}
+                onClick={() => setShowMember(true)}
+                className={cn(
+                  "flex-1 sm:flex-none min-w-0",
+                  memberId && "bg-violet-600 hover:bg-violet-700"
+                )}
+              >
+                <User className="mr-2 h-4 w-4 shrink-0" />
+                <span className="truncate">
+                  {selectedMember ? selectedMember.nama : "Member"}
+                </span>
+              </Button>
+            </div>
           </div>
 
           {filteredBarang.length === 0 ? (
@@ -221,7 +244,7 @@ export default function KasirPage() {
               <p>Barang tidak ditemukan</p>
             </div>
           ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
               {filteredBarang.map((barang) => (
                 <Card
                   key={barang.id}
@@ -230,10 +253,12 @@ export default function KasirPage() {
                   }`}
                   onClick={() => handleAddToCart(barang)}
                 >
-                  <CardContent className="p-4">
-                    <p className="font-semibold text-sm leading-tight">{barang.nama}</p>
+                  <CardContent className="p-3 sm:p-4">
+                    <p className="font-semibold text-sm leading-tight break-words">
+                      {barang.nama}
+                    </p>
                     <p className="text-xs text-gray-400 mt-0.5">{barang.kode}</p>
-                    <p className="text-base font-bold text-emerald-600 mt-2">
+                    <p className="text-sm sm:text-base font-bold text-emerald-600 mt-2 break-words">
                       {formatRupiah(barang.hargaJual)}
                     </p>
                     <p className={`text-xs mt-1 ${
@@ -250,7 +275,7 @@ export default function KasirPage() {
         </div>
 
         {/* Cart */}
-        <Card className="h-fit sticky top-4">
+        <Card className="h-fit lg:sticky lg:top-4">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2">
               <ShoppingCart className="h-5 w-5" />
@@ -327,6 +352,34 @@ export default function KasirPage() {
         </Card>
       </div>
 
+      {/*
+        Bar pembayaran melayang khusus mobile. Di layar kecil keranjang
+        berada di bawah daftar produk, jadi tanpa ini kasir harus men-scroll
+        melewati seluruh katalog setiap kali ingin menyelesaikan transaksi.
+      */}
+      {items.length > 0 && (
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t shadow-[0_-4px_12px_rgba(0,0,0,0.08)] px-4 py-3">
+          <div className="flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-gray-500">
+                {items.reduce((n, i) => n + i.qty, 0)} item
+              </p>
+              <p className="text-lg font-bold text-emerald-600 truncate">
+                {formatRupiah(getTotal())}
+              </p>
+            </div>
+            <Button
+              className="bg-emerald-600 hover:bg-emerald-700 shrink-0"
+              size="lg"
+              onClick={() => setShowPayment(true)}
+            >
+              <CreditCard className="mr-2 h-5 w-5" />
+              Bayar
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Payment Dialog */}
       <Dialog open={showPayment} onOpenChange={setShowPayment}>
         <DialogContent className="max-w-md" onClose={() => setShowPayment(false)}>
@@ -365,7 +418,7 @@ export default function KasirPage() {
                 className="text-lg mt-1"
                 autoFocus
               />
-              <div className="grid grid-cols-4 gap-2 mt-2">
+              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-2">
                 {[5000, 10000, 20000, 50000, 100000, 150000, 200000, 500000].map((amount) => (
                   <Button
                     key={amount}

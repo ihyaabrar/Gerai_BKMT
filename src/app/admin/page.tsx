@@ -73,7 +73,7 @@ export default function AdminDashboard() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="flex items-start justify-between">
+      <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
           <p className="text-gray-500 text-sm">Selamat datang kembali,</p>
           <h1 className="text-2xl font-bold text-gray-900 mt-0.5">{user?.nama || "Admin"} 👋</h1>

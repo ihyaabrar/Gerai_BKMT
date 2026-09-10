@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdminAuth } from "@/lib/auth-middleware";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,11 @@ async function handleLaporan(type: string, start: Date, end: Date) {
   return NextResponse.json({ error: "Invalid type" }, { status: 400 });
 }
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
+  // Laporan keuangan hanya untuk master/admin.
+  const auth = await requireAdminAuth(request);
+  if (auth.error) return auth.error;
+
   try {
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate");
@@ -86,7 +91,17 @@ export async function GET(request: Request) {
 
     const start = new Date(startDate);
     const end = new Date(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      return NextResponse.json({ error: "Rentang tanggal tidak valid" }, { status: 400 });
+    }
+    start.setHours(0, 0, 0, 0);
     end.setHours(23, 59, 59, 999);
+    if (start > end) {
+      return NextResponse.json(
+        { error: "Tanggal awal tidak boleh melewati tanggal akhir" },
+        { status: 400 }
+      );
+    }
 
     return handleLaporan(type, start, end);
   } catch (error) {

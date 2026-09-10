@@ -16,7 +16,7 @@ Aplikasi terintegrasi untuk **PD BKMT Kabupaten Kubu Raya** yang menggabungkan:
 | Database | PostgreSQL (Neon) + Prisma ORM |
 | State | Zustand (persist) |
 | Upload | Cloudinary |
-| Auth | Session Cookie (HTTP-only) + Zustand |
+| Auth | Cookie sesi bertanda tangan HMAC-SHA256 (HTTP-only) + Next.js middleware |
 | Deploy | Vercel |
 | Notifikasi | Sonner |
 | Export | SheetJS (xlsx) |
@@ -64,8 +64,14 @@ Aplikasi terintegrasi untuk **PD BKMT Kabupaten Kubu Raya** yang menggabungkan:
 - Edit informasi gerai
 - Upload gambar langsung dari komputer (JPG/PNG/WebP, maks 5MB)
 
+### 📱 Responsif
+- Sidebar berubah jadi drawer di bawah 1024px — bisa dipakai dari HP & tablet
+- Dialog tampil sebagai sheet yang bisa di-scroll di layar kecil
+- Bar pembayaran melayang di halaman kasir versi mobile
+- Semua tabel bisa digeser horizontal tanpa merusak lebar halaman
+
 ### 💳 Sistem Kasir (POS)
-- Product grid dengan search & barcode scanner
+- Product grid responsif (2/3/4 kolom) dengan search & barcode scanner
 - Shopping cart dengan validasi stok real-time
 - Member selection dengan diskon otomatis
 - Multiple payment methods (Tunai/Transfer/QRIS)
@@ -132,7 +138,11 @@ Aplikasi terintegrasi untuk **PD BKMT Kabupaten Kubu Raya** yang menggabungkan:
 |------|-------|
 | `master` | Semua fitur + admin panel |
 | `admin` | Semua fitur + admin panel |
-| `kasir` | POS, inventori, keuangan (kecuali laporan & pengaturan) |
+| `kasir` | POS, inventori, pengeluaran, master member/supplier |
+
+Kasir **tidak** dapat mengakses: admin panel, laporan keuangan, distribusi laba,
+data nasabah, pengaturan sistem, dan backup. Pembatasan ini ditegakkan di
+`src/middleware.ts` (server), bukan hanya disembunyikan di UI.
 
 ---
 
@@ -157,12 +167,24 @@ Edit `.env`:
 # PostgreSQL (Neon, Supabase, Railway, dll)
 DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
 
+# Kunci penandatangan cookie sesi — WAJIB di produksi, minimal 32 karakter
+AUTH_SECRET="ganti-dengan-string-acak-minimal-32-karakter"
+
 # Cloudinary (untuk upload foto)
 CLOUDINARY_CLOUD_NAME="your_cloud_name"
 CLOUDINARY_API_KEY="your_api_key"
 CLOUDINARY_API_SECRET="your_api_secret"
 NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your_cloud_name"
 ```
+
+Generate `AUTH_SECRET`:
+
+```bash
+openssl rand -base64 32
+```
+
+Tanpa `AUTH_SECRET` yang valid, aplikasi menolak membuat sesi di mode produksi.
+Di mode development sebuah kunci sementara dipakai otomatis.
 
 ### 3. Setup Database
 
@@ -209,6 +231,7 @@ Di Vercel Dashboard → Settings → Environment Variables:
 
 ```
 DATABASE_URL          = postgresql://...
+AUTH_SECRET           = <hasil: openssl rand -base64 32>
 CLOUDINARY_CLOUD_NAME = your_cloud_name
 CLOUDINARY_API_KEY    = your_api_key
 CLOUDINARY_API_SECRET = your_api_secret
@@ -267,13 +290,17 @@ gerai-bkmt/
 │   ├── lib/
 │   │   ├── prisma.ts        # Prisma client
 │   │   ├── cloudinary.ts    # Cloudinary config & upload
-│   │   ├── auth-middleware.ts # Auth middleware untuk API admin
+│   │   ├── session.ts       # Tanda tangan & verifikasi cookie sesi (HMAC)
+│   │   ├── permissions.ts   # Peta hak akses per role (server + client)
+│   │   ├── auth-middleware.ts # requireAuth / requireAdminAuth untuk API
+│   │   ├── validate.ts      # Validasi & parsing body request
 │   │   └── utils.ts         # Utility functions
 │   ├── store/
 │   │   ├── auth.ts          # Auth state (Zustand)
 │   │   └── cart.ts          # Cart state (Zustand + persist)
 │   └── types/
 │       └── public-profile.ts # TypeScript interfaces
+│   └── middleware.ts        # Penjaga route & API di sisi server
 ├── .env.example             # Template environment variables
 ├── next.config.js           # Next.js config (Cloudinary domain)
 └── tailwind.config.ts       # Tailwind config
@@ -314,10 +341,17 @@ Persentase X dan Y dapat diatur di menu **Pengaturan** (default: 30% nasabah, 70
 ## ⚠️ Catatan Keamanan
 
 - Password di-hash dengan **bcrypt** (auto-upgrade dari plain text saat login)
-- Session disimpan di **HTTP-only cookie** untuk auth API admin
+- Cookie sesi **ditandatangani HMAC-SHA256** dengan `AUTH_SECRET` dan punya masa
+  berlaku 12 jam — cookie yang dipalsukan atau kedaluwarsa ditolak
+- **Seluruh** route `/app`, `/admin` dan `/api` non-publik dijaga
+  `src/middleware.ts` di sisi server, bukan hanya oleh state di browser
+- Hak akses per role terpusat di `src/lib/permissions.ts`
+- Endpoint tulis memvalidasi field secara eksplisit (tidak ada mass assignment)
+- Harga, diskon dan total penjualan **dihitung ulang di server** — angka dari
+  browser tidak pernah dipercaya
+- Login dibatasi 10 percobaan gagal per username setiap 15 menit
 - Upload gambar divalidasi tipe file dan ukuran (maks 5MB)
-- API admin dilindungi middleware auth (401/403)
-- Input form divalidasi di client dan server
+- File backup tidak menyertakan password pengguna
 
 ---
 
@@ -328,5 +362,5 @@ MIT License — Lihat [LICENSE](./LICENSE) untuk detail.
 ---
 
 **Dikembangkan untuk PD BKMT Kabupaten Kubu Raya**  
-**Version:** 3.0.0  
-**Last Updated:** April 2026
+**Version:** 3.2.0  
+**Last Updated:** September 2026

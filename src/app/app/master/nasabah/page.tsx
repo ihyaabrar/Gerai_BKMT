@@ -34,9 +34,14 @@ export default function NasabahPage() {
   }, []);
 
   const fetchNasabah = async () => {
-    const res = await fetch("/api/nasabah");
-    const data = await res.json();
-    setNasabahList(data);
+    try {
+      const res = await fetch("/api/nasabah");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setNasabahList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat data nasabah");
+    }
   };
 
   const fetchLaba = async () => {
@@ -45,6 +50,7 @@ export default function NasabahPage() {
       const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const end = now.toISOString();
       const res = await fetch(`/api/laporan?type=penjualan&startDate=${start}&endDate=${end}`);
+      if (!res.ok) return;
       const data = await res.json();
       setTotalLabaBulanIni(data.totalLaba || 0);
     } catch {
@@ -92,7 +98,11 @@ export default function NasabahPage() {
         });
       }
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menyimpan nasabah");
+        return;
+      }
       toast.success(editId ? "Nasabah berhasil diupdate" : "Nasabah berhasil ditambahkan");
       setShowForm(false);
       fetchNasabah();
@@ -125,9 +135,9 @@ export default function NasabahPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Nasabah / Investor</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">Nasabah / Investor</h1>
           <p className="text-gray-500">Data investor dan kepemilikan</p>
         </div>
         <Button onClick={openAdd}>
@@ -165,7 +175,7 @@ export default function NasabahPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Daftar Nasabah
@@ -189,7 +199,7 @@ export default function NasabahPage() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[700px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Nama</th>

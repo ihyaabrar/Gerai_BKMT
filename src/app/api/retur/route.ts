@@ -1,87 +1,113 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAuth } from "@/lib/auth-middleware";
+import {
+  ValidationError,
+  requireInt,
+  requireOneOf,
+  requireString,
+  toErrorResponse,
+} from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-export async function GET() {
+const STATUS = ["proses", "selesai", "batal"] as const;
+
+export async function GET(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+
   try {
+    const status = new URL(request.url).searchParams.get("status");
+    const where = status && STATUS.includes(status as any) ? { status } : {};
+
     const retur = await prisma.retur.findMany({
+      where,
       include: { barang: true },
       orderBy: { tanggal: "desc" },
+      take: 200,
     });
     return NextResponse.json(retur);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch retur" }, { status: 500 });
+    const { message, status: code } = toErrorResponse(error, "Gagal memuat retur");
+    return NextResponse.json({ error: message }, { status: code });
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+
   try {
     const body = await request.json();
-    const { barangId, qty, alasan } = body;
+    const barangId = requireString(body?.barangId, "Barang");
+    const qty = requireInt(body?.qty, "Jumlah", { min: 1, max: 1000000 });
+    const alasan = requireString(body?.alasan, "Alasan", { max: 500 });
 
-    const qtyNum = parseInt(qty);
-    if (!barangId || !qtyNum || !alasan) {
-      return NextResponse.json({ error: "Semua field wajib diisi" }, { status: 400 });
-    }
-
-    // Validasi stok
     const barang = await prisma.barang.findUnique({ where: { id: barangId } });
     if (!barang) {
       return NextResponse.json({ error: "Barang tidak ditemukan" }, { status: 404 });
     }
-    if (barang.stok < qtyNum) {
-      return NextResponse.json({ error: "Stok tidak mencukupi untuk retur" }, { status: 400 });
+    if (barang.stok < qty) {
+      throw new ValidationError(`Stok tidak mencukupi untuk retur. Tersedia: ${barang.stok}`);
     }
 
-    // Buat retur dengan status "proses" — stok BELUM dikurangi
+    // Stok baru dipotong saat retur diselesaikan (lihat PATCH).
     const retur = await prisma.retur.create({
-      data: {
-        barangId,
-        qty: qtyNum,
-        alasan,
-        tanggal: new Date(),
-        status: "proses",
-      },
+      data: { barangId, qty, alasan, tanggal: new Date(), status: "proses" },
       include: { barang: true },
     });
 
     return NextResponse.json(retur);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to create retur" }, { status: 500 });
+    const { message, status } = toErrorResponse(error, "Gagal membuat retur");
+    return NextResponse.json({ error: message }, { status });
   }
 }
 
-export async function PATCH(request: Request) {
+export async function PATCH(request: NextRequest) {
+  const auth = await requireAuth(request);
+  if (auth.error) return auth.error;
+
   try {
     const body = await request.json();
-    const { id, status } = body;
+    const id = requireString(body?.id, "ID retur");
+    const status = requireOneOf(body?.status, "Status", STATUS);
 
-    const existing = await prisma.retur.findUnique({ where: { id } });
-    if (!existing) {
-      return NextResponse.json({ error: "Retur tidak ditemukan" }, { status: 404 });
-    }
-
-    // Hanya kurangi stok saat status berubah ke "selesai"
-    if (status === "selesai" && existing.status !== "selesai") {
-      const barang = await prisma.barang.findUnique({ where: { id: existing.barangId } });
-      if (!barang || barang.stok < existing.qty) {
-        return NextResponse.json({ error: "Stok tidak mencukupi" }, { status: 400 });
+    const retur = await prisma.$transaction(async (tx) => {
+      const existing = await tx.retur.findUnique({ where: { id } });
+      if (!existing) {
+        throw new ValidationError("Retur tidak ditemukan");
       }
-      await prisma.barang.update({
-        where: { id: existing.barangId },
-        data: { stok: { decrement: existing.qty } },
-      });
-    }
+      if (existing.status === "selesai" && status !== "selesai") {
+        throw new ValidationError("Retur yang sudah selesai tidak bisa diubah lagi");
+      }
 
-    const retur = await prisma.retur.update({
-      where: { id },
-      data: { status },
-      include: { barang: true },
+      // Pemotongan stok hanya terjadi sekali, saat transisi ke "selesai".
+      if (status === "selesai" && existing.status !== "selesai") {
+        const barang = await tx.barang.findUnique({ where: { id: existing.barangId } });
+        if (!barang) {
+          throw new ValidationError("Barang tidak ditemukan");
+        }
+        if (barang.stok < existing.qty) {
+          throw new ValidationError(`Stok tidak mencukupi. Tersedia: ${barang.stok}`);
+        }
+        await tx.barang.update({
+          where: { id: existing.barangId },
+          data: { stok: { decrement: existing.qty } },
+        });
+      }
+
+      return tx.retur.update({
+        where: { id },
+        data: { status },
+        include: { barang: true },
+      });
     });
 
     return NextResponse.json(retur);
   } catch (error) {
-    return NextResponse.json({ error: "Failed to update retur" }, { status: 500 });
+    const { message, status } = toErrorResponse(error, "Gagal memperbarui retur");
+    return NextResponse.json({ error: message }, { status });
   }
 }
