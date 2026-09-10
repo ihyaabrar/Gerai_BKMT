@@ -199,7 +199,7 @@ export default function BarangMasukPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl font-bold">
           Barang Masuk
         </h1>
         <p className="text-gray-600 mt-2">Tambah stok barang yang sudah ada atau tambah produk baru</p>
@@ -216,7 +216,7 @@ export default function BarangMasukPage() {
             setHargaBeliBaru("");
           }}
           variant={mode === "pilih" ? "default" : "outline"}
-          className={mode === "pilih" ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" : ""}
+          className={mode === "pilih" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
         >
           <Package className="h-4 w-4 mr-2" />
           Update Stok Barang
@@ -224,7 +224,7 @@ export default function BarangMasukPage() {
         <Button
           onClick={() => setMode("baru")}
           variant={mode === "baru" ? "default" : "outline"}
-          className={mode === "baru" ? "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" : ""}
+          className={mode === "baru" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
         >
           <Plus className="h-4 w-4 mr-2" />
           Tambah Barang Baru
@@ -245,7 +245,7 @@ export default function BarangMasukPage() {
               </CardTitle>
               <div className="relative mt-4">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
+                <Input aria-label="Cari barang..."
                   placeholder="Cari barang..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -321,8 +321,8 @@ export default function BarangMasukPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Jumlah Masuk</label>
-                    <Input
+                    <label className="text-sm font-medium text-gray-700" htmlFor="jumlah-masuk">Jumlah Masuk</label>
+                    <Input id="jumlah-masuk"
                       type="number"
                       value={jumlahMasuk}
                       onChange={(e) => setJumlahMasuk(e.target.value)}
@@ -349,8 +349,8 @@ export default function BarangMasukPage() {
                   {/* Input Harga Beli Baru */}
                   {updateHargaBeli && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Harga Beli Baru</label>
-                      <Input
+                      <label className="text-sm font-medium text-gray-700" htmlFor="harga-beli-baru">Harga Beli Baru</label>
+                      <Input id="harga-beli-baru"
                         type="number"
                         value={hargaBeliBaru}
                         onChange={(e) => setHargaBeliBaru(e.target.value)}
@@ -388,7 +388,7 @@ export default function BarangMasukPage() {
 
                   <Button
                     onClick={handleUpdateStok}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                    className="w-full"
                     disabled={submitting || !jumlahMasuk || parseInt(jumlahMasuk) <= 0}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
@@ -421,8 +421,8 @@ export default function BarangMasukPage() {
             <form onSubmit={handleTambahBaru} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Kode Barang</label>
-                  <Input
+                  <label className="text-sm font-medium text-gray-700" htmlFor="kode-barang">Kode Barang</label>
+                  <Input id="kode-barang"
                     required
                     value={formBaru.kode}
                     onChange={(e) => setFormBaru({ ...formBaru, kode: e.target.value })}
@@ -431,9 +431,10 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Barcode</label>
+                  <label htmlFor="barang-barcode" className="text-sm font-medium text-gray-700">Barcode</label>
                   <div className="flex gap-2 mt-1">
                     <Input
+                      id="barang-barcode"
                       value={formBaru.barcode}
                       onChange={(e) => setFormBaru({ ...formBaru, barcode: e.target.value })}
                       placeholder="Auto generate"
@@ -446,8 +447,8 @@ export default function BarangMasukPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">Nama Barang</label>
-                <Input
+                <label className="text-sm font-medium text-gray-700" htmlFor="nama-barang">Nama Barang</label>
+                <Input id="nama-barang"
                   required
                   value={formBaru.nama}
                   onChange={(e) => setFormBaru({ ...formBaru, nama: e.target.value })}
@@ -457,8 +458,8 @@ export default function BarangMasukPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">Kategori</label>
-                <select
+                <label className="text-sm font-medium text-gray-700" htmlFor="kategori">Kategori</label>
+                <select id="kategori"
                   value={formBaru.kategori}
                   onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
                   className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -477,8 +478,8 @@ export default function BarangMasukPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Harga Beli</label>
-                  <Input
+                  <label className="text-sm font-medium text-gray-700" htmlFor="harga-beli">Harga Beli</label>
+                  <Input id="harga-beli"
                     required
                     type="number"
                     value={formBaru.hargaBeli}
@@ -488,8 +489,8 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Harga Jual</label>
-                  <Input
+                  <label className="text-sm font-medium text-gray-700" htmlFor="harga-jual">Harga Jual</label>
+                  <Input id="harga-jual"
                     required
                     type="number"
                     value={formBaru.hargaJual}
@@ -502,8 +503,8 @@ export default function BarangMasukPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stok Awal</label>
-                  <Input
+                  <label className="text-sm font-medium text-gray-700" htmlFor="stok-awal">Stok Awal</label>
+                  <Input id="stok-awal"
                     required
                     type="number"
                     value={formBaru.stok}
@@ -513,8 +514,8 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stok Minimum</label>
-                  <Input
+                  <label className="text-sm font-medium text-gray-700" htmlFor="stok-minimum">Stok Minimum</label>
+                  <Input id="stok-minimum"
                     required
                     type="number"
                     value={formBaru.stokMinimum}
@@ -524,8 +525,8 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Satuan</label>
-                  <Input
+                  <label className="text-sm font-medium text-gray-700" htmlFor="satuan">Satuan</label>
+                  <Input id="satuan"
                     required
                     value={formBaru.satuan}
                     onChange={(e) => setFormBaru({ ...formBaru, satuan: e.target.value })}
@@ -554,7 +555,7 @@ export default function BarangMasukPage() {
               <Button
                 type="submit"
                 disabled={submitting}
-                className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 font-semibold"
+                className="w-full h-12 font-semibold"
                 size="lg"
               >
                 <PackagePlus className="mr-2 h-5 w-5" />

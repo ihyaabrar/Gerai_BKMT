@@ -8,6 +8,7 @@ import {
   DollarSign, TrendingUp, Package, AlertTriangle, Clock, Award, BarChart3,
 } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
+import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
 
 export default function Dashboard() {
   const [data, setData] = useState<any>(null);
@@ -18,8 +19,13 @@ export default function Dashboard() {
 
   if (!data) {
     return (
-      <div className="flex items-center justify-center h-64 text-gray-400">
-        Memuat dashboard...
+      <div className="space-y-6">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-4 w-64" />
+        </div>
+        <StatsSkeleton />
+        <Skeleton className="h-72 w-full rounded-xl" />
       </div>
     );
   }

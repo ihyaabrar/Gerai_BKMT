@@ -213,7 +213,7 @@ export default function KasirPage() {
           <div className="flex flex-col sm:flex-row gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-5 w-5 text-gray-400" />
-              <Input
+              <Input aria-label="Cari barang atau scan barcode..."
                 placeholder="Cari barang atau scan barcode..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -302,18 +302,34 @@ export default function KasirPage() {
                       <p className="text-xs text-gray-500">{formatRupiah(item.hargaJual)}</p>
                     </div>
                     <div className="flex items-center gap-1 shrink-0">
-                      <Button size="icon" variant="outline" className="h-6 w-6"
-                        onClick={() => updateQty(item.id, item.qty - 1)}>
+                      <Button
+                        aria-label={`Kurangi jumlah ${item.nama}`}
+                        size="icon"
+                        variant="outline"
+                        className="h-6 w-6"
+                        onClick={() => updateQty(item.id, item.qty - 1)}
+                      >
                         <Minus className="h-3 w-3" />
                       </Button>
-                      <span className="w-7 text-center text-sm font-medium">{item.qty}</span>
-                      <Button size="icon" variant="outline" className="h-6 w-6"
+                      <span
+                        className="w-7 text-center text-sm font-medium"
+                        aria-live="polite"
+                        aria-label={`Jumlah ${item.nama}: ${item.qty}`}
+                      >
+                        {item.qty}
+                      </span>
+                      <Button
+                        aria-label={`Tambah jumlah ${item.nama}`}
+                        size="icon"
+                        variant="outline"
+                        className="h-6 w-6"
                         onClick={() => updateQty(item.id, item.qty + 1)}
-                        disabled={item.qty >= item.stok}>
+                        disabled={item.qty >= item.stok}
+                      >
                         <Plus className="h-3 w-3" />
                       </Button>
                     </div>
-                    <Button size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-700"
+                    <Button aria-label={`Hapus ${item.nama} dari keranjang`} size="icon" variant="ghost" className="h-6 w-6 text-red-500 hover:text-red-700"
                       onClick={() => removeItem(item.id)}>
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -393,8 +409,14 @@ export default function KasirPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Metode Bayar</label>
-              <div className="grid grid-cols-3 gap-2 mt-2">
+              <p id="label-metode-bayar" className="text-sm font-medium">
+                Metode Bayar
+              </p>
+              <div
+                role="group"
+                aria-labelledby="label-metode-bayar"
+                className="grid grid-cols-3 gap-2 mt-2"
+              >
                 {["Tunai", "Transfer", "QRIS"].map((m) => (
                   <Button
                     key={m}
@@ -409,8 +431,8 @@ export default function KasirPage() {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Jumlah Bayar</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="jumlah-bayar">Jumlah Bayar</label>
+              <Input id="jumlah-bayar"
                 type="number"
                 value={bayar}
                 onChange={(e) => setBayar(e.target.value)}
@@ -461,7 +483,7 @@ export default function KasirPage() {
             <DialogTitle>Pilih Member</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
-            <Input
+            <Input aria-label="Cari nama atau kode member..."
               placeholder="Cari nama atau kode member..."
               value={memberSearch}
               onChange={(e) => setMemberSearch(e.target.value)}

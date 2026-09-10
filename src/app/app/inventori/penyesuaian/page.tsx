@@ -140,8 +140,8 @@ export default function PenyesuaianPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Pilih Barang</label>
-                <select
+                <label className="text-sm font-medium" htmlFor="pilih-barang">Pilih Barang</label>
+                <select id="pilih-barang"
                   required
                   value={form.barangId}
                   onChange={(e) => handleBarangChange(e.target.value)}
@@ -157,8 +157,14 @@ export default function PenyesuaianPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Jenis Penyesuaian</label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
+                <p id="label-jenis-penyesuaian" className="text-sm font-medium">
+                  Jenis Penyesuaian
+                </p>
+                <div
+                  role="group"
+                  aria-labelledby="label-jenis-penyesuaian"
+                  className="grid grid-cols-3 gap-2 mt-1"
+                >
                   <Button
                     type="button"
                     variant={form.jenis === "masuk" ? "default" : "outline"}
@@ -190,8 +196,8 @@ export default function PenyesuaianPage() {
               {form.jenis !== "hapus" && (
                 <>
                   <div>
-                    <label className="text-sm font-medium">Jumlah</label>
-                    <Input
+                    <label className="text-sm font-medium" htmlFor="jumlah">Jumlah</label>
+                    <Input id="jumlah"
                       required
                       type="number"
                       min="1"
@@ -203,8 +209,8 @@ export default function PenyesuaianPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium">Alasan</label>
-                    <Input
+                    <label className="text-sm font-medium" htmlFor="alasan">Alasan</label>
+                    <Input id="alasan"
                       required
                       value={form.alasan}
                       onChange={(e) => setForm({ ...form, alasan: e.target.value })}

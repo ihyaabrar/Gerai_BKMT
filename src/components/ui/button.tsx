@@ -8,7 +8,13 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
-    const baseStyles = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 disabled:pointer-events-none disabled:opacity-50";
+    // ring-emerald-500 disetel eksplisit; tanpa ini Tailwind memakai warna
+    // ring bawaannya (biru) yang bertabrakan dengan identitas emerald.
+    const baseStyles =
+      "inline-flex items-center justify-center rounded-md font-medium transition-colors " +
+      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 " +
+      "focus-visible:ring-offset-2 focus-visible:ring-offset-white " +
+      "disabled:pointer-events-none disabled:opacity-50";
     
     const variants = {
       default: "bg-emerald-600 text-white hover:bg-emerald-700",

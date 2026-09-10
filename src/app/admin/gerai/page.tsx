@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Save, Store } from "lucide-react";
 import { toast } from "sonner";
+import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function AdminGeraiPage() {
   const [loading, setLoading] = useState(true);
@@ -37,7 +38,7 @@ export default function AdminGeraiPage() {
     finally { setSaving(false); }
   };
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-gray-400">Memuat...</div>;
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="max-w-xl space-y-6">
@@ -50,28 +51,28 @@ export default function AdminGeraiPage() {
       </div>
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <div>
-          <label className="text-sm font-medium text-gray-700">Nama Gerai *</label>
-          <Input value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />
+          <label className="text-sm font-medium text-gray-700" htmlFor="nama-gerai">Nama Gerai *</label>
+          <Input id="nama-gerai" value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Alamat *</label>
-          <textarea value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} rows={3}
+          <label className="text-sm font-medium text-gray-700" htmlFor="alamat">Alamat *</label>
+          <textarea id="alamat" value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} rows={3}
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Jam Operasional</label>
-          <Input value={form.jamOperasional} onChange={(e) => setForm({ ...form, jamOperasional: e.target.value })} placeholder="Senin-Jumat 08.00-17.00" className="mt-1" />
+          <label className="text-sm font-medium text-gray-700" htmlFor="jam-operasional">Jam Operasional</label>
+          <Input id="jam-operasional" value={form.jamOperasional} onChange={(e) => setForm({ ...form, jamOperasional: e.target.value })} placeholder="Senin-Jumat 08.00-17.00" className="mt-1" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Nomor Telepon</label>
-          <Input value={form.telepon} onChange={(e) => setForm({ ...form, telepon: e.target.value })} placeholder="08xx" className="mt-1" />
+          <label className="text-sm font-medium text-gray-700" htmlFor="nomor-telepon">Nomor Telepon</label>
+          <Input id="nomor-telepon" value={form.telepon} onChange={(e) => setForm({ ...form, telepon: e.target.value })} placeholder="08xx" className="mt-1" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Deskripsi Layanan</label>
-          <textarea value={form.deskripsi} onChange={(e) => setForm({ ...form, deskripsi: e.target.value })} rows={4}
+          <label className="text-sm font-medium text-gray-700" htmlFor="deskripsi-layanan">Deskripsi Layanan</label>
+          <textarea id="deskripsi-layanan" value={form.deskripsi} onChange={(e) => setForm({ ...form, deskripsi: e.target.value })} rows={4}
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500" />
         </div>
-        <Button type="submit" disabled={saving} className="w-full bg-amber-600 hover:bg-amber-700">
+        <Button type="submit" disabled={saving} className="w-full bg-violet-600 hover:bg-violet-700">
           <Save className="h-4 w-4 mr-2" />{saving ? "Menyimpan..." : "Simpan Informasi Gerai"}
         </Button>
       </form>

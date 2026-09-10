@@ -45,20 +45,20 @@ export default function PengurusBaruPage() {
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-4">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="col-span-2">
-            <label className="text-sm font-medium text-gray-700">Nama Lengkap *</label>
-            <Input value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />
+            <label className="text-sm font-medium text-gray-700" htmlFor="nama-lengkap">Nama Lengkap *</label>
+            <Input id="nama-lengkap" value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">NIK (Opsional)</label>
-            <Input value={form.nik} onChange={(e) => setForm({ ...form, nik: e.target.value })} className="mt-1" />
+            <label className="text-sm font-medium text-gray-700" htmlFor="nik-opsional">NIK (Opsional)</label>
+            <Input id="nik-opsional" value={form.nik} onChange={(e) => setForm({ ...form, nik: e.target.value })} className="mt-1" />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Jabatan *</label>
-            <Input value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className="mt-1" />
+            <label className="text-sm font-medium text-gray-700" htmlFor="jabatan">Jabatan *</label>
+            <Input id="jabatan" value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className="mt-1" />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Tingkatan *</label>
-            <select value={form.tingkatan} onChange={(e) => setForm({ ...form, tingkatan: e.target.value })}
+            <label className="text-sm font-medium text-gray-700" htmlFor="tingkatan">Tingkatan *</label>
+            <select id="tingkatan" value={form.tingkatan} onChange={(e) => setForm({ ...form, tingkatan: e.target.value })}
               className="mt-1 flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
               <option value="PD">PD BKMT (Pimpinan Daerah)</option>
               <option value="PC">PC BKMT (Pimpinan Cabang)</option>
@@ -66,11 +66,11 @@ export default function PengurusBaruPage() {
             </select>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Periode</label>
-            <Input value={form.periode} onChange={(e) => setForm({ ...form, periode: e.target.value })} placeholder="2023-2027" className="mt-1" />
+            <label className="text-sm font-medium text-gray-700" htmlFor="periode">Periode</label>
+            <Input id="periode" value={form.periode} onChange={(e) => setForm({ ...form, periode: e.target.value })} placeholder="2023-2027" className="mt-1" />
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Foto</label>
+            <p className="text-sm font-medium text-gray-700">Foto</p>
             <div className="mt-1">
               <ImageUpload
                 value={form.fotoUrl}
@@ -83,12 +83,12 @@ export default function PengurusBaruPage() {
             </div>
           </div>
           <div>
-            <label className="text-sm font-medium text-gray-700">Urutan Tampil</label>
-            <Input type="number" value={form.urutan} onChange={(e) => setForm({ ...form, urutan: e.target.value })} className="mt-1" />
+            <label className="text-sm font-medium text-gray-700" htmlFor="urutan-tampil">Urutan Tampil</label>
+            <Input id="urutan-tampil" type="number" value={form.urutan} onChange={(e) => setForm({ ...form, urutan: e.target.value })} className="mt-1" />
           </div>
           <div className="col-span-2">
-            <label className="text-sm font-medium text-gray-700">Alamat</label>
-            <Input value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} className="mt-1" />
+            <label className="text-sm font-medium text-gray-700" htmlFor="alamat">Alamat</label>
+            <Input id="alamat" value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} className="mt-1" />
           </div>
         </div>
         <Button type="submit" disabled={saving} className="w-full bg-violet-600 hover:bg-violet-700">

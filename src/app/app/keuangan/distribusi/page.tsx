@@ -199,16 +199,16 @@ export default function DistribusiPage() {
           </div>
 
           <div className="flex gap-2 no-print">
-            <Button
+            <Button variant="outline"
               onClick={handleExportExcel}
-              className="bg-green-600 hover:bg-green-700 transition-all"
+              className="transition-all"
             >
               <Download className="h-4 w-4 mr-2" />
               Export Excel
             </Button>
             <Button
               onClick={handlePrint}
-              className="bg-blue-600 hover:bg-blue-700 transition-all"
+              className="transition-all"
             >
               <Printer className="h-4 w-4 mr-2" />
               Print

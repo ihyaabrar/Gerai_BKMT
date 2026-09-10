@@ -6,6 +6,9 @@ Selamat datang di dokumentasi lengkap aplikasi Gerai BKMT!
 
 ## ⚡ Terbaru
 
+- **[AUDIT_UI_UX.md](./AUDIT_UI_UX.md)** — Audit UI/UX (September 2026):
+  dua fitur yang mati total, penyatuan warna aksi, aksesibilitas, dialog
+  konfirmasi, dan skeleton loading.
 - **[RESPONSIF_MOBILE.md](./RESPONSIF_MOBILE.md)** — Dukungan HP & tablet
   (September 2026): sidebar drawer, dialog sheet, tabel yang bisa digeser.
 - **[PERBAIKAN_2026-09.md](./PERBAIKAN_2026-09.md)** — Audit keamanan & integritas

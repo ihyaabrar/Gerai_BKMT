@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle, Search } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Barang {
   id: string;
@@ -146,7 +147,7 @@ export default function StokPage() {
             </div>
             <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
+              <Input aria-label="Cari barang..."
                 placeholder="Cari barang..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -157,7 +158,7 @@ export default function StokPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-400">Loading...</div>
+            <TableSkeleton cols={8} />
           ) : filtered.length === 0 ? (
             <div className="text-center py-10 text-gray-400">
               <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />

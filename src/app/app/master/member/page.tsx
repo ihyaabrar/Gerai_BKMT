@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserPlus, Users, Search, Edit, Trash2 } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface Member {
   id: string;
@@ -18,6 +19,7 @@ interface Member {
 }
 
 export default function MemberPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -87,16 +89,21 @@ export default function MemberPage() {
     }
   };
 
-  const handleDelete = async (id: string, nama: string) => {
-    if (!confirm(`Hapus member "${nama}"?`)) return;
-    try {
-      const res = await fetch(`/api/member?id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      toast.success("Member berhasil dihapus");
-      fetchMembers();
-    } catch {
-      toast.error("Gagal menghapus member");
-    }
+  const handleDelete = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus member?",
+      pesan: <><strong>{nama}</strong> tidak akan muncul lagi di daftar member.</>,
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/member?id=${id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error();
+          toast.success("Member berhasil dihapus");
+          fetchMembers();
+        } catch {
+          toast.error("Gagal menghapus member");
+        }
+      },
+    });
   };
 
   const filtered = members.filter(
@@ -127,7 +134,7 @@ export default function MemberPage() {
             </CardTitle>
             <div className="relative w-60">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
+              <Input aria-label="Cari member..."
                 placeholder="Cari member..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -169,10 +176,10 @@ export default function MemberPage() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex justify-center gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => openEdit(m)}>
+                          <Button aria-label={`Edit ${m.nama}`} variant="ghost" size="sm" onClick={() => openEdit(m)}>
                             <Edit className="h-4 w-4 text-blue-600" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(m.id, m.nama)}>
+                          <Button aria-label={`Hapus ${m.nama}`} variant="ghost" size="sm" onClick={() => handleDelete(m.id, m.nama)}>
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
@@ -193,8 +200,8 @@ export default function MemberPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nama Lengkap</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="nama-lengkap">Nama Lengkap</label>
+              <Input id="nama-lengkap"
                 required
                 value={form.nama}
                 onChange={(e) => setForm({ ...form, nama: e.target.value })}
@@ -203,8 +210,8 @@ export default function MemberPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Telepon</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="telepon">Telepon</label>
+              <Input id="telepon"
                 value={form.telepon}
                 onChange={(e) => setForm({ ...form, telepon: e.target.value })}
                 placeholder="08xx"
@@ -212,8 +219,8 @@ export default function MemberPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Alamat</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="alamat">Alamat</label>
+              <Input id="alamat"
                 value={form.alamat}
                 onChange={(e) => setForm({ ...form, alamat: e.target.value })}
                 placeholder="Alamat lengkap"
@@ -226,6 +233,7 @@ export default function MemberPage() {
           </form>
         </DialogContent>
       </Dialog>
+      {dialog}
     </div>
   );
 }

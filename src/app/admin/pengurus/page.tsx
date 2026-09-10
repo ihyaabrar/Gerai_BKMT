@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, Users } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Pengurus {
   id: string; nama: string; jabatan: string; tingkatan: string;
@@ -18,6 +20,7 @@ const TINGKATAN_COLOR: Record<string, string> = {
 };
 
 export default function AdminPengurusPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [list, setList] = useState<Pengurus[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -29,13 +32,18 @@ export default function AdminPengurusPage() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleDelete = async (id: string, nama: string) => {
-    if (!confirm(`Hapus pengurus "${nama}"?`)) return;
-    try {
-      const res = await fetch(`/api/admin/pengurus/${id}`, { method: "DELETE" });
-      if (res.ok) { toast.success("Pengurus dihapus"); fetchData(); }
-      else toast.error("Gagal menghapus");
-    } catch { toast.error("Terjadi kesalahan"); }
+  const handleDelete = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus pengurus?",
+      pesan: <><strong>{nama}</strong> akan dihapus permanen dari daftar pengurus.</>,
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/admin/pengurus/${id}`, { method: "DELETE" });
+          if (res.ok) { toast.success("Pengurus dihapus"); fetchData(); }
+          else toast.error("Gagal menghapus");
+        } catch { toast.error("Terjadi kesalahan"); }
+      },
+    });
   };
 
   return (
@@ -57,7 +65,7 @@ export default function AdminPengurusPage() {
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="text-center py-12 text-gray-400">Memuat...</div>
+          <TableSkeleton cols={5} />
         ) : list.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
@@ -90,9 +98,9 @@ export default function AdminPengurusPage() {
                   <td className="px-4 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <Link href={`/admin/pengurus/${p.id}`}>
-                        <Button variant="ghost" size="sm"><Edit className="h-4 w-4 text-blue-600" /></Button>
+                        <Button aria-label="Edit" variant="ghost" size="sm"><Edit className="h-4 w-4 text-blue-600" /></Button>
                       </Link>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(p.id, p.nama)}>
+                      <Button aria-label={`Hapus ${p.nama}`} variant="ghost" size="sm" onClick={() => handleDelete(p.id, p.nama)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
@@ -104,6 +112,7 @@ export default function AdminPengurusPage() {
           </div>
         )}
       </div>
+      {dialog}
     </div>
   );
 }

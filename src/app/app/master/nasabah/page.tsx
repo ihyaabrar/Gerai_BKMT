@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { UserPlus, Users, Search, Edit, Trash2, TrendingUp } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface Nasabah {
   id: string;
@@ -20,6 +21,7 @@ interface Nasabah {
 }
 
 export default function NasabahPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [nasabahList, setNasabahList] = useState<Nasabah[]>([]);
   const [totalLabaBulanIni, setTotalLabaBulanIni] = useState(0);
   const [search, setSearch] = useState("");
@@ -113,16 +115,26 @@ export default function NasabahPage() {
     }
   };
 
-  const handleDelete = async (id: string, nama: string) => {
-    if (!confirm(`Hapus nasabah "${nama}"?`)) return;
-    try {
-      const res = await fetch(`/api/nasabah?id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      toast.success("Nasabah berhasil dihapus");
-      fetchNasabah();
-    } catch {
-      toast.error("Gagal menghapus nasabah");
-    }
+  const handleDelete = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus nasabah?",
+      pesan: (
+        <>
+          <strong>{nama}</strong> akan dinonaktifkan dan porsi bagi hasil
+          seluruh nasabah dihitung ulang.
+        </>
+      ),
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/nasabah?id=${id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error();
+          toast.success("Nasabah berhasil dihapus");
+          fetchNasabah();
+        } catch {
+          toast.error("Gagal menghapus nasabah");
+        }
+      },
+    });
   };
 
   const filtered = nasabahList.filter(
@@ -182,7 +194,7 @@ export default function NasabahPage() {
             </CardTitle>
             <div className="relative w-60">
               <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
+              <Input aria-label="Cari nasabah..."
                 placeholder="Cari nasabah..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -234,10 +246,10 @@ export default function NasabahPage() {
                         </td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex justify-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => openEdit(n)}>
+                            <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(n)}>
                               <Edit className="h-4 w-4 text-blue-600" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(n.id, n.nama)}>
+                            <Button aria-label={`Hapus ${n.nama}`} variant="ghost" size="sm" onClick={() => handleDelete(n.id, n.nama)}>
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           </div>
@@ -259,26 +271,26 @@ export default function NasabahPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nama Lengkap</label>
-              <Input required value={form.nama}
+              <label className="text-sm font-medium" htmlFor="nama-lengkap">Nama Lengkap</label>
+              <Input id="nama-lengkap" required value={form.nama}
                 onChange={(e) => setForm({ ...form, nama: e.target.value })}
                 placeholder="Nama nasabah" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Telepon</label>
-              <Input value={form.telepon}
+              <label className="text-sm font-medium" htmlFor="telepon">Telepon</label>
+              <Input id="telepon" value={form.telepon}
                 onChange={(e) => setForm({ ...form, telepon: e.target.value })}
                 placeholder="08xx" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Alamat</label>
-              <Input value={form.alamat}
+              <label className="text-sm font-medium" htmlFor="alamat">Alamat</label>
+              <Input id="alamat" value={form.alamat}
                 onChange={(e) => setForm({ ...form, alamat: e.target.value })}
                 placeholder="Alamat lengkap" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Jumlah Investasi</label>
-              <Input required type="number" min="1" value={form.jumlahInvestasi}
+              <label className="text-sm font-medium" htmlFor="jumlah-investasi">Jumlah Investasi</label>
+              <Input id="jumlah-investasi" required type="number" min="1" value={form.jumlahInvestasi}
                 onChange={(e) => setForm({ ...form, jumlahInvestasi: e.target.value })}
                 placeholder="0" className="mt-1" />
             </div>
@@ -288,6 +300,7 @@ export default function NasabahPage() {
           </form>
         </DialogContent>
       </Dialog>
+      {dialog}
     </div>
   );
 }

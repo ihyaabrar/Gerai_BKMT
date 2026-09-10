@@ -47,11 +47,30 @@ export function HeroSection({ profil }: HeroSectionProps) {
           </div>
         )}
 
-        {/* Heading */}
-        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 leading-tight tracking-tight">
-          {profil?.singkatan || "PD BKMT"}
-          <br />
-          <span className="text-emerald-300">Kubu Raya</span>
+        {/*
+          Judul sepenuhnya diambil dari data profil. Sebelumnya baris kedua
+          berisi "Kubu Raya" yang di-hardcode, sementara `singkatan` di
+          database sudah berisi "PD BKMT Kubu Raya" — hasilnya nama daerah
+          tercetak dua kali dan admin tidak bisa memperbaikinya dari panel.
+          Kata terakhir diberi warna aksen agar tetap ada penekanan visual.
+        */}
+        <h1 className="text-4xl md:text-6xl lg:text-7xl font-extrabold text-white mb-4 leading-tight tracking-tight text-balance">
+          {(() => {
+            const judul = (profil?.singkatan || "PD BKMT Kubu Raya").trim();
+            const kata = judul.split(/\s+/);
+            const aksen = kata.length > 1 ? kata.pop() : null;
+            return (
+              <>
+                {kata.join(" ")}
+                {aksen && (
+                  <>
+                    {" "}
+                    <span className="text-emerald-300">{aksen}</span>
+                  </>
+                )}
+              </>
+            );
+          })()}
         </h1>
 
         <p className="text-emerald-100/80 text-base md:text-lg max-w-2xl mx-auto mb-4 leading-relaxed">

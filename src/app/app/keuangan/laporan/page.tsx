@@ -135,8 +135,8 @@ export default function LaporanPage() {
         <CardContent>
           <div className="flex gap-4 items-end flex-wrap">
             <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium text-gray-700">Tanggal Mulai</label>
-              <Input
+              <label className="text-sm font-medium text-gray-700" htmlFor="tanggal-mulai">Tanggal Mulai</label>
+              <Input id="tanggal-mulai"
                 type="date"
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
@@ -144,8 +144,8 @@ export default function LaporanPage() {
               />
             </div>
             <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium text-gray-700">Tanggal Akhir</label>
-              <Input
+              <label className="text-sm font-medium text-gray-700" htmlFor="tanggal-akhir">Tanggal Akhir</label>
+              <Input id="tanggal-akhir"
                 type="date"
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
@@ -155,12 +155,12 @@ export default function LaporanPage() {
             <Button
               onClick={handleGenerate}
               disabled={loading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 h-11"
+              className="h-11"
             >
               {loading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Loading...
+                  Memproses...
                 </>
               ) : (
                 <>
@@ -178,7 +178,7 @@ export default function LaporanPage() {
           <div className="flex justify-end gap-2 print:hidden animate-fadeIn" style={{ animationDelay: '0.2s' }}>
             <Button 
               onClick={handleExportExcel} 
-              className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700"
+              variant="outline"
             >
               <Download className="h-4 w-4 mr-2" />
               Export Excel

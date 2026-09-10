@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Save, Building2 } from "lucide-react";
 import { toast } from "sonner";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function AdminProfilPage() {
   const [loading, setLoading] = useState(true);
@@ -39,23 +40,37 @@ export default function AdminProfilPage() {
     finally { setSaving(false); }
   };
 
-  const field = (label: string, key: keyof typeof form, type = "text", multiline = false) => (
-    <div key={key}>
-      <label className="text-sm font-medium text-gray-700">{label}</label>
-      {multiline ? (
-        <textarea
-          value={form[key]}
-          onChange={(e) => setForm({ ...form, [key]: e.target.value })}
-          rows={4}
-          className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-        />
-      ) : (
-        <Input type={type} value={form[key]} onChange={(e) => setForm({ ...form, [key]: e.target.value })} className="mt-1" />
-      )}
-    </div>
-  );
+  // Kunci form dipakai sebagai id supaya label benar-benar terhubung
+  // ke kolomnya (klik label memfokuskan kolom, pembaca layar bisa membacanya).
+  const field = (label: string, key: keyof typeof form, type = "text", multiline = false) => {
+    const id = `profil-${String(key)}`;
+    return (
+      <div key={key}>
+        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+          {label}
+        </label>
+        {multiline ? (
+          <textarea
+            id={id}
+            value={form[key]}
+            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+            rows={4}
+            className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        ) : (
+          <Input
+            id={id}
+            type={type}
+            value={form[key]}
+            onChange={(e) => setForm({ ...form, [key]: e.target.value })}
+            className="mt-1"
+          />
+        )}
+      </div>
+    );
+  };
 
-  if (loading) return <div className="flex items-center justify-center h-64 text-gray-400">Memuat...</div>;
+  if (loading) return <PageSkeleton />;
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -84,7 +99,7 @@ export default function AdminProfilPage() {
           {field("Telepon", "telepon")}
           {field("Alamat", "alamat")}
           <div>
-            <label className="text-sm font-medium text-gray-700">Logo Organisasi</label>
+            <p className="text-sm font-medium text-gray-700">Logo Organisasi</p>
             <div className="mt-1">
               <ImageUpload
                 value={form.logoUrl}

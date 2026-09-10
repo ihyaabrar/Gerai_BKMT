@@ -51,24 +51,24 @@ export default function BeritaBaruPage() {
 
       <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
         <div>
-          <label className="text-sm font-medium text-gray-700">Judul *</label>
-          <Input value={form.judul} onChange={(e) => handleJudulChange(e.target.value)} placeholder="Judul berita..." className="mt-1" />
+          <label className="text-sm font-medium text-gray-700" htmlFor="judul">Judul *</label>
+          <Input id="judul" value={form.judul} onChange={(e) => handleJudulChange(e.target.value)} placeholder="Judul berita..." className="mt-1" />
           {slugPreview && <p className="text-xs text-gray-400 mt-1">Slug: /berita/{slugPreview}</p>}
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Ringkasan</label>
-          <textarea value={form.ringkasan} onChange={(e) => setForm({ ...form, ringkasan: e.target.value })}
+          <label className="text-sm font-medium text-gray-700" htmlFor="ringkasan">Ringkasan</label>
+          <textarea id="ringkasan" value={form.ringkasan} onChange={(e) => setForm({ ...form, ringkasan: e.target.value })}
             rows={2} placeholder="Ringkasan singkat berita..."
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Konten *</label>
-          <textarea value={form.konten} onChange={(e) => setForm({ ...form, konten: e.target.value })}
+          <label className="text-sm font-medium text-gray-700" htmlFor="konten">Konten *</label>
+          <textarea id="konten" value={form.konten} onChange={(e) => setForm({ ...form, konten: e.target.value })}
             rows={10} placeholder="Isi berita lengkap..."
             className="mt-1 flex w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500" />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Gambar Berita</label>
+          <p className="text-sm font-medium text-gray-700">Gambar Berita</p>
           <div className="mt-1">
             <ImageUpload
               value={form.gambarUrl}
@@ -81,14 +81,14 @@ export default function BeritaBaruPage() {
           </div>
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-700">Status</label>
-          <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}
+          <label className="text-sm font-medium text-gray-700" htmlFor="status">Status</label>
+          <select id="status" value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}
             className="mt-1 flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
             <option value="draft">Draft</option>
             <option value="published">Published</option>
           </select>
         </div>
-        <Button type="submit" disabled={saving} className="w-full bg-blue-600 hover:bg-blue-700">
+        <Button type="submit" disabled={saving} className="w-full bg-violet-600 hover:bg-violet-700">
           <Save className="h-4 w-4 mr-2" />{saving ? "Menyimpan..." : "Simpan Berita"}
         </Button>
       </form>

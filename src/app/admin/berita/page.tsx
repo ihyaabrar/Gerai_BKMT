@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Plus, Edit, Trash2, FileText, Eye, EyeOff } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Berita {
   id: string; judul: string; slug: string; status: string;
@@ -13,6 +15,7 @@ interface Berita {
 }
 
 export default function AdminBeritaPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [beritaList, setBeritaList] = useState<Berita[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -24,13 +27,18 @@ export default function AdminBeritaPage() {
 
   useEffect(() => { fetchBerita(); }, []);
 
-  const handleDelete = async (id: string, judul: string) => {
-    if (!confirm(`Hapus berita "${judul}"?`)) return;
-    try {
-      const res = await fetch(`/api/admin/berita/${id}`, { method: "DELETE" });
-      if (res.ok) { toast.success("Berita dihapus"); fetchBerita(); }
-      else toast.error("Gagal menghapus");
-    } catch { toast.error("Terjadi kesalahan"); }
+  const handleDelete = (id: string, judul: string) => {
+    konfirmasi({
+      judul: "Hapus berita?",
+      pesan: <>Berita <strong>{judul}</strong> akan dihapus permanen.</>,
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/admin/berita/${id}`, { method: "DELETE" });
+          if (res.ok) { toast.success("Berita dihapus"); fetchBerita(); }
+          else toast.error("Gagal menghapus");
+        } catch { toast.error("Terjadi kesalahan"); }
+      },
+    });
   };
 
   return (
@@ -44,7 +52,7 @@ export default function AdminBeritaPage() {
           </div>
         </div>
         <Link href="/admin/berita/baru">
-          <Button className="bg-blue-600 hover:bg-blue-700">
+          <Button className="bg-violet-600 hover:bg-violet-700">
             <Plus className="h-4 w-4 mr-2" /> Buat Berita
           </Button>
         </Link>
@@ -52,7 +60,7 @@ export default function AdminBeritaPage() {
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {loading ? (
-          <div className="text-center py-12 text-gray-400">Memuat...</div>
+          <TableSkeleton cols={4} />
         ) : beritaList.length === 0 ? (
           <div className="text-center py-12 text-gray-400">
             <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
@@ -91,9 +99,9 @@ export default function AdminBeritaPage() {
                   <td className="px-4 py-4 text-center">
                     <div className="flex items-center justify-center gap-2">
                       <Link href={`/admin/berita/${b.id}`}>
-                        <Button variant="ghost" size="sm"><Edit className="h-4 w-4 text-blue-600" /></Button>
+                        <Button aria-label="Edit" variant="ghost" size="sm"><Edit className="h-4 w-4 text-blue-600" /></Button>
                       </Link>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(b.id, b.judul)}>
+                      <Button aria-label={`Hapus ${b.judul}`} variant="ghost" size="sm" onClick={() => handleDelete(b.id, b.judul)}>
                         <Trash2 className="h-4 w-4 text-red-500" />
                       </Button>
                     </div>
@@ -105,6 +113,7 @@ export default function AdminBeritaPage() {
           </div>
         )}
       </div>
+      {dialog}
     </div>
   );
 }

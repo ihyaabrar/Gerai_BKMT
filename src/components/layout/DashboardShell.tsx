@@ -72,6 +72,17 @@ export function DashboardShell({
 
   return (
     <SidebarContext.Provider value={{ open, close: () => setOpen(false) }}>
+      {/*
+        Tanpa ini pengguna keyboard harus menyusuri belasan item sidebar
+        di setiap halaman sebelum sampai ke konten.
+      */}
+      <a
+        href="#konten-utama"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-[60] focus:top-3 focus:left-3 focus:rounded-lg focus:bg-emerald-600 focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white focus:shadow-lg"
+      >
+        Lewati ke konten utama
+      </a>
+
       <div className="lg:flex">
         <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 bg-gray-900 text-white px-4 h-14 shadow-lg">
           <button
@@ -103,7 +114,11 @@ export function DashboardShell({
         {sidebar}
 
         {/* min-w-0 mencegah konten lebar (tabel/grid) melebarkan flex container */}
-        <main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 min-h-screen bg-gray-50">
+        <main
+          id="konten-utama"
+          tabIndex={-1}
+          className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8 min-h-screen bg-gray-50 focus:outline-none"
+        >
           {children}
         </main>
       </div>

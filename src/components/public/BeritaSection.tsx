@@ -12,6 +12,13 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
   const featured = beritaList[0];
   const rest = beritaList.slice(1, 6);
 
+  /*
+    Tata letak menyesuaikan jumlah berita. Sebelumnya selalu memakai
+    grid 5 kolom (3 untuk berita utama + 2 untuk sidebar), sehingga
+    dengan satu berita saja kolom kanan tampil kosong melompong.
+  */
+  const adaPendamping = rest.length > 0;
+
   return (
     <section id="berita" className="py-20 px-6 bg-gray-50">
       <div className="max-w-6xl mx-auto">
@@ -21,12 +28,12 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
             <span className="text-emerald-600 text-sm font-semibold uppercase tracking-widest">Informasi</span>
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Berita & Pengumuman</h2>
           </div>
-          {beritaList.length > 0 && (
+          {beritaList.length > 1 && (
             <Link
-              href="#berita"
+              href={`/berita/${featured.slug}`}
               className="flex items-center gap-2 text-emerald-600 font-medium text-sm hover:text-emerald-700 transition-colors shrink-0"
             >
-              Lihat semua <ArrowRight className="h-4 w-4" />
+              Baca berita terbaru <ArrowRight className="h-4 w-4" />
             </Link>
           )}
         </div>
@@ -40,12 +47,20 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
             <p className="text-gray-300 text-sm mt-1">Berita akan segera hadir</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+          <div
+            className={
+              adaPendamping
+                ? "grid grid-cols-1 lg:grid-cols-5 gap-6"
+                : "max-w-3xl mx-auto"
+            }
+          >
             {/* Featured berita */}
             {featured && (
               <Link
                 href={`/berita/${featured.slug}`}
-                className="lg:col-span-3 group relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all"
+                className={`${
+                  adaPendamping ? "lg:col-span-3" : "block"
+                } group relative overflow-hidden rounded-2xl bg-white shadow-sm hover:shadow-xl transition-all`}
               >
                 <div className="relative h-64 lg:h-80 overflow-hidden">
                   {featured.gambarUrl ? (
@@ -83,7 +98,8 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
               </Link>
             )}
 
-            {/* Rest berita */}
+            {/* Berita pendamping — hanya dirender bila ada isinya */}
+            {adaPendamping && (
             <div className="lg:col-span-2 flex flex-col gap-4">
               {rest.map((berita) => (
                 <Link
@@ -118,6 +134,7 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                 </Link>
               ))}
             </div>
+            )}
           </div>
         )}
       </div>

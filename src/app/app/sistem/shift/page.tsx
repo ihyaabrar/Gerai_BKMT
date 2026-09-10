@@ -9,6 +9,7 @@ import { Clock, PlayCircle, StopCircle, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Shift {
   id: string;
@@ -138,7 +139,6 @@ export default function ShiftPage() {
           {!activeShift ? (
             <Button
               onClick={() => setOpenBuka(true)}
-              className="bg-green-600 hover:bg-green-700"
             >
               <PlayCircle className="h-4 w-4 mr-2" />
               Buka Shift
@@ -205,7 +205,7 @@ export default function ShiftPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
+            <TableSkeleton cols={4} />
           ) : shifts.filter((s) => s.jamTutup).length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               Belum ada riwayat shift
@@ -295,8 +295,8 @@ export default function ShiftPage() {
           </DialogHeader>
           <form onSubmit={handleBukaShift} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Saldo Awal Kas</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="saldo-awal-kas">Saldo Awal Kas</label>
+              <Input id="saldo-awal-kas"
                 type="number"
                 value={formBuka.saldoAwal}
                 onChange={(e) => setFormBuka({ saldoAwal: e.target.value })}
@@ -307,7 +307,7 @@ export default function ShiftPage() {
             <Button
               type="submit"
               disabled={submitting}
-              className="w-full bg-green-600 hover:bg-green-700"
+              className="w-full"
             >
               {submitting ? "Memproses..." : "Buka Shift"}
             </Button>
@@ -322,8 +322,8 @@ export default function ShiftPage() {
           </DialogHeader>
           <form onSubmit={handleTutupShift} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Saldo Akhir Kas</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="saldo-akhir-kas">Saldo Akhir Kas</label>
+              <Input id="saldo-akhir-kas"
                 type="number"
                 value={formTutup.saldoAkhir}
                 onChange={(e) => setFormTutup({ ...formTutup, saldoAkhir: e.target.value })}
@@ -332,8 +332,8 @@ export default function ShiftPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Catatan (Opsional)</label>
-              <textarea
+              <label className="text-sm font-medium" htmlFor="catatan-opsional">Catatan (Opsional)</label>
+              <textarea id="catatan-opsional"
                 className="w-full border rounded-lg px-3 py-2"
                 value={formTutup.catatan}
                 onChange={(e) => setFormTutup({ ...formTutup, catatan: e.target.value })}

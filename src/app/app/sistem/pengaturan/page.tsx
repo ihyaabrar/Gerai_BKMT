@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Settings, Save, Plus, Trash2, Tag } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { PageSkeleton } from "@/components/ui/skeleton";
 
 interface KategoriItem {
   id: string;
@@ -13,6 +15,7 @@ interface KategoriItem {
 }
 
 export default function PengaturanPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -155,17 +158,30 @@ export default function PengaturanPage() {
     }
   };
 
-  const handleDeleteKategoriBarang = async (id: string, nama: string) => {
-    if (!confirm(`Hapus kategori "${nama}"?`)) return;
-    try {
-      const res = await fetch(`/api/kategori-barang?id=${id}`, { method: "DELETE" });
-      if (res.ok) {
-        toast.success("Kategori dihapus");
-        fetchKategoriBarang();
-      }
-    } catch {
-      toast.error("Gagal menghapus kategori");
-    }
+  const handleDeleteKategoriBarang = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus kategori barang?",
+      pesan: (
+        <>
+          Kategori <strong>{nama}</strong> tidak akan muncul lagi saat menambah
+          barang. Barang yang sudah memakainya tidak berubah.
+        </>
+      ),
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/kategori-barang?id=${id}`, { method: "DELETE" });
+          if (res.ok) {
+            toast.success("Kategori dihapus");
+            fetchKategoriBarang();
+          } else {
+            const data = await res.json().catch(() => null);
+            toast.error(data?.error || "Gagal menghapus kategori");
+          }
+        } catch {
+          toast.error("Gagal menghapus kategori");
+        }
+      },
+    });
   };
 
   const handleAddKategoriPengeluaran = async () => {
@@ -192,25 +208,34 @@ export default function PengaturanPage() {
     }
   };
 
-  const handleDeleteKategoriPengeluaran = async (id: string, nama: string) => {
-    if (!confirm(`Hapus kategori "${nama}"?`)) return;
-    try {
-      const res = await fetch(`/api/kategori-pengeluaran?id=${id}`, { method: "DELETE" });
-      if (res.ok) {
-        toast.success("Kategori dihapus");
-        fetchKategoriPengeluaran();
-      }
-    } catch {
-      toast.error("Gagal menghapus kategori");
-    }
+  const handleDeleteKategoriPengeluaran = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus kategori pengeluaran?",
+      pesan: (
+        <>
+          Kategori <strong>{nama}</strong> tidak akan muncul lagi saat mencatat
+          pengeluaran. Data lama tidak berubah.
+        </>
+      ),
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/kategori-pengeluaran?id=${id}`, { method: "DELETE" });
+          if (res.ok) {
+            toast.success("Kategori dihapus");
+            fetchKategoriPengeluaran();
+          } else {
+            const data = await res.json().catch(() => null);
+            toast.error(data?.error || "Gagal menghapus kategori");
+          }
+        } catch {
+          toast.error("Gagal menghapus kategori");
+        }
+      },
+    });
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600" />
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   const totalPersen = parseFloat(form.persenNasabah || "0") + parseFloat(form.persenPengelola || "0");
@@ -222,8 +247,9 @@ export default function PengaturanPage() {
         <p className="text-gray-500">Konfigurasi sistem</p>
       </div>
 
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
       {/* Pengaturan Toko */}
-      <Card className="max-w-2xl">
+      <Card className="xl:row-span-2">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Settings className="h-5 w-5" />
@@ -233,42 +259,42 @@ export default function PengaturanPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nama Toko</label>
-              <Input required value={form.namaToko}
+              <label className="text-sm font-medium" htmlFor="nama-toko">Nama Toko</label>
+              <Input id="nama-toko" required value={form.namaToko}
                 onChange={(e) => handleChange("namaToko", e.target.value)} className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Alamat Toko</label>
-              <Input value={form.alamatToko}
+              <label className="text-sm font-medium" htmlFor="alamat-toko">Alamat Toko</label>
+              <Input id="alamat-toko" value={form.alamatToko}
                 onChange={(e) => handleChange("alamatToko", e.target.value)}
                 placeholder="Alamat lengkap" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Telepon Toko</label>
-              <Input value={form.teleponToko}
+              <label className="text-sm font-medium" htmlFor="telepon-toko">Telepon Toko</label>
+              <Input id="telepon-toko" value={form.teleponToko}
                 onChange={(e) => handleChange("teleponToko", e.target.value)}
                 placeholder="08xx" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Prefix Nomor Transaksi</label>
-              <Input required value={form.prefixTransaksi}
+              <label className="text-sm font-medium" htmlFor="prefix-nomor-transaksi">Prefix Nomor Transaksi</label>
+              <Input id="prefix-nomor-transaksi" required value={form.prefixTransaksi}
                 onChange={(e) => handleChange("prefixTransaksi", e.target.value)}
                 placeholder="TRX" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Diskon Member (%)</label>
-              <Input required type="number" min="0" max="100" value={form.diskonMember}
+              <label className="text-sm font-medium" htmlFor="diskon-member">Diskon Member (%)</label>
+              <Input id="diskon-member" required type="number" min="0" max="100" value={form.diskonMember}
                 onChange={(e) => handleChange("diskonMember", e.target.value)} className="mt-1" />
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">Persentase Nasabah (%)</label>
-                <Input required type="number" min="0" max="100" value={form.persenNasabah}
+                <label className="text-sm font-medium" htmlFor="persentase-nasabah">Persentase Nasabah (%)</label>
+                <Input id="persentase-nasabah" required type="number" min="0" max="100" value={form.persenNasabah}
                   onChange={(e) => handleChange("persenNasabah", e.target.value)} className="mt-1" />
               </div>
               <div>
-                <label className="text-sm font-medium">Persentase Pengelola (%)</label>
-                <Input required type="number" min="0" max="100" value={form.persenPengelola}
+                <label className="text-sm font-medium" htmlFor="persentase-pengelola">Persentase Pengelola (%)</label>
+                <Input id="persentase-pengelola" required type="number" min="0" max="100" value={form.persenPengelola}
                   onChange={(e) => handleChange("persenPengelola", e.target.value)} className="mt-1" />
               </div>
             </div>
@@ -289,7 +315,7 @@ export default function PengaturanPage() {
       </Card>
 
       {/* Kategori Barang */}
-      <Card className="max-w-2xl">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Tag className="h-5 w-5 text-blue-600" />
@@ -299,6 +325,7 @@ export default function PengaturanPage() {
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <Input
+              aria-label="Nama kategori barang baru"
               value={newKategoriBarang}
               onChange={(e) => setNewKategoriBarang(e.target.value)}
               placeholder="Nama kategori baru (misal: Makanan)"
@@ -307,7 +334,7 @@ export default function PengaturanPage() {
             <Button
               onClick={handleAddKategoriBarang}
               disabled={addingKB || !newKategoriBarang.trim()}
-              className="bg-blue-600 hover:bg-blue-700 shrink-0"
+              className="shrink-0"
             >
               <Plus className="h-4 w-4 mr-1" />
               Tambah
@@ -322,6 +349,7 @@ export default function PengaturanPage() {
                   className="flex items-center gap-1 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-full text-sm text-blue-800">
                   <span>{k.nama}</span>
                   <button
+                    aria-label={`Hapus kategori ${k.nama}`}
                     onClick={() => handleDeleteKategoriBarang(k.id, k.nama)}
                     className="ml-1 text-blue-400 hover:text-red-500 transition-colors"
                   >
@@ -335,7 +363,7 @@ export default function PengaturanPage() {
       </Card>
 
       {/* Kategori Pengeluaran */}
-      <Card className="max-w-2xl">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Tag className="h-5 w-5 text-orange-600" />
@@ -345,6 +373,7 @@ export default function PengaturanPage() {
         <CardContent className="space-y-4">
           <div className="flex gap-2">
             <Input
+              aria-label="Nama kategori pengeluaran baru"
               value={newKategoriPengeluaran}
               onChange={(e) => setNewKategoriPengeluaran(e.target.value)}
               placeholder="Nama kategori baru (misal: Gaji)"
@@ -353,7 +382,7 @@ export default function PengaturanPage() {
             <Button
               onClick={handleAddKategoriPengeluaran}
               disabled={addingKP || !newKategoriPengeluaran.trim()}
-              className="bg-orange-600 hover:bg-orange-700 shrink-0"
+              className="shrink-0"
             >
               <Plus className="h-4 w-4 mr-1" />
               Tambah
@@ -368,6 +397,7 @@ export default function PengaturanPage() {
                   className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-full text-sm text-orange-800">
                   <span>{k.nama}</span>
                   <button
+                    aria-label={`Hapus kategori ${k.nama}`}
                     onClick={() => handleDeleteKategoriPengeluaran(k.id, k.nama)}
                     className="ml-1 text-orange-400 hover:text-red-500 transition-colors"
                   >
@@ -379,6 +409,8 @@ export default function PengaturanPage() {
           )}
         </CardContent>
       </Card>
+      </div>
+      {dialog}
     </div>
   );
 }

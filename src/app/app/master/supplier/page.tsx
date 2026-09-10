@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Truck, Plus, Edit, Trash2, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Supplier {
   id: string;
@@ -17,6 +19,7 @@ interface Supplier {
 }
 
 export default function SupplierPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [supplier, setSupplier] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
@@ -83,9 +86,15 @@ export default function SupplierPage() {
     setOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus supplier ini?")) return;
+  const handleDelete = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus supplier?",
+      pesan: <><strong>{nama}</strong> tidak akan muncul lagi di daftar supplier.</>,
+      aksi: () => hapusSupplier(id),
+    });
+  };
 
+  const hapusSupplier = async (id: string) => {
     try {
       const res = await fetch(`/api/supplier?id=${id}`, {
         method: "DELETE",
@@ -122,7 +131,7 @@ export default function SupplierPage() {
           }}
         >
           <DialogTrigger asChild>
-            <Button className="bg-orange-600 hover:bg-orange-700">
+            <Button>
               <Plus className="h-4 w-4 mr-2" />
               Tambah Supplier
             </Button>
@@ -135,8 +144,8 @@ export default function SupplierPage() {
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Nama Supplier</label>
-                <Input
+                <label className="text-sm font-medium" htmlFor="nama-supplier">Nama Supplier</label>
+                <Input id="nama-supplier"
                   value={form.nama}
                   onChange={(e) => setForm({ ...form, nama: e.target.value })}
                   placeholder="PT. Supplier ABC"
@@ -144,8 +153,8 @@ export default function SupplierPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Telepon</label>
-                <Input
+                <label className="text-sm font-medium" htmlFor="telepon">Telepon</label>
+                <Input id="telepon"
                   value={form.telepon}
                   onChange={(e) => setForm({ ...form, telepon: e.target.value })}
                   placeholder="08123456789"
@@ -153,8 +162,8 @@ export default function SupplierPage() {
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Alamat</label>
-                <textarea
+                <label className="text-sm font-medium" htmlFor="alamat">Alamat</label>
+                <textarea id="alamat"
                   className="w-full border rounded-lg px-3 py-2"
                   value={form.alamat}
                   onChange={(e) => setForm({ ...form, alamat: e.target.value })}
@@ -165,7 +174,7 @@ export default function SupplierPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-orange-600 hover:bg-orange-700"
+                className="w-full"
               >
                 {editId ? "Update" : "Simpan"}
               </Button>
@@ -183,55 +192,64 @@ export default function SupplierPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
+            <TableSkeleton cols={4} />
           ) : supplier.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
-              Belum ada data supplier
+            <div className="text-center py-10 text-gray-400">
+              <Truck className="h-12 w-12 mx-auto mb-3 opacity-30" />
+              <p>Belum ada supplier</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {supplier.map((s) => (
-                <Card key={s.id} className="hover:shadow-lg transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="bg-orange-100 p-2 rounded-lg">
-                        <Truck className="h-5 w-5 text-orange-600" />
-                      </div>
-                      <div className="flex gap-1">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleEdit(s)}
-                        >
-                          <Edit className="h-4 w-4 text-blue-600" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDelete(s.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-red-600" />
-                        </Button>
-                      </div>
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">{s.nama}</h3>
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <div className="flex items-center gap-2">
-                        <Phone className="h-3 w-3" />
-                        {s.telepon}
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <MapPin className="h-3 w-3 mt-0.5" />
-                        <span className="line-clamp-2">{s.alamat}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            // Disajikan sebagai tabel, sama seperti Member dan Nasabah.
+            // Sebelumnya supplier memakai grid kartu, sehingga tiga halaman
+            // data master yang setara punya tiga model tampilan berbeda.
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[640px]">
+                <thead>
+                  <tr className="border-b">
+                    <th className="text-left py-3 px-4">Nama Supplier</th>
+                    <th className="text-left py-3 px-4">Telepon</th>
+                    <th className="text-left py-3 px-4">Alamat</th>
+                    <th className="text-center py-3 px-4">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {supplier.map((s) => (
+                    <tr key={s.id} className="border-b hover:bg-gray-50">
+                      <td className="py-3 px-4 font-medium">{s.nama}</td>
+                      <td className="py-3 px-4 text-gray-600">{s.telepon || "-"}</td>
+                      <td className="py-3 px-4 text-gray-600 max-w-[280px] truncate">
+                        {s.alamat || "-"}
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex justify-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label={`Edit ${s.nama}`}
+                            onClick={() => handleEdit(s)}
+                          >
+                            <Edit className="h-4 w-4 text-gray-500" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            aria-label={`Hapus ${s.nama}`}
+                            onClick={() => handleDelete(s.id, s.nama)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           )}
         </CardContent>
       </Card>
+      {dialog}
     </div>
   );
 }

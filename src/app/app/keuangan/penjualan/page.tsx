@@ -9,6 +9,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Penjualan {
   id: string;
@@ -144,10 +145,9 @@ export default function PenjualanPage() {
           <h1 className="text-2xl sm:text-3xl font-bold">Riwayat Penjualan</h1>
           <p className="text-gray-500">Data transaksi penjualan</p>
         </div>
-        <Button
+        <Button variant="outline"
           onClick={handleExportExcel}
           disabled={exporting || loading}
-          className="bg-green-600 hover:bg-green-700"
         >
           <Download className="h-4 w-4 mr-2" />
           {exporting ? "Menyiapkan..." : "Export Excel"}
@@ -163,7 +163,7 @@ export default function PenjualanPage() {
             </CardTitle>
             <div className="relative w-64">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
+              <Input aria-label="Cari transaksi..."
                 placeholder="Cari transaksi..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -174,7 +174,7 @@ export default function PenjualanPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
+            <TableSkeleton cols={7} />
           ) : penjualan.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
               {search ? "Tidak ada data yang cocok" : "Belum ada transaksi"}

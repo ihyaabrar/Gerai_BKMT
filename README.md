@@ -64,6 +64,14 @@ Aplikasi terintegrasi untuk **PD BKMT Kabupaten Kubu Raya** yang menggabungkan:
 - Edit informasi gerai
 - Upload gambar langsung dari komputer (JPG/PNG/WebP, maks 5MB)
 
+### ♿ Aksesibilitas & Konsistensi
+- Setiap kolom form terhubung ke labelnya; tombol ikon punya nama yang terbaca
+- Link "lewati ke konten" untuk pengguna keyboard
+- Warna tombol punya arti tetap: emerald = aksi utama, merah = hapus,
+  violet = area admin, outline = aksi sekunder
+- Dialog konfirmasi menyebut entitas dan konsekuensinya, bukan `confirm()` bawaan
+- Skeleton loading supaya tata letak tidak melompat saat data datang
+
 ### 📱 Responsif
 - Sidebar berubah jadi drawer di bawah 1024px — bisa dipakai dari HP & tablet
 - Dialog tampil sebagai sheet yang bisa di-scroll di layar kecil
@@ -362,5 +370,5 @@ MIT License — Lihat [LICENSE](./LICENSE) untuk detail.
 ---
 
 **Dikembangkan untuk PD BKMT Kabupaten Kubu Raya**  
-**Version:** 3.2.0  
+**Version:** 3.3.0  
 **Last Updated:** September 2026
