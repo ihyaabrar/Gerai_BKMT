@@ -16,7 +16,12 @@ export function requireString(
   }
   const trimmed = value.trim();
   if (trimmed.length < min) {
-    throw new ValidationError(`${field} wajib diisi`);
+    // Bedakan "belum diisi" dari "terlalu pendek" supaya pesannya berguna.
+    throw new ValidationError(
+      min > 1
+        ? `${field} minimal ${min} karakter`
+        : `${field} wajib diisi`
+    );
   }
   if (trimmed.length > max) {
     throw new ValidationError(`${field} maksimal ${max} karakter`);

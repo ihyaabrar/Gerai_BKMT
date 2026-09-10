@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
   Settings, Clock, DatabaseBackup, ArrowRight, Store, Tags,
-  Percent, ShieldCheck, CircleDot,
+  Percent, ShieldCheck, CircleDot, Users,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
@@ -70,6 +70,14 @@ export default function SistemPage() {
       desc: "Identitas toko, diskon, dan kategori",
       icon: Settings,
       warna: "bg-gold-50 text-gold-600",
+      adminSaja: true,
+    },
+    {
+      href: "/app/sistem/pengguna",
+      label: "Pengguna",
+      desc: "Kelola akun dan hak akses",
+      icon: Users,
+      warna: "bg-violet-50 text-violet-600",
       adminSaja: true,
     },
     {

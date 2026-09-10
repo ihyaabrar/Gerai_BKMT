@@ -9,6 +9,7 @@ import type { Role } from "@/lib/session";
 /** Halaman yang TIDAK boleh diakses kasir. */
 export const KASIR_BLOCKED_PATHS = [
   "/admin",
+  "/app/sistem/pengguna",
   "/app/keuangan/laporan",
   "/app/keuangan/distribusi",
   "/app/master/nasabah",
@@ -23,6 +24,7 @@ export const KASIR_BLOCKED_PATHS = [
  */
 export const KASIR_BLOCKED_APIS = [
   "/api/admin",
+  "/api/user",
   "/api/backup",
   "/api/laporan",
   "/api/nasabah",
