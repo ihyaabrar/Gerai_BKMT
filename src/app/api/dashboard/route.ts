@@ -7,6 +7,20 @@ export const dynamic = "force-dynamic";
 
 const BULAN = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 
+/** Selisih persen terhadap periode pembanding. null bila tidak bisa dihitung. */
+function persenSelisih(sekarang: number, sebelum: number): number | null {
+  if (!sebelum) return null;
+  return Math.round(((sekarang - sebelum) / sebelum) * 100);
+}
+
+function formatRingkas(nilai: number): string {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(nilai);
+}
+
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;
@@ -17,6 +31,11 @@ export async function GET(request: NextRequest) {
 
     const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
     const awalGrafik = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+
+    // Pembanding untuk indikator tren pada kartu ringkasan
+    const kemarin = new Date(today);
+    kemarin.setDate(kemarin.getDate() - 1);
+    const awalBulanLalu = new Date(today.getFullYear(), today.getMonth() - 1, 1);
 
     const [
       penjualanHariIni,
@@ -69,6 +88,89 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
+    // Aktivitas hari ini dirangkai dari beberapa tabel, diurutkan menurun.
+    const [aktPenjualan, aktPenyesuaian, aktRetur, aktPengeluaran, aktMember] =
+      await Promise.all([
+        prisma.penjualan.findMany({
+          where: { tanggal: { gte: today } },
+          orderBy: { tanggal: "desc" },
+          take: 6,
+          select: { id: true, nomorTransaksi: true, total: true, tanggal: true },
+        }),
+        prisma.penyesuaianStok.findMany({
+          where: { tanggal: { gte: today } },
+          orderBy: { tanggal: "desc" },
+          take: 4,
+          include: { barang: { select: { nama: true } } },
+        }),
+        prisma.retur.findMany({
+          where: { tanggal: { gte: today } },
+          orderBy: { tanggal: "desc" },
+          take: 4,
+          include: { barang: { select: { nama: true } } },
+        }),
+        prisma.pengeluaran.findMany({
+          where: { tanggal: { gte: today } },
+          orderBy: { tanggal: "desc" },
+          take: 4,
+        }),
+        prisma.member.findMany({
+          where: { createdAt: { gte: today } },
+          orderBy: { createdAt: "desc" },
+          take: 4,
+        }),
+      ]);
+
+    const aktivitas = [
+      ...aktPenjualan.map((p) => ({
+        jenis: "penjualan" as const,
+        waktu: p.tanggal,
+        judul: `Transaksi ${p.nomorTransaksi}`,
+        detail: formatRingkas(p.total),
+      })),
+      ...aktPenyesuaian.map((p) => ({
+        jenis: "stok" as const,
+        waktu: p.tanggal,
+        judul: `Penyesuaian stok — ${p.barang.nama}`,
+        detail: `${p.jenis === "masuk" ? "+" : "-"}${p.qty} · ${p.alasan}`,
+      })),
+      ...aktRetur.map((r) => ({
+        jenis: "retur" as const,
+        waktu: r.tanggal,
+        judul: `Retur — ${r.barang.nama}`,
+        detail: `${r.qty} unit · ${r.status}`,
+      })),
+      ...aktPengeluaran.map((p) => ({
+        jenis: "pengeluaran" as const,
+        waktu: p.tanggal,
+        judul: p.keterangan,
+        detail: `${p.kategori} · ${formatRingkas(p.jumlah)}`,
+      })),
+      ...aktMember.map((m) => ({
+        jenis: "member" as const,
+        waktu: m.createdAt,
+        judul: `Member baru — ${m.nama}`,
+        detail: m.kode,
+      })),
+    ]
+      .sort((a, b) => b.waktu.getTime() - a.waktu.getTime())
+      .slice(0, 8);
+
+    // Angka pembanding untuk tren
+    const [penjualanKemarin, penjualanBulanLalu, produkBulanLalu] = await Promise.all([
+      prisma.penjualan.aggregate({
+        where: { tanggal: { gte: kemarin, lt: today } },
+        _sum: { total: true },
+      }),
+      prisma.penjualan.findMany({
+        where: { tanggal: { gte: awalBulanLalu, lt: firstDayOfMonth } },
+        include: { detail: { include: { barang: { select: { hargaBeli: true } } } } },
+      }),
+      prisma.barang.count({
+        where: { aktif: true, createdAt: { lt: firstDayOfMonth } },
+      }),
+    ]);
+
     const labaTransaksi = (p: (typeof penjualan12Bulan)[number]) =>
       p.detail.reduce((sum, d) => sum + (d.hargaJual - d.barang.hargaBeli) * d.qty, 0);
 
@@ -108,8 +210,24 @@ export async function GET(request: NextRequest) {
       where: { id: { in: produkTerlaris.map((p) => p.barangId) } },
     });
 
+    const labaBulanLalu = penjualanBulanLalu.reduce(
+      (sum, p) =>
+        sum +
+        p.detail.reduce((n, d) => n + (d.hargaJual - d.barang.hargaBeli) * d.qty, 0),
+      0
+    );
+
     return NextResponse.json({
       penjualanHariIni: penjualanHariIni._sum.total || 0,
+      tren: {
+        penjualan: persenSelisih(
+          penjualanHariIni._sum.total || 0,
+          penjualanKemarin._sum.total || 0
+        ),
+        laba: persenSelisih(labaKotor, labaBulanLalu),
+        produk: persenSelisih(totalBarang, produkBulanLalu),
+      },
+      aktivitas,
       labaKotor,
       labaBersih: labaKotor - totalPengeluaranOps,
       totalPengeluaranOps,

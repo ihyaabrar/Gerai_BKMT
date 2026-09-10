@@ -29,7 +29,7 @@ const formatRupiahShort = (value: number) => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3 text-sm">
+    <div className="bg-white border border-brand-100 rounded-xl shadow-card p-3 text-sm">
       <p className="font-semibold text-slate-700 mb-2">{label}</p>
       {payload.map((p: any) => (
         <div key={p.dataKey} className="flex items-center gap-2">
@@ -56,23 +56,23 @@ export function SalesChart({ data }: SalesChartProps) {
   return (
     <ResponsiveContainer width="100%" height={280}>
       <BarChart data={data} margin={{ top: 4, right: 8, left: 0, bottom: 0 }} barGap={4}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke="#E5F1E9" vertical={false} />
         <XAxis
           dataKey="bulan"
-          tick={{ fontSize: 12, fill: "#9ca3af" }}
+          tick={{ fontSize: 12, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
           tickFormatter={formatRupiahShort}
-          tick={{ fontSize: 11, fill: "#9ca3af" }}
+          tick={{ fontSize: 11, fill: "#94a3b8" }}
           axisLine={false}
           tickLine={false}
           width={48}
         />
-        <Tooltip content={<CustomTooltip />} cursor={{ fill: "#f9fafb" }} />
-        <Bar dataKey="penjualan" name="Penjualan" fill="#10b981" radius={[4, 4, 0, 0]} maxBarSize={40} />
-        <Bar dataKey="laba" name="Laba" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={40} />
+        <Tooltip content={<CustomTooltip />} cursor={{ fill: "#F1FAF4" }} />
+        <Bar dataKey="penjualan" name="Penjualan" fill="#2F9862" radius={[4, 4, 0, 0]} maxBarSize={40} />
+        <Bar dataKey="laba" name="Laba" fill="#F5C518" radius={[4, 4, 0, 0]} maxBarSize={40} />
       </BarChart>
     </ResponsiveContainer>
   );

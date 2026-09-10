@@ -18,6 +18,7 @@ const menuItems = [
     icon: Package,
     label: "Inventori",
     submenu: [
+      { label: "Ringkasan", href: "/app/inventori" },
       { label: "Barang Masuk", href: "/app/inventori/barang-masuk" },
       { label: "Stok Barang", href: "/app/inventori/stok" },
       { label: "Penyesuaian", href: "/app/inventori/penyesuaian" },
@@ -28,6 +29,7 @@ const menuItems = [
     icon: Wallet,
     label: "Keuangan",
     submenu: [
+      { label: "Ringkasan", href: "/app/keuangan" },
       { label: "Penjualan", href: "/app/keuangan/penjualan" },
       { label: "Pengeluaran", href: "/app/keuangan/pengeluaran" },
       { label: "Distribusi Laba", href: "/app/keuangan/distribusi" },
