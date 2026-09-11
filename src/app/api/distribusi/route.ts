@@ -219,6 +219,7 @@ export async function POST(request: NextRequest) {
           totalPenjualan: h.totalPenjualan,
           totalHpp: h.totalHpp,
           totalDiskon: h.totalDiskon,
+          totalTransaksi: h.totalTransaksi,
           labaKotor: h.labaKotor,
           persenNasabah: h.persenNasabah,
           persenPengelola: h.persenPengelola,

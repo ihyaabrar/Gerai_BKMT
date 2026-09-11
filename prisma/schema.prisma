@@ -248,6 +248,7 @@ model DistribusiLaba {
   totalPenjualan Float
   totalHpp       Float
   totalDiskon    Float
+  totalTransaksi Int    @default(0)
   labaKotor      Float
 
   persenNasabah   Float

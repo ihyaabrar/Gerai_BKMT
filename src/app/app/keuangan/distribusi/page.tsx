@@ -392,7 +392,7 @@ export default function DistribusiPage() {
                 {
                   label: "Laba Kotor",
                   nilai: d.labaKotor,
-                  catatan: `${d.totalTransaksi ?? "—"} transaksi`,
+                  catatan: `${d.totalTransaksi ?? 0} transaksi`,
                   warna: "bg-gold-50 text-gold-600",
                   icon: Building,
                 },
