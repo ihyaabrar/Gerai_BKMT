@@ -253,8 +253,11 @@ hanya bertahan satu jam.
       70% pengelola)
 - [ ] Daftar nasabah dan jumlah investasinya diperiksa sebelum periode pertama
       ditutup
-- [ ] Migrasi database berjalan otomatis saat build di Vercel lewat skrip
-      `vercel-build`. Kalau deploy di tempat lain, jalankan
+- [ ] Migrasi database berjalan otomatis saat build **produksi** di Vercel
+      lewat skrip `vercel-build`. Build preview sengaja TIDAK memigrasi:
+      `DATABASE_URL` preview dan produksi menunjuk database yang sama, jadi
+      tanpa penjaga itu sebuah pull request bisa mengubah skema produksi
+      sebelum di-merge. Kalau deploy di tempat lain, jalankan
       `npm run db:migrate` sendiri sebelum aplikasi dipakai.
 - [ ] Kalau memakai connection pooling (Neon pooled / Supabase port 6543),
       tambahkan `directUrl` pada `prisma/schema.prisma` — tanpa itu
