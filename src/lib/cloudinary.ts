@@ -29,7 +29,14 @@ export async function uploadImage(
   const result = await cloudinary.uploader.upload(dataUri, {
     folder: `bkmt/${folder}`,
     resource_type: "image",
-    transformation: [{ quality: "auto", fetch_format: "auto" }],
+    // Foto dari kamera HP berukuran 3000×4000 dan 2–4 MB. Tidak ada satu pun
+    // tempat di aplikasi ini yang menampilkannya lebih besar dari ~1200 px,
+    // jadi yang disimpan pun tidak perlu lebih besar dari itu. `limit` hanya
+    // memperkecil, gambar yang sudah kecil dibiarkan apa adanya.
+    transformation: [
+      { width: 1200, height: 1200, crop: "limit" },
+      { quality: "auto", fetch_format: "auto" },
+    ],
   });
 
   return result.secure_url;

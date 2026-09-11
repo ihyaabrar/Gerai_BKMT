@@ -1,6 +1,7 @@
 import { CalendarDays, MapPin, Clock, ImageIcon } from "lucide-react";
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 export interface FotoGaleri {
   id: string;
@@ -66,8 +67,12 @@ export function GaleriAgendaSection({ galeri, agenda }: Props) {
                   >
                     <div className="aspect-[4/3] overflow-hidden bg-surface-sunken">
                       <img
-                        src={f.gambarUrl}
+                        src={gambarLebar(f.gambarUrl, LEBAR.sedang)}
                         alt={f.judul}
+                        loading="lazy"
+                        decoding="async"
+                        width={LEBAR.sedang}
+                        height={Math.round((LEBAR.sedang * 3) / 4)}
                         className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                       />
                     </div>

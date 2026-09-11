@@ -3,6 +3,7 @@
 import { useState, useRef, useId } from "react";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 interface ImageUploadProps {
   value: string;
@@ -109,8 +110,9 @@ export function ImageUpload({
         <div className="flex items-start gap-4">
           <div className={`relative ${sizeClass} shrink-0`}>
             <img
-              src={value}
+              src={gambarLebar(value, LEBAR.pratinjau)}
               alt="Preview"
+              decoding="async"
               className={`${sizeClass} ${shapeClass} object-cover border-2 border-gray-200`}
             />
             <button

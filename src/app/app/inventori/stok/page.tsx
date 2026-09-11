@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle, Search } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { toast } from "sonner";
 import { TableSkeleton } from "@/components/ui/skeleton";
 
@@ -191,7 +192,15 @@ export default function StokPage() {
                             {/* Foto produk; inisial nama dipakai bila belum ada */}
                             <div className="h-9 w-9 rounded-lg bg-surface-sunken border border-border overflow-hidden shrink-0 flex items-center justify-center">
                               {b.gambarUrl ? (
-                                <img src={b.gambarUrl} alt="" className="h-full w-full object-cover" />
+                                <img
+                                    src={gambarLebar(b.gambarUrl, LEBAR.ikon)}
+                                    alt=""
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={LEBAR.ikon}
+                                    height={LEBAR.ikon}
+                                    className="h-full w-full object-cover"
+                                  />
                               ) : (
                                 <span className="text-xs font-bold text-brand-300">
                                   {b.nama.charAt(0).toUpperCase()}

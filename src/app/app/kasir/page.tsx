@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { useAuthStore } from "@/store/auth";
 import { cn, formatRupiah } from "@/lib/utils";
 import { Search, Trash2, Plus, Minus, User, CreditCard, ShoppingCart } from "lucide-react";
@@ -281,8 +282,12 @@ export default function KasirPage() {
                     <div className="relative mb-3 aspect-[4/3] rounded-lg overflow-hidden bg-surface-sunken border border-border flex items-center justify-center">
                       {barang.gambarUrl ? (
                         <img
-                          src={barang.gambarUrl}
+                          src={gambarLebar(barang.gambarUrl, LEBAR.kartu)}
                           alt=""
+                          loading="lazy"
+                          decoding="async"
+                          width={LEBAR.kartu}
+                          height={Math.round((LEBAR.kartu * 3) / 4)}
                           className="h-full w-full object-cover"
                         />
                       ) : (

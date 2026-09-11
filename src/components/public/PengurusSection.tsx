@@ -1,4 +1,5 @@
 import { Users } from "lucide-react";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 import type { PengurusPublic } from "@/types/public-profile";
 import { sortPengurus } from "@/lib/utils";
 
@@ -79,8 +80,12 @@ export function PengurusSection({ pengurusList }: PengurusSectionProps) {
                       >
                         {p.fotoUrl ? (
                           <img
-                            src={p.fotoUrl}
+                            src={gambarLebar(p.fotoUrl, LEBAR.ikon)}
                             alt={p.nama}
+                            loading="lazy"
+                            decoding="async"
+                            width={64}
+                            height={64}
                             className="w-16 h-16 rounded-full object-cover mx-auto"
                           />
                         ) : (

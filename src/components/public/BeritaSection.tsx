@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import { Calendar, ArrowRight, Newspaper, ArrowUpRight } from "lucide-react";
@@ -72,8 +73,9 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                 <div className="relative h-64 lg:h-80 overflow-hidden">
                   {featured.gambarUrl ? (
                     <img
-                      src={featured.gambarUrl}
+                      src={gambarLebar(featured.gambarUrl, LEBAR.besar)}
                       alt={featured.judul}
+                      decoding="async"
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   ) : (
@@ -121,8 +123,10 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                   <div className="w-20 h-20 rounded-xl overflow-hidden shrink-0">
                     {berita.gambarUrl ? (
                       <img
-                        src={berita.gambarUrl}
+                        src={gambarLebar(berita.gambarUrl, LEBAR.sedang)}
                         alt={berita.judul}
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
                       />
                     ) : (
@@ -130,6 +134,8 @@ export function BeritaSection({ beritaList }: BeritaSectionProps) {
                         src="/images/kegiatan-majelis-taklim.webp"
                         alt=""
                         aria-hidden="true"
+                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     )}

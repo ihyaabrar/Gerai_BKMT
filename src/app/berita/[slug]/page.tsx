@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { id } from "date-fns/locale";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 export const dynamic = "force-dynamic";
 
@@ -34,8 +35,9 @@ export default async function BeritaDetailPage({ params }: Props) {
       <main className="max-w-3xl mx-auto px-4 py-10">
         {berita.gambarUrl && (
           <img
-            src={berita.gambarUrl}
+            src={gambarLebar(berita.gambarUrl, LEBAR.besar)}
             alt={berita.judul}
+            decoding="async"
             className="w-full h-64 md:h-80 object-cover rounded-xl mb-8 shadow-md"
           />
         )}

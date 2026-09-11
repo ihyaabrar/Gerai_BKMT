@@ -16,6 +16,7 @@ import {
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 interface Berita {
   id: string;
@@ -217,8 +218,10 @@ export default function AdminBeritaPage() {
                           <div className="h-10 w-14 rounded-lg bg-surface-sunken border border-border overflow-hidden shrink-0 flex items-center justify-center">
                             {b.gambarUrl ? (
                               <img
-                                src={b.gambarUrl}
+                                src={gambarLebar(b.gambarUrl, LEBAR.ikon)}
                                 alt=""
+                                loading="lazy"
+                                decoding="async"
                                 className="h-full w-full object-cover"
                               />
                             ) : (

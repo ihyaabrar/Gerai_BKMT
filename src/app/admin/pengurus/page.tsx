@@ -12,6 +12,7 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
 import { Plus, Edit, Trash2, Users, Search, Phone } from "lucide-react";
 import { toast } from "sonner";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 interface Pengurus {
   id: string;
@@ -201,8 +202,10 @@ export default function AdminPengurusPage() {
                           <div className="h-9 w-9 rounded-full bg-brand-50 border border-border overflow-hidden shrink-0 flex items-center justify-center">
                             {p.fotoUrl ? (
                               <img
-                                src={p.fotoUrl}
+                                src={gambarLebar(p.fotoUrl, LEBAR.ikon)}
                                 alt=""
+                                loading="lazy"
+                                decoding="async"
                                 className="h-full w-full object-cover"
                               />
                             ) : (

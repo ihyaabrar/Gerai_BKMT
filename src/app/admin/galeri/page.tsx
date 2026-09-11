@@ -10,6 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { Plus, Edit, Trash2, ImageIcon, Search, EyeOff, Eye } from "lucide-react";
 import { toast } from "sonner";
 
@@ -208,8 +209,10 @@ export default function AdminGaleriPage() {
                 >
                   <div className="aspect-[4/3] bg-surface-sunken">
                     <img
-                      src={f.gambarUrl}
+                      src={gambarLebar(f.gambarUrl, LEBAR.kartu)}
                       alt={f.judul}
+                      loading="lazy"
+                      decoding="async"
                       className="h-full w-full object-cover"
                     />
                   </div>
