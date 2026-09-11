@@ -46,7 +46,7 @@ export default function KasirPage() {
   const [metodeBayar, setMetodeBayar] = useState("Tunai");
   const [processing, setProcessing] = useState(false);
 
-  const { items, addItem, removeItem, updateQty, setMember, clearCart, getTotal, getSubtotal, memberId, diskon } = useCartStore();
+  const { items, addItem, removeItem, updateQty, setMember, clearCart, getTotal, getSubtotal, ambilKunci, memberId, diskon } = useCartStore();
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -154,6 +154,9 @@ export default function KasirPage() {
         bayar: bayarNum,
         kembalian,
         metodeBayar,
+        // Sama selama keranjang belum dikosongkan, jadi percobaan ulang
+        // dikenali server sebagai transaksi yang sama.
+        idempotencyKey: ambilKunci(),
       };
 
       const res = await fetch("/api/penjualan", {
@@ -197,7 +200,15 @@ export default function KasirPage() {
       fetchBarang();
       toast.success("Transaksi berhasil");
     } catch {
-      toast.error("Gagal memproses pembayaran");
+      // `fetch` yang melempar berarti koneksi putus — dan itu TIDAK bisa
+      // dibedakan dari "transaksi sudah masuk tapi responsnya hilang".
+      // Karena keranjang membawa kunci idempotensi, menekan Bayar lagi aman:
+      // server mengembalikan transaksi yang sama, bukan membuat yang kedua.
+      toast.error("Koneksi terputus", {
+        description:
+          "Tekan Bayar sekali lagi. Sistem memastikan transaksi tidak tercatat dua kali.",
+        duration: 8000,
+      });
     } finally {
       setProcessing(false);
     }

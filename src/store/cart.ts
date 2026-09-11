@@ -12,14 +12,30 @@ interface CartItem {
   stok: number;
 }
 
+/**
+ * Kunci idempotensi dibuat sekali per keranjang dan ikut dikirim ke server.
+ * Kalau respons hilang di jalan dan kasir menekan Bayar lagi, server mengenali
+ * kunci yang sama dan mengembalikan transaksi yang sudah ada — bukan membuat
+ * transaksi kedua. Kuncinya baru diganti setelah keranjang dikosongkan.
+ */
+function kunciBaru(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return `k-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
+}
+
 interface CartStore {
   items: CartItem[];
   memberId: string | null;
   diskon: number;
+  idempotencyKey: string | null;
   addItem: (item: Omit<CartItem, 'qty' | 'subtotal'>) => void;
   removeItem: (id: string) => void;
   updateQty: (id: string, qty: number) => void;
   setMember: (memberId: string | null, diskon: number) => void;
+  /** Kunci untuk keranjang saat ini; dibuat saat pertama kali dibutuhkan. */
+  ambilKunci: () => string;
   clearCart: () => void;
   getTotal: () => number;
   getSubtotal: () => number;
@@ -31,6 +47,7 @@ export const useCartStore = create<CartStore>()(
       items: [],
       memberId: null,
       diskon: 0,
+      idempotencyKey: null,
 
       addItem: (item) => {
         const items = get().items;
@@ -82,7 +99,17 @@ export const useCartStore = create<CartStore>()(
 
       setMember: (memberId, diskon) => set({ memberId, diskon }),
 
-      clearCart: () => set({ items: [], memberId: null, diskon: 0 }),
+      ambilKunci: () => {
+        const tersedia = get().idempotencyKey;
+        if (tersedia) return tersedia;
+        const kunci = kunciBaru();
+        set({ idempotencyKey: kunci });
+        return kunci;
+      },
+
+      // Kunci ikut dibuang: keranjang berikutnya adalah transaksi berikutnya.
+      clearCart: () =>
+        set({ items: [], memberId: null, diskon: 0, idempotencyKey: null }),
 
       getSubtotal: () => get().items.reduce((sum, item) => sum + item.subtotal, 0),
 
@@ -99,6 +126,9 @@ export const useCartStore = create<CartStore>()(
         items: state.items,
         memberId: state.memberId,
         diskon: state.diskon,
+        // Kunci ikut disimpan supaya percobaan ulang setelah tab ditutup
+        // atau halaman dimuat ulang tetap dikenali sebagai transaksi sama.
+        idempotencyKey: state.idempotencyKey,
       }),
     }
   )
