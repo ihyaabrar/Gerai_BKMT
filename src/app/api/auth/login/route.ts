@@ -142,8 +142,13 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof MissingAuthSecretError) {
       console.error("Konfigurasi salah:", error.message);
+      // Pesannya diteruskan apa adanya. Ini kesalahan konfigurasi server yang
+      // hanya bisa diperbaiki oleh yang memasang aplikasi, dan menyamarkannya
+      // jadi teks generik justru membuat orang mengulang langkah yang sudah
+      // benar. Tidak ada rahasia di dalamnya — hanya nama variabel dan
+      // panjangnya, bukan nilainya.
       return NextResponse.json(
-        { error: "Server belum dikonfigurasi: AUTH_SECRET belum diatur." },
+        { error: `Server belum dikonfigurasi: ${error.message}` },
         { status: 500 }
       );
     }

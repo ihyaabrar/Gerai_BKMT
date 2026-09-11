@@ -30,10 +30,26 @@ export const MISSING_SECRET_MESSAGE =
   "AUTH_SECRET belum diatur di environment (minimal 32 karakter). " +
   "Generate dengan: openssl rand -base64 32";
 
+/**
+ * Dua sebab kegagalan ini menuntut tindakan yang berbeda: variabelnya belum
+ * ada sama sekali, atau ada tetapi terlalu pendek. Pesan yang menyamakan
+ * keduanya membuat orang mengulang langkah yang sudah benar — panjangnya
+ * disebutkan, bukan nilainya.
+ */
+export type SebabSecret = "kosong" | "pendek";
+
 export class MissingAuthSecretError extends Error {
-  constructor() {
-    super(MISSING_SECRET_MESSAGE);
+  readonly sebab: SebabSecret;
+
+  constructor(sebab: SebabSecret = "kosong", panjang = 0) {
+    super(
+      sebab === "pendek"
+        ? `AUTH_SECRET terbaca tetapi hanya ${panjang} karakter; minimal 32. ` +
+          "Pastikan nilainya tersalin utuh — keluaran `openssl rand -base64 32` panjangnya 44 karakter."
+        : MISSING_SECRET_MESSAGE
+    );
     this.name = "MissingAuthSecretError";
+    this.sebab = sebab;
   }
 }
 
@@ -59,7 +75,12 @@ function getSecret(): string {
   if (!secret || secret.length < 32) {
     // Sengaja gagal keras: tanpa rahasia yang benar, cookie sesi tidak bisa
     // dipercaya sama sekali.
-    if (!bolehPakaiCadangan()) throw new MissingAuthSecretError();
+    if (!bolehPakaiCadangan()) {
+      throw new MissingAuthSecretError(
+        secret ? "pendek" : "kosong",
+        secret?.length ?? 0
+      );
+    }
 
     if (!sudahMemperingatkan) {
       sudahMemperingatkan = true;
