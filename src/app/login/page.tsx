@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,14 +43,38 @@ export default function LoginPage() {
     }
   };
 
+  // Logo diambil dari profil organisasi supaya halaman login ikut berubah
+  // ketika pengurus mengganti logo. Sebelumnya lambang di sini ditulis
+  // langsung di kode, jadi mengganti logo terasa tidak berfungsi.
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/public/profil")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => setLogoUrl(d?.data?.logoUrl ?? null))
+      .catch(() => {
+        // Logo hanya hiasan; kegagalannya tidak boleh mengganggu login.
+      });
+  }, []);
+
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2">
       {/* Panel kiri — identitas, memakai ilustrasi masjid */}
       <div className="hidden lg:flex flex-col justify-between bg-brand-hero border-r border-border p-12 relative overflow-hidden">
         <div className="relative flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center">
-            <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
-          </div>
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt=""
+              width={40}
+              height={40}
+              className="w-10 h-10 rounded-xl object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center">
+              <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
+            </div>
+          )}
           <div className="leading-tight">
             <p className="font-bold text-slate-900">PD BKMT Kubu Raya</p>
             <p className="text-xs text-slate-500">Bersama Umat, Membangun Masyarakat</p>
@@ -118,9 +142,19 @@ export default function LoginPage() {
           </Link>
 
           <div className="lg:hidden flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center">
-              <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
-            </div>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt=""
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-xl object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center">
+                <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
+              </div>
+            )}
             <div className="leading-tight">
               <p className="font-bold text-slate-900 text-sm">PD BKMT Kubu Raya</p>
               <p className="text-xs text-slate-500">Sistem Kasir &amp; Inventori</p>

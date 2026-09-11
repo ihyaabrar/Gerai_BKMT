@@ -22,6 +22,8 @@ interface DashboardShellProps {
   sidebar: React.ReactNode;
   /** Judul singkat di header mobile. */
   brand: string;
+  /** Logo organisasi. Bila kosong, dipakai kotak berinisial. */
+  logoUrl?: string | null;
   /** Label kecil di atas judul, mis. "Admin Panel". */
   brandLabel?: string;
   /** Kelas Tailwind untuk gradient kotak inisial. */
@@ -42,6 +44,7 @@ interface DashboardShellProps {
 export function DashboardShell({
   sidebar,
   brand,
+  logoUrl,
   brandLabel,
   brandAccent = "bg-gold-400",
   topbar,
@@ -98,11 +101,21 @@ export function DashboardShell({
             <Menu className="h-5 w-5" />
           </button>
           <div className="flex items-center gap-2.5 min-w-0">
-            <div
-              className={`w-8 h-8 bg-gradient-to-br ${brandAccent} rounded-lg flex items-center justify-center shrink-0`}
-            >
-              <span className="text-white font-bold text-[10px]">BK</span>
-            </div>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt=""
+                width={32}
+                height={32}
+                className="w-8 h-8 rounded-lg object-cover shrink-0"
+              />
+            ) : (
+              <div
+                className={`w-8 h-8 bg-gradient-to-br ${brandAccent} rounded-lg flex items-center justify-center shrink-0`}
+              >
+                <span className="text-white font-bold text-[10px]">BK</span>
+              </div>
+            )}
             <div className="min-w-0 leading-tight">
               {brandLabel && (
                 <p className="text-[10px] text-slate-400 uppercase tracking-widest">

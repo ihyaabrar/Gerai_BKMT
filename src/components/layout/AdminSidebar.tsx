@@ -17,7 +17,7 @@ const adminMenuItems = [
   { icon: CalendarDays, label: "Agenda", href: "/admin/agenda" },
 ];
 
-export function AdminSidebar() {
+export function AdminSidebar({ logoUrl }: { logoUrl?: string | null }) {
   const { open, close } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
@@ -60,9 +60,19 @@ export function AdminSidebar() {
             </button>
           </div>
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-9 h-9 bg-gold-400 rounded-xl flex items-center justify-center shrink-0">
-              <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
-            </div>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt=""
+                width={36}
+                height={36}
+                className="w-9 h-9 rounded-xl object-cover shrink-0"
+              />
+            ) : (
+              <div className="w-9 h-9 bg-gold-400 rounded-xl flex items-center justify-center shrink-0">
+                <span className="text-brand-950 font-extrabold text-[10px]">BKMT</span>
+              </div>
+            )}
             <span className="font-bold text-sm text-slate-900 truncate">
               PD BKMT Kubu Raya
             </span>

@@ -5,6 +5,7 @@ import { id } from "date-fns/locale";
 import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
+import { ambilIdentitas } from "@/lib/identitas";
 
 export const dynamic = "force-dynamic";
 
@@ -13,22 +14,48 @@ interface Props {
 }
 
 export default async function BeritaDetailPage({ params }: Props) {
-  const berita = await prisma.berita.findFirst({
-    where: { slug: params.slug, status: "published" },
-    include: { penulis: { select: { nama: true } } },
-  }).catch(() => null);
+  const [berita, identitas] = await Promise.all([
+    prisma.berita
+      .findFirst({
+        where: { slug: params.slug, status: "published" },
+        include: { penulis: { select: { nama: true } } },
+      })
+      .catch(() => null),
+    ambilIdentitas(),
+  ]);
 
   if (!berita) notFound();
 
   return (
     <div className="min-h-screen bg-surface-muted">
       {/* Header sederhana */}
-      <header className="bg-emerald-800 text-white py-4 px-4">
-        <div className="max-w-3xl mx-auto flex items-center gap-4">
-          <Link href="/" className="flex items-center gap-2 text-emerald-200 hover:text-white transition-colors text-sm">
+      <header className="bg-white border-b border-border py-3 px-4">
+        <div className="max-w-3xl mx-auto flex items-center justify-between gap-4">
+          <Link
+            href="/"
+            className="flex items-center gap-2 text-slate-500 hover:text-brand-700 transition-colors text-sm"
+          >
             <ArrowLeft className="h-4 w-4" />
             Kembali ke Beranda
           </Link>
+          <div className="flex items-center gap-2.5 min-w-0">
+            {identitas.logoUrl ? (
+              <img
+                src={identitas.logoUrl}
+                alt=""
+                width={32}
+                height={32}
+                className="h-8 w-8 rounded-lg object-cover shrink-0"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-lg bg-gold-400 flex items-center justify-center shrink-0">
+                <span className="text-brand-950 font-extrabold text-[9px]">BKMT</span>
+              </div>
+            )}
+            <span className="font-bold text-sm text-slate-900 truncate">
+              {identitas.singkatan}
+            </span>
+          </div>
         </div>
       </header>
 

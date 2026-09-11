@@ -59,7 +59,7 @@ const menuItems = [
   },
 ];
 
-export function Sidebar() {
+export function Sidebar({ logoUrl }: { logoUrl?: string | null }) {
   const { open, close } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();
@@ -116,11 +116,21 @@ export function Sidebar() {
         {/* Identitas */}
         <div className="p-5 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center shrink-0">
-              <span className="text-brand-950 font-extrabold text-xs tracking-tight">
-                BKMT
-              </span>
-            </div>
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt=""
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-xl object-cover shrink-0 bg-white"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-xl bg-gold-400 flex items-center justify-center shrink-0">
+                <span className="text-brand-950 font-extrabold text-xs tracking-tight">
+                  BKMT
+                </span>
+              </div>
+            )}
             <div className="min-w-0 leading-tight">
               <p className="font-bold text-[15px] text-white truncate">Gerai BKMT</p>
               <p className="text-brand-300 text-[11px]">Kubu Raya</p>
