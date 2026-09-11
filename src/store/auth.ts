@@ -41,12 +41,31 @@ export const useAuthStore = create<AuthState>()(
       },
 
       refresh: async () => {
+        /**
+         * Mempertahankan keadaan sekarang. Dipakai saat server atau jaringan
+         * bermasalah — itu bukan bukti bahwa sesinya tidak valid.
+         */
+        const pertahankan = () => {
+          const user = get().user;
+          set({
+            isAuthenticated: Boolean(user),
+            status: user ? "authenticated" : "unauthenticated",
+          });
+          return user;
+        };
+
         try {
           const res = await fetch("/api/auth/me", { cache: "no-store" });
-          if (!res.ok) {
+
+          // Hanya penolakan tegas dari server yang boleh melogout.
+          if (res.status === 401 || res.status === 403) {
             set({ user: null, isAuthenticated: false, status: "unauthenticated" });
             return null;
           }
+
+          // 5xx dan sejenisnya: servernya yang bermasalah, bukan sesinya.
+          if (!res.ok) return pertahankan();
+
           const data = await res.json();
           const user: AuthUser | null = data?.user ?? null;
           set({
@@ -56,8 +75,11 @@ export const useAuthStore = create<AuthState>()(
           });
           return user;
         } catch {
-          set({ user: null, isAuthenticated: false, status: "unauthenticated" });
-          return null;
+          // `fetch` melempar berarti koneksi putus — dan kasir sedang berdiri
+          // di depan pembeli. Versi sebelumnya memperlakukan ini sama dengan
+          // "sesi tidak valid" dan melempar mereka ke halaman login, padahal
+          // cookie sesinya masih berlaku 12 jam.
+          return pertahankan();
         }
       },
 
