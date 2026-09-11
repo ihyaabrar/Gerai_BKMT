@@ -1,96 +1,173 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireAdminAuth } from "@/lib/auth-middleware";
+import {
+  KATEGORI_PEMBELIAN_BARANG,
+  PENJUALAN_SAH,
+  akhirHariWIB,
+  awalHariWIB,
+  hitungLaba,
+  labaTransaksi,
+  periodeDari,
+  rentangPeriode,
+} from "@/lib/keuangan";
+import { toErrorResponse } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
-async function handleLaporan(type: string, start: Date, end: Date) {
-  if (type === "penjualan") {
-    const penjualan = await prisma.penjualan.findMany({
-      where: { tanggal: { gte: start, lte: end } },
-      include: { detail: { include: { barang: true } }, member: true },
-      orderBy: { tanggal: "desc" },
-    });
+/** Rentang lebih panjang dari ini ditolak; laporan setahun sudah cukup jauh. */
+const MAKS_HARI = 366;
 
-    const totalPenjualan = penjualan.reduce((sum, p) => sum + p.total, 0);
-    const totalTransaksi = penjualan.length;
+async function laporanPenjualan(start: Date, end: Date) {
+  const penjualan = await prisma.penjualan.findMany({
+    where: { ...PENJUALAN_SAH, tanggal: { gte: start, lte: end } },
+    orderBy: { tanggal: "desc" },
+    select: {
+      id: true,
+      tanggal: true,
+      total: true,
+      diskon: true,
+      // Hanya kolom yang benar-benar dipakai. Sebelumnya seluruh objek Barang
+      // ikut terkirim untuk setiap baris detail, berulang-ulang, sehingga
+      // laporan setahun bisa menembus batas ukuran respons Vercel.
+      detail: {
+        select: {
+          barangId: true,
+          qty: true,
+          subtotal: true,
+          hargaBeli: true,
+          barang: { select: { nama: true } },
+        },
+      },
+    },
+  });
 
-    let totalLaba = 0;
-    penjualan.forEach((p) =>
-      p.detail.forEach((d) => {
-        totalLaba += (d.hargaJual - d.barang.hargaBeli) * d.qty;
-      })
-    );
+  const { totalPenjualan, totalHpp, totalDiskon, labaKotor } = hitungLaba(penjualan);
 
-    // Produk terlaris
-    const produkMap = new Map<string, { nama: string; qty: number; total: number }>();
-    penjualan.forEach((p) =>
-      p.detail.forEach((d) => {
-        const ex = produkMap.get(d.barangId) || { nama: d.barang.nama, qty: 0, total: 0 };
-        ex.qty += d.qty;
-        ex.total += d.subtotal;
-        produkMap.set(d.barangId, ex);
-      })
-    );
-    const produkTerlaris = Array.from(produkMap.entries())
-      .map(([id, data]) => ({ id, ...data }))
-      .sort((a, b) => b.qty - a.qty)
-      .slice(0, 10);
-
-    // Penjualan per hari
-    const hariMap = new Map<string, number>();
-    penjualan.forEach((p) => {
-      const date = p.tanggal.toISOString().split("T")[0];
-      hariMap.set(date, (hariMap.get(date) || 0) + p.total);
-    });
-    const chartData = Array.from(hariMap.entries())
-      .map(([date, total]) => ({ date, total }))
-      .sort((a, b) => a.date.localeCompare(b.date));
-
-    return NextResponse.json({ totalPenjualan, totalTransaksi, totalLaba, produkTerlaris, chartData, penjualan });
-
-  } else if (type === "pengeluaran") {
-    const pengeluaran = await prisma.pengeluaran.findMany({
-      where: { tanggal: { gte: start, lte: end } },
-      orderBy: { tanggal: "desc" },
-    });
-    const totalPengeluaran = pengeluaran.reduce((sum, p) => sum + p.jumlah, 0);
-
-    const kategoriMap = new Map<string, number>();
-    pengeluaran.forEach((p) => {
-      kategoriMap.set(p.kategori, (kategoriMap.get(p.kategori) || 0) + p.jumlah);
-    });
-    const pengeluaranPerKategori = Array.from(kategoriMap.entries()).map(
-      ([kategori, jumlah]) => ({ kategori, jumlah })
-    );
-
-    return NextResponse.json({ totalPengeluaran, pengeluaranPerKategori, pengeluaran });
+  const produkMap = new Map<string, { nama: string; qty: number; total: number }>();
+  for (const p of penjualan) {
+    for (const d of p.detail) {
+      const ex = produkMap.get(d.barangId) ?? { nama: d.barang.nama, qty: 0, total: 0 };
+      ex.qty += d.qty;
+      ex.total += d.subtotal;
+      produkMap.set(d.barangId, ex);
+    }
   }
+  const produkTerlaris = Array.from(produkMap.entries())
+    .map(([id, data]) => ({ id, ...data }))
+    .sort((a, b) => b.qty - a.qty)
+    .slice(0, 10);
 
-  return NextResponse.json({ error: "Invalid type" }, { status: 400 });
+  // Pengelompokan harian mengikuti kalender WIB, bukan zona waktu server.
+  const hariMap = new Map<string, { total: number; laba: number }>();
+  for (const p of penjualan) {
+    const kunci = awalHariWIB(p.tanggal).toISOString().slice(0, 10);
+    const entry = hariMap.get(kunci) ?? { total: 0, laba: 0 };
+    entry.total += p.total;
+    entry.laba += labaTransaksi(p);
+    hariMap.set(kunci, entry);
+  }
+  const chartData = Array.from(hariMap.entries())
+    .map(([date, v]) => ({ date, ...v }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return NextResponse.json({
+    totalPenjualan,
+    totalTransaksi: penjualan.length,
+    totalHpp,
+    totalDiskon,
+    // "Laba" di seluruh aplikasi berarti satu hal: uang diterima dikurangi
+    // harga pokok yang dibekukan. Diskon sudah otomatis terpotong karena
+    // yang dijumlahkan adalah `total`, bukan subtotal.
+    totalLaba: labaKotor,
+    produkTerlaris,
+    chartData,
+  });
 }
 
-export async function GET(request: Request) {
+async function laporanPengeluaran(start: Date, end: Date) {
+  const pengeluaran = await prisma.pengeluaran.findMany({
+    where: { tanggal: { gte: start, lte: end } },
+    orderBy: { tanggal: "desc" },
+    select: { id: true, tanggal: true, kategori: true, keterangan: true, jumlah: true },
+  });
+
+  let totalPengeluaran = 0;
+  let totalPembelianBarang = 0;
+  const kategoriMap = new Map<string, number>();
+
+  for (const p of pengeluaran) {
+    totalPengeluaran += p.jumlah;
+    if (p.kategori === KATEGORI_PEMBELIAN_BARANG) totalPembelianBarang += p.jumlah;
+    kategoriMap.set(p.kategori, (kategoriMap.get(p.kategori) ?? 0) + p.jumlah);
+  }
+
+  return NextResponse.json({
+    totalPengeluaran,
+    totalPembelianBarang,
+    // Angka inilah yang boleh dikurangkan dari laba. Pembelian barang dagangan
+    // sudah terhitung sebagai harga pokok pada setiap penjualan; menguranginya
+    // sekali lagi berarti menghitung modal barang dua kali.
+    totalPengeluaranOperasional: totalPengeluaran - totalPembelianBarang,
+    pengeluaranPerKategori: Array.from(kategoriMap.entries()).map(
+      ([kategori, jumlah]) => ({ kategori, jumlah })
+    ),
+    pengeluaran,
+  });
+}
+
+export async function GET(request: NextRequest) {
+  // Laporan keuangan hanya untuk master/admin.
+  const auth = await requireAdminAuth(request);
+  if (auth.error) return auth.error;
+
   try {
     const { searchParams } = new URL(request.url);
     const startDate = searchParams.get("startDate");
     const endDate = searchParams.get("endDate");
     const type = searchParams.get("type") || "penjualan";
 
-    // Default ke bulan ini kalau tidak ada parameter
-    if (!startDate || !endDate) {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth(), 1);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-      return handleLaporan(type, start, end);
+    if (type !== "penjualan" && type !== "pengeluaran") {
+      return NextResponse.json({ error: "Jenis laporan tidak dikenal" }, { status: 400 });
     }
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
-    end.setHours(23, 59, 59, 999);
+    let start: Date;
+    let end: Date;
 
-    return handleLaporan(type, start, end);
+    if (!startDate || !endDate) {
+      // Tanpa parameter, laporan menampilkan bulan berjalan menurut kalender WIB.
+      ({ mulai: start, selesai: end } = rentangPeriode(periodeDari(new Date())));
+    } else {
+      const mulai = new Date(startDate);
+      const selesai = new Date(endDate);
+      if (Number.isNaN(mulai.getTime()) || Number.isNaN(selesai.getTime())) {
+        return NextResponse.json({ error: "Rentang tanggal tidak valid" }, { status: 400 });
+      }
+      start = awalHariWIB(mulai);
+      end = akhirHariWIB(selesai);
+    }
+
+    if (start > end) {
+      return NextResponse.json(
+        { error: "Tanggal awal tidak boleh melewati tanggal akhir" },
+        { status: 400 }
+      );
+    }
+    if (end.getTime() - start.getTime() > MAKS_HARI * 24 * 3600_000) {
+      return NextResponse.json(
+        { error: `Rentang laporan maksimal ${MAKS_HARI} hari` },
+        { status: 400 }
+      );
+    }
+
+    return type === "penjualan"
+      ? laporanPenjualan(start, end)
+      : laporanPengeluaran(start, end);
   } catch (error) {
-    console.error(error);
-    return NextResponse.json({ error: "Failed to generate report" }, { status: 500 });
+    const { message, status } = toErrorResponse(error, "Gagal membuat laporan", {
+      endpoint: "/api/laporan",
+      userId: auth.user?.id,
+    });
+    return NextResponse.json({ error: message }, { status });
   }
 }

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdminAuth } from "@/lib/auth-middleware";
+import { requireAuth } from "@/lib/auth-middleware";
 import { uploadImage } from "@/lib/cloudinary";
 
 export const dynamic = "force-dynamic";
@@ -7,14 +7,32 @@ export const dynamic = "force-dynamic";
 const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/webp", "image/gif"];
 
+// Folder dibatasi daftar putih supaya nilai dari form tidak bisa dipakai
+// menulis ke lokasi sembarang di akun Cloudinary.
+const ALLOWED_FOLDERS = ["barang", "berita", "pengurus", "logo", "gerai", "general"];
+
 export async function POST(request: NextRequest) {
-  const auth = requireAdminAuth(request);
+  // Dibuka untuk semua pengguna yang login karena kasir juga perlu
+  // mengunggah foto produk saat mencatat barang masuk.
+  const auth = await requireAuth(request);
   if (auth.error) return auth.error;
 
+  // Body yang bukan multipart valid adalah kesalahan pengirim (400),
+  // bukan kegagalan server (500).
+  let formData: FormData;
   try {
-    const formData = await request.formData();
+    formData = await request.formData();
+  } catch {
+    return NextResponse.json(
+      { error: "Permintaan tidak valid: gunakan form-data berisi file" },
+      { status: 400 }
+    );
+  }
+
+  try {
     const file = formData.get("file") as File | null;
-    const folder = (formData.get("folder") as string) || "general";
+    const folderDiminta = (formData.get("folder") as string) || "general";
+    const folder = ALLOWED_FOLDERS.includes(folderDiminta) ? folderDiminta : "general";
 
     if (!file || file.size === 0) {
       return NextResponse.json({ error: "File tidak ditemukan" }, { status: 400 });

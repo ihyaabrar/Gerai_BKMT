@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { RotateCcw, Plus, Package } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Retur {
   id: string;
@@ -46,15 +47,17 @@ export default function ReturPage() {
         fetch("/api/barang"),
       ]);
 
+      if (!returRes.ok || !barangRes.ok) throw new Error();
+
       const [returData, barangData] = await Promise.all([
         returRes.json(),
         barangRes.json(),
       ]);
 
-      setRetur(returData);
-      setBarang(barangData);
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
+      setRetur(Array.isArray(returData) ? returData : []);
+      setBarang(Array.isArray(barangData) ? barangData : []);
+    } catch {
+      toast.error("Gagal memuat data retur");
     } finally {
       setLoading(false);
     }
@@ -111,12 +114,12 @@ export default function ReturPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Retur Barang</h1>
-          <p className="text-gray-500">Pengembalian barang rusak/kadaluarsa</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Retur Barang</h1>
+          <p className="text-slate-500">Pengembalian barang rusak/kadaluarsa</p>
         </div>
-        <Button onClick={() => setOpen(true)} className="bg-orange-600 hover:bg-orange-700">
+        <Button onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Tambah Retur
         </Button>
@@ -131,16 +134,16 @@ export default function ReturPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
+            <TableSkeleton cols={5} />
           ) : retur.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               Belum ada data retur
             </div>
           ) : (
             <div className="space-y-4">
               {retur.map((r) => (
                 <div key={r.id} className="border rounded-lg p-4">
-                  <div className="flex justify-between items-start">
+                  <div className="flex flex-wrap gap-3 justify-between items-start">
                     <div className="flex gap-4">
                       <div className="bg-orange-100 p-3 rounded-lg">
                         <Package className="h-6 w-6 text-orange-600" />
@@ -149,7 +152,7 @@ export default function ReturPage() {
                         <h3 className="font-semibold text-lg">
                           {r.barang.kode} - {r.barang.nama}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-slate-500">
                           Tanggal: {format(new Date(r.tanggal), "dd/MM/yyyy HH:mm")}
                         </p>
                         <p className="text-sm mt-2">
@@ -170,7 +173,6 @@ export default function ReturPage() {
                             <Button
                               size="sm"
                               onClick={() => handleUpdateStatus(r.id, "selesai")}
-                              className="bg-green-600 hover:bg-green-700"
                             >
                               Selesai
                             </Button>
@@ -197,8 +199,8 @@ export default function ReturPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Barang</label>
-              <select
+              <label className="text-sm font-medium" htmlFor="barang">Barang</label>
+              <select id="barang"
                 className="w-full border rounded-lg px-3 py-2"
                 value={form.barangId}
                 onChange={(e) => setForm({ ...form, barangId: e.target.value })}
@@ -213,8 +215,8 @@ export default function ReturPage() {
               </select>
             </div>
             <div>
-              <label className="text-sm font-medium">Jumlah</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="jumlah">Jumlah</label>
+              <Input id="jumlah"
                 type="number"
                 value={form.qty}
                 onChange={(e) => setForm({ ...form, qty: e.target.value })}
@@ -224,8 +226,8 @@ export default function ReturPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Alasan Retur</label>
-              <textarea
+              <label className="text-sm font-medium" htmlFor="alasan-retur">Alasan Retur</label>
+              <textarea id="alasan-retur"
                 className="w-full border rounded-lg px-3 py-2"
                 value={form.alasan}
                 onChange={(e) => setForm({ ...form, alasan: e.target.value })}
@@ -234,7 +236,7 @@ export default function ReturPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full bg-orange-600 hover:bg-orange-700">
+            <Button type="submit" className="w-full">
               Simpan
             </Button>
           </form>

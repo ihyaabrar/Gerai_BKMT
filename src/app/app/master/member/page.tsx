@@ -6,8 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { UserPlus, Users, Search, Edit, Trash2 } from "lucide-react";
-import { generateKode } from "@/lib/utils";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface Member {
   id: string;
@@ -19,6 +19,7 @@ interface Member {
 }
 
 export default function MemberPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [members, setMembers] = useState<Member[]>([]);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
@@ -31,9 +32,14 @@ export default function MemberPage() {
   }, []);
 
   const fetchMembers = async () => {
-    const res = await fetch("/api/member");
-    const data = await res.json();
-    setMembers(data);
+    try {
+      const res = await fetch("/api/member");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setMembers(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat data member");
+    }
   };
 
   const openAdd = () => {
@@ -60,18 +66,19 @@ export default function MemberPage() {
           body: JSON.stringify({ id: editId, ...form }),
         });
       } else {
-        const lastNumber = members.length > 0
-          ? parseInt(members[members.length - 1].kode.replace(/\D/g, "")) || members.length
-          : 0;
-        const kode = generateKode("MBR", lastNumber);
+        // Kode member dibuat server supaya tidak bentrok.
         res = await fetch("/api/member", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ ...form, kode }),
+          body: JSON.stringify(form),
         });
       }
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menyimpan member");
+        return;
+      }
       toast.success(editId ? "Member berhasil diupdate" : "Member berhasil ditambahkan");
       setShowForm(false);
       fetchMembers();
@@ -82,16 +89,21 @@ export default function MemberPage() {
     }
   };
 
-  const handleDelete = async (id: string, nama: string) => {
-    if (!confirm(`Hapus member "${nama}"?`)) return;
-    try {
-      const res = await fetch(`/api/member?id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      toast.success("Member berhasil dihapus");
-      fetchMembers();
-    } catch {
-      toast.error("Gagal menghapus member");
-    }
+  const handleDelete = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus member?",
+      pesan: <><strong>{nama}</strong> tidak akan muncul lagi di daftar member.</>,
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/member?id=${id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error();
+          toast.success("Member berhasil dihapus");
+          fetchMembers();
+        } catch {
+          toast.error("Gagal menghapus member");
+        }
+      },
+    });
   };
 
   const filtered = members.filter(
@@ -102,10 +114,10 @@ export default function MemberPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Member</h1>
-          <p className="text-gray-500">Data pelanggan setia</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Member</h1>
+          <p className="text-slate-500">Data pelanggan setia</p>
         </div>
         <Button onClick={openAdd}>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -115,14 +127,14 @@ export default function MemberPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Daftar Member
             </CardTitle>
             <div className="relative w-60">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Input aria-label="Cari member..."
                 placeholder="Cari member..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -133,13 +145,13 @@ export default function MemberPage() {
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>{search ? "Member tidak ditemukan" : "Belum ada member"}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[700px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Kode</th>
@@ -152,11 +164,11 @@ export default function MemberPage() {
                 </thead>
                 <tbody>
                   {filtered.map((m) => (
-                    <tr key={m.id} className="border-b hover:bg-gray-50">
+                    <tr key={m.id} className="border-b hover:bg-surface-muted">
                       <td className="py-3 px-4 font-medium text-sm">{m.kode}</td>
                       <td className="py-3 px-4">{m.nama}</td>
-                      <td className="py-3 px-4 text-gray-600">{m.telepon || "-"}</td>
-                      <td className="py-3 px-4 text-gray-600 max-w-[200px] truncate">{m.alamat || "-"}</td>
+                      <td className="py-3 px-4 text-slate-600">{m.telepon || "-"}</td>
+                      <td className="py-3 px-4 text-slate-600 max-w-[200px] truncate">{m.alamat || "-"}</td>
                       <td className="py-3 px-4 text-center">
                         <span className="px-2 py-1 bg-cyan-100 text-cyan-800 rounded-full text-xs font-medium">
                           {m.poin}
@@ -164,10 +176,10 @@ export default function MemberPage() {
                       </td>
                       <td className="py-3 px-4 text-center">
                         <div className="flex justify-center gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => openEdit(m)}>
-                            <Edit className="h-4 w-4 text-blue-600" />
+                          <Button aria-label={`Edit ${m.nama}`} variant="ghost" size="sm" onClick={() => openEdit(m)}>
+                            <Edit className="h-4 w-4 text-brand-600" />
                           </Button>
-                          <Button variant="ghost" size="sm" onClick={() => handleDelete(m.id, m.nama)}>
+                          <Button aria-label={`Hapus ${m.nama}`} variant="ghost" size="sm" onClick={() => handleDelete(m.id, m.nama)}>
                             <Trash2 className="h-4 w-4 text-red-500" />
                           </Button>
                         </div>
@@ -188,8 +200,8 @@ export default function MemberPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nama Lengkap</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="nama-lengkap">Nama Lengkap</label>
+              <Input id="nama-lengkap"
                 required
                 value={form.nama}
                 onChange={(e) => setForm({ ...form, nama: e.target.value })}
@@ -198,8 +210,8 @@ export default function MemberPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Telepon</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="telepon">Telepon</label>
+              <Input id="telepon"
                 value={form.telepon}
                 onChange={(e) => setForm({ ...form, telepon: e.target.value })}
                 placeholder="08xx"
@@ -207,8 +219,8 @@ export default function MemberPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Alamat</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="alamat">Alamat</label>
+              <Input id="alamat"
                 value={form.alamat}
                 onChange={(e) => setForm({ ...form, alamat: e.target.value })}
                 placeholder="Alamat lengkap"
@@ -221,6 +233,7 @@ export default function MemberPage() {
           </form>
         </DialogContent>
       </Dialog>
+      {dialog}
     </div>
   );
 }

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ClipboardList, History, Trash2 } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth";
 import { format } from "date-fns";
 
 interface Barang {
@@ -26,6 +27,10 @@ interface Penyesuaian {
 }
 
 export default function PenyesuaianPage() {
+  // Menghapus barang hanya boleh master/admin di server. Menampilkan
+  // tombolnya ke kasir cuma menghasilkan pesan "Akses ditolak".
+  const { user } = useAuthStore();
+  const bolehHapusBarang = user?.role === "master" || user?.role === "admin";
   const [barangList, setBarangList] = useState<Barang[]>([]);
   const [history, setHistory] = useState<Penyesuaian[]>([]);
   const [loading, setLoading] = useState(false);
@@ -40,13 +45,17 @@ export default function PenyesuaianPage() {
 
   const fetchBarang = async () => {
     const res = await fetch("/api/barang");
+    if (!res.ok) return;
     const data = await res.json();
+    if (!Array.isArray(data)) return;
     setBarangList(data);
   };
 
   const fetchHistory = async () => {
     const res = await fetch("/api/penyesuaian");
+    if (!res.ok) return;
     const data = await res.json();
+    if (!Array.isArray(data)) return;
     setHistory(data);
   };
 
@@ -121,8 +130,8 @@ export default function PenyesuaianPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Penyesuaian Stok</h1>
-        <p className="text-gray-500">Stock opname dan koreksi stok</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Penyesuaian Stok</h1>
+        <p className="text-slate-500">Stock opname dan koreksi stok</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -136,8 +145,8 @@ export default function PenyesuaianPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="text-sm font-medium">Pilih Barang</label>
-                <select
+                <label className="text-sm font-medium" htmlFor="pilih-barang">Pilih Barang</label>
+                <select id="pilih-barang"
                   required
                   value={form.barangId}
                   onChange={(e) => handleBarangChange(e.target.value)}
@@ -153,8 +162,14 @@ export default function PenyesuaianPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium">Jenis Penyesuaian</label>
-                <div className="grid grid-cols-3 gap-2 mt-1">
+                <p id="label-jenis-penyesuaian" className="text-sm font-medium">
+                  Jenis Penyesuaian
+                </p>
+                <div
+                  role="group"
+                  aria-labelledby="label-jenis-penyesuaian"
+                  className="grid grid-cols-3 gap-2 mt-1"
+                >
                   <Button
                     type="button"
                     variant={form.jenis === "masuk" ? "default" : "outline"}
@@ -171,23 +186,25 @@ export default function PenyesuaianPage() {
                   >
                     − Kurangi Stok
                   </Button>
-                  <Button
-                    type="button"
-                    variant={form.jenis === "hapus" ? "default" : "outline"}
-                    className={form.jenis === "hapus" ? "bg-gray-800 hover:bg-gray-900" : ""}
-                    onClick={() => setForm({ ...form, jenis: "hapus" })}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Hapus Barang
-                  </Button>
+                  {bolehHapusBarang && (
+                    <Button
+                      type="button"
+                      variant={form.jenis === "hapus" ? "default" : "outline"}
+                      className={form.jenis === "hapus" ? "bg-gray-800 hover:bg-gray-900" : ""}
+                      onClick={() => setForm({ ...form, jenis: "hapus" })}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Hapus Barang
+                    </Button>
+                  )}
                 </div>
               </div>
 
               {form.jenis !== "hapus" && (
                 <>
                   <div>
-                    <label className="text-sm font-medium">Jumlah</label>
-                    <Input
+                    <label className="text-sm font-medium" htmlFor="jumlah">Jumlah</label>
+                    <Input id="jumlah"
                       required
                       type="number"
                       min="1"
@@ -199,8 +216,8 @@ export default function PenyesuaianPage() {
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium">Alasan</label>
-                    <Input
+                    <label className="text-sm font-medium" htmlFor="alasan">Alasan</label>
+                    <Input id="alasan"
                       required
                       value={form.alasan}
                       onChange={(e) => setForm({ ...form, alasan: e.target.value })}
@@ -215,9 +232,9 @@ export default function PenyesuaianPage() {
                         ? "bg-red-50 border-red-200"
                         : "bg-blue-50 border-blue-200"
                     }`}>
-                      <p className="text-sm font-medium text-gray-700">Preview Stok</p>
+                      <p className="text-sm font-medium text-slate-700">Preview Stok</p>
                       <div className="flex justify-between mt-1 text-sm">
-                        <span className="text-gray-600">Stok saat ini: <strong>{selectedBarang.stok}</strong></span>
+                        <span className="text-slate-600">Stok saat ini: <strong>{selectedBarang.stok}</strong></span>
                         <span className={stokSetelah !== null && stokSetelah < 0 ? "text-red-600 font-bold" : "text-blue-700 font-bold"}>
                           Setelah: {stokSetelah}
                         </span>
@@ -230,7 +247,7 @@ export default function PenyesuaianPage() {
 
                   <Button
                     type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
+                    className="w-full"
                     size="lg"
                     disabled={loading || (stokSetelah !== null && stokSetelah < 0)}
                   >
@@ -239,16 +256,16 @@ export default function PenyesuaianPage() {
                 </>
               )}
 
-              {form.jenis === "hapus" && selectedBarang && (
+              {form.jenis === "hapus" && bolehHapusBarang && selectedBarang && (
                 <div className="space-y-3">
                   <div className="p-3 rounded-lg border-2 bg-red-50 border-red-300">
                     <p className="text-sm font-semibold text-red-700 flex items-center gap-1">
                       <Trash2 className="h-4 w-4" /> Konfirmasi Hapus Barang
                     </p>
-                    <p className="text-sm text-gray-700 mt-1">
+                    <p className="text-sm text-slate-700 mt-1">
                       Barang <strong>{selectedBarang.nama}</strong> ({selectedBarang.kode}) akan dihapus dari sistem.
                     </p>
-                    <p className="text-xs text-gray-500 mt-1">Stok saat ini: {selectedBarang.stok}</p>
+                    <p className="text-xs text-slate-500 mt-1">Stok saat ini: {selectedBarang.stok}</p>
                   </div>
                   {!confirmHapus ? (
                     <Button
@@ -292,7 +309,7 @@ export default function PenyesuaianPage() {
           </CardHeader>
           <CardContent>
             {history.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-slate-500">
                 <ClipboardList className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                 <p>Belum ada riwayat penyesuaian</p>
               </div>
@@ -300,11 +317,11 @@ export default function PenyesuaianPage() {
               <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">
                 {history.map((p) => (
                   <div key={p.id} className="border rounded-lg p-3">
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
                         <p className="font-medium text-sm">{p.barang.nama}</p>
-                        <p className="text-xs text-gray-500">{p.barang.kode}</p>
-                        <p className="text-xs text-gray-500 mt-1">{p.alasan}</p>
+                        <p className="text-xs text-slate-500">{p.barang.kode}</p>
+                        <p className="text-xs text-slate-500 mt-1">{p.alasan}</p>
                       </div>
                       <div className="text-right">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
@@ -314,7 +331,7 @@ export default function PenyesuaianPage() {
                         }`}>
                           {p.jenis === "masuk" ? `+${p.qty}` : `-${p.qty}`}
                         </span>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-slate-400 mt-1">
                           {format(new Date(p.tanggal), "dd/MM/yy HH:mm")}
                         </p>
                       </div>

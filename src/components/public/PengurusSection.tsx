@@ -1,4 +1,5 @@
 import { Users } from "lucide-react";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 import type { PengurusPublic } from "@/types/public-profile";
 import { sortPengurus } from "@/lib/utils";
 
@@ -12,16 +13,11 @@ const TINGKATAN_LABEL: Record<string, string> = {
   Permata: "Permata BKMT",
 };
 
-const TINGKATAN_GRADIENT: Record<string, string> = {
-  PD: "from-emerald-500 to-teal-500",
-  PC: "from-blue-500 to-indigo-500",
-  Permata: "from-violet-500 to-purple-500",
-};
-
-const TINGKATAN_BADGE: Record<string, string> = {
-  PD: "bg-emerald-100 text-emerald-700 border-emerald-200",
-  PC: "bg-blue-100 text-blue-700 border-blue-200",
-  Permata: "bg-violet-100 text-violet-700 border-violet-200",
+// Warna aksen dibedakan tipis saja; pembeda utamanya tetap label tingkatan.
+const TINGKATAN_WARNA: Record<string, string> = {
+  PD: "bg-brand-50 text-brand-600",
+  PC: "bg-sky-50 text-sky-600",
+  Permata: "bg-gold-50 text-gold-600",
 };
 
 export function PengurusSection({ pengurusList }: PengurusSectionProps) {
@@ -33,70 +29,82 @@ export function PengurusSection({ pengurusList }: PengurusSectionProps) {
   }, {});
 
   return (
-    <section id="pengurus" className="py-20 px-6 bg-white">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-14">
-          <span className="text-emerald-600 text-sm font-semibold uppercase tracking-widest">Struktur</span>
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mt-2">Susunan Pengurus</h2>
-          <p className="text-gray-500 mt-3 max-w-xl mx-auto">
-            Kepengurusan PD BKMT Kabupaten Kubu Raya yang berkomitmen melayani umat
+    <section id="pengurus" className="bg-white">
+      <div className="max-w-6xl mx-auto px-6 py-16 lg:py-20">
+        <div className="max-w-xl mb-10">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.2em] text-brand-600">
+            Struktur
+          </p>
+          <h2 className="mt-3 font-display text-3xl md:text-4xl font-bold text-slate-900 tracking-tight">
+            Susunan Pengurus
+          </h2>
+          <p className="mt-3 text-slate-600 leading-relaxed">
+            Kepengurusan PD BKMT Kabupaten Kubu Raya yang berkomitmen melayani umat.
           </p>
         </div>
 
         {pengurusList.length === 0 ? (
-          <div className="text-center py-20">
-            <div className="w-20 h-20 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
-              <Users className="h-10 w-10 text-gray-300" />
+          <div className="rounded-card border border-border bg-surface-muted text-center py-16">
+            <div className="w-14 h-14 bg-white border border-border rounded-xl flex items-center justify-center mx-auto mb-3">
+              <Users className="h-6 w-6 text-slate-300" />
             </div>
-            <p className="text-gray-400 text-lg font-medium">Data pengurus sedang dipersiapkan</p>
+            <p className="text-slate-500 font-medium">Data pengurus sedang dipersiapkan</p>
           </div>
         ) : (
-          <div className="space-y-14">
+          <div className="space-y-10">
             {["PD", "PC", "Permata"].map((tingkatan) => {
               const list = grouped[tingkatan];
               if (!list?.length) return null;
               return (
                 <div key={tingkatan}>
                   {/* Section header */}
-                  <div className="flex items-center gap-4 mb-8">
-                    <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${TINGKATAN_GRADIENT[tingkatan]} flex items-center justify-center shadow-md`}>
-                      <Users className="h-5 w-5 text-white" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">{TINGKATAN_LABEL[tingkatan]}</h3>
-                      <span className={`text-xs px-2.5 py-0.5 rounded-full border font-medium ${TINGKATAN_BADGE[tingkatan]}`}>
-                        {list.length} orang
-                      </span>
-                    </div>
-                    <div className="flex-1 h-px bg-gray-100" />
+                  <div className="flex items-center gap-3 mb-6">
+                    <span
+                      className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${TINGKATAN_WARNA[tingkatan]}`}
+                    >
+                      <Users className="h-[18px] w-[18px]" />
+                    </span>
+                    <h3 className="text-[15px] font-semibold text-slate-900">
+                      {TINGKATAN_LABEL[tingkatan]}
+                    </h3>
+                    <span className="text-xs text-slate-400">{list.length} orang</span>
+                    <div className="flex-1 h-px bg-border" />
                   </div>
 
                   {/* Grid pengurus */}
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-5">
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-4">
                     {list.map((p) => (
-                      <div key={p.id} className="group text-center">
-                        <div className="relative mx-auto mb-3 w-fit">
-                          {p.fotoUrl ? (
-                            <img
-                              src={p.fotoUrl}
-                              alt={p.nama}
-                              className="w-20 h-20 rounded-2xl object-cover shadow-md group-hover:shadow-lg transition-all group-hover:-translate-y-1"
-                            />
-                          ) : (
-                            <div className={`w-20 h-20 rounded-2xl bg-gradient-to-br ${TINGKATAN_GRADIENT[tingkatan]} flex items-center justify-center shadow-md group-hover:shadow-lg transition-all group-hover:-translate-y-1`}>
-                              <span className="text-2xl font-bold text-white">
-                                {p.nama.charAt(0).toUpperCase()}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        <p className="font-semibold text-gray-900 text-xs leading-tight line-clamp-2">{p.nama}</p>
-                        <p className={`text-xs mt-1 font-medium ${
-                          tingkatan === "PD" ? "text-emerald-600" :
-                          tingkatan === "PC" ? "text-blue-600" : "text-violet-600"
-                        }`}>{p.jabatan}</p>
+                      <div
+                        key={p.id}
+                        className="rounded-card border border-border bg-white p-4 text-center transition-colors hover:border-brand-300"
+                      >
+                        {p.fotoUrl ? (
+                          <img
+                            src={gambarLebar(p.fotoUrl, LEBAR.ikon)}
+                            alt={p.nama}
+                            loading="lazy"
+                            decoding="async"
+                            width={64}
+                            height={64}
+                            className="w-16 h-16 rounded-full object-cover mx-auto"
+                          />
+                        ) : (
+                          <div
+                            className={`w-16 h-16 rounded-full mx-auto flex items-center justify-center ${TINGKATAN_WARNA[tingkatan]}`}
+                          >
+                            <span className="text-xl font-bold">
+                              {p.nama.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                        <p className="mt-3 font-semibold text-slate-900 text-[13px] leading-snug line-clamp-2">
+                          {p.nama}
+                        </p>
+                        <p className="text-xs text-brand-600 font-medium mt-1">
+                          {p.jabatan}
+                        </p>
                         {p.periode && (
-                          <p className="text-gray-400 text-xs mt-0.5">{p.periode}</p>
+                          <p className="text-[11px] text-slate-400 mt-0.5">{p.periode}</p>
                         )}
                       </div>
                     ))}

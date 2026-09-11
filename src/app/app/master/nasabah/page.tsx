@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { UserPlus, Users, Search, Edit, Trash2, TrendingUp } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
 
 interface Nasabah {
   id: string;
@@ -20,6 +21,7 @@ interface Nasabah {
 }
 
 export default function NasabahPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [nasabahList, setNasabahList] = useState<Nasabah[]>([]);
   const [totalLabaBulanIni, setTotalLabaBulanIni] = useState(0);
   const [search, setSearch] = useState("");
@@ -34,9 +36,14 @@ export default function NasabahPage() {
   }, []);
 
   const fetchNasabah = async () => {
-    const res = await fetch("/api/nasabah");
-    const data = await res.json();
-    setNasabahList(data);
+    try {
+      const res = await fetch("/api/nasabah");
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      setNasabahList(Array.isArray(data) ? data : []);
+    } catch {
+      toast.error("Gagal memuat data nasabah");
+    }
   };
 
   const fetchLaba = async () => {
@@ -45,6 +52,7 @@ export default function NasabahPage() {
       const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
       const end = now.toISOString();
       const res = await fetch(`/api/laporan?type=penjualan&startDate=${start}&endDate=${end}`);
+      if (!res.ok) return;
       const data = await res.json();
       setTotalLabaBulanIni(data.totalLaba || 0);
     } catch {
@@ -92,7 +100,11 @@ export default function NasabahPage() {
         });
       }
 
-      if (!res.ok) throw new Error();
+      if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        toast.error(data?.error || "Gagal menyimpan nasabah");
+        return;
+      }
       toast.success(editId ? "Nasabah berhasil diupdate" : "Nasabah berhasil ditambahkan");
       setShowForm(false);
       fetchNasabah();
@@ -103,16 +115,26 @@ export default function NasabahPage() {
     }
   };
 
-  const handleDelete = async (id: string, nama: string) => {
-    if (!confirm(`Hapus nasabah "${nama}"?`)) return;
-    try {
-      const res = await fetch(`/api/nasabah?id=${id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error();
-      toast.success("Nasabah berhasil dihapus");
-      fetchNasabah();
-    } catch {
-      toast.error("Gagal menghapus nasabah");
-    }
+  const handleDelete = (id: string, nama: string) => {
+    konfirmasi({
+      judul: "Hapus nasabah?",
+      pesan: (
+        <>
+          <strong>{nama}</strong> akan dinonaktifkan dan porsi bagi hasil
+          seluruh nasabah dihitung ulang.
+        </>
+      ),
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/nasabah?id=${id}`, { method: "DELETE" });
+          if (!res.ok) throw new Error();
+          toast.success("Nasabah berhasil dihapus");
+          fetchNasabah();
+        } catch {
+          toast.error("Gagal menghapus nasabah");
+        }
+      },
+    });
   };
 
   const filtered = nasabahList.filter(
@@ -125,10 +147,10 @@ export default function NasabahPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Nasabah / Investor</h1>
-          <p className="text-gray-500">Data investor dan kepemilikan</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Nasabah / Investor</h1>
+          <p className="text-slate-500">Data investor dan kepemilikan</p>
         </div>
         <Button onClick={openAdd}>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -139,7 +161,7 @@ export default function NasabahPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-500">Total Investasi</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Total Investasi</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-violet-600">{formatRupiah(totalInvestasi)}</p>
@@ -147,32 +169,32 @@ export default function NasabahPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-500">Laba Bulan Ini</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Laba Bulan Ini</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-emerald-600">{formatRupiah(totalLabaBulanIni)}</p>
+            <p className="text-2xl font-bold text-brand-600">{formatRupiah(totalLabaBulanIni)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-500">Bagian Nasabah (30%)</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Bagian Nasabah (30%)</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold text-blue-600">{formatRupiah(bagianNasabahTotal)}</p>
+            <p className="text-2xl font-bold text-brand-600">{formatRupiah(bagianNasabahTotal)}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Users className="h-5 w-5" />
               Daftar Nasabah
             </CardTitle>
             <div className="relative w-60">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Input aria-label="Cari nasabah..."
                 placeholder="Cari nasabah..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -183,13 +205,13 @@ export default function NasabahPage() {
         </CardHeader>
         <CardContent>
           {filtered.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>{search ? "Nasabah tidak ditemukan" : "Belum ada nasabah"}</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[700px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Nama</th>
@@ -205,12 +227,12 @@ export default function NasabahPage() {
                     const porsi = totalInvestasi > 0 ? (n.jumlahInvestasi / totalInvestasi) * 100 : 0;
                     const bagiHasil = bagianNasabahTotal * (porsi / 100);
                     return (
-                      <tr key={n.id} className="border-b hover:bg-gray-50">
+                      <tr key={n.id} className="border-b hover:bg-surface-muted">
                         <td className="py-3 px-4">
                           <p className="font-medium">{n.nama}</p>
-                          <p className="text-xs text-gray-400">{n.alamat || "-"}</p>
+                          <p className="text-xs text-slate-400">{n.alamat || "-"}</p>
                         </td>
-                        <td className="py-3 px-4 text-gray-600">{n.telepon || "-"}</td>
+                        <td className="py-3 px-4 text-slate-600">{n.telepon || "-"}</td>
                         <td className="py-3 px-4 text-right font-semibold">
                           {formatRupiah(n.jumlahInvestasi)}
                         </td>
@@ -219,15 +241,15 @@ export default function NasabahPage() {
                             {porsi.toFixed(1)}%
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right text-emerald-600 font-medium">
+                        <td className="py-3 px-4 text-right text-brand-600 font-medium">
                           {formatRupiah(bagiHasil)}
                         </td>
                         <td className="py-3 px-4 text-center">
                           <div className="flex justify-center gap-1">
-                            <Button variant="ghost" size="sm" onClick={() => openEdit(n)}>
-                              <Edit className="h-4 w-4 text-blue-600" />
+                            <Button aria-label="Edit" variant="ghost" size="sm" onClick={() => openEdit(n)}>
+                              <Edit className="h-4 w-4 text-brand-600" />
                             </Button>
-                            <Button variant="ghost" size="sm" onClick={() => handleDelete(n.id, n.nama)}>
+                            <Button aria-label={`Hapus ${n.nama}`} variant="ghost" size="sm" onClick={() => handleDelete(n.id, n.nama)}>
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                           </div>
@@ -249,26 +271,26 @@ export default function NasabahPage() {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Nama Lengkap</label>
-              <Input required value={form.nama}
+              <label className="text-sm font-medium" htmlFor="nama-lengkap">Nama Lengkap</label>
+              <Input id="nama-lengkap" required value={form.nama}
                 onChange={(e) => setForm({ ...form, nama: e.target.value })}
                 placeholder="Nama nasabah" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Telepon</label>
-              <Input value={form.telepon}
+              <label className="text-sm font-medium" htmlFor="telepon">Telepon</label>
+              <Input id="telepon" value={form.telepon}
                 onChange={(e) => setForm({ ...form, telepon: e.target.value })}
                 placeholder="08xx" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Alamat</label>
-              <Input value={form.alamat}
+              <label className="text-sm font-medium" htmlFor="alamat">Alamat</label>
+              <Input id="alamat" value={form.alamat}
                 onChange={(e) => setForm({ ...form, alamat: e.target.value })}
                 placeholder="Alamat lengkap" className="mt-1" />
             </div>
             <div>
-              <label className="text-sm font-medium">Jumlah Investasi</label>
-              <Input required type="number" min="1" value={form.jumlahInvestasi}
+              <label className="text-sm font-medium" htmlFor="jumlah-investasi">Jumlah Investasi</label>
+              <Input id="jumlah-investasi" required type="number" min="1" value={form.jumlahInvestasi}
                 onChange={(e) => setForm({ ...form, jumlahInvestasi: e.target.value })}
                 placeholder="0" className="mt-1" />
             </div>
@@ -278,6 +300,7 @@ export default function NasabahPage() {
           </form>
         </DialogContent>
       </Dialog>
+      {dialog}
     </div>
   );
 }

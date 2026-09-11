@@ -1,13 +1,20 @@
+import { DashboardShell } from "@/components/layout/DashboardShell";
 import { AdminSidebar } from "@/components/layout/AdminSidebar";
+import { AdminTopbar } from "@/components/layout/AdminTopbar";
 import { AuthProvider } from "@/components/layout/AuthProvider";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return (
     <AuthProvider>
-      <div className="flex min-h-screen">
-        <AdminSidebar />
-        <main className="flex-1 p-8 bg-gray-50">{children}</main>
-      </div>
+      <DashboardShell
+        brand="BKMT Kubu Raya"
+        brandLabel="Admin Panel"
+        brandAccent="bg-gold-400"
+        sidebar={<AdminSidebar />}
+        topbar={<AdminTopbar />}
+      >
+        {children}
+      </DashboardShell>
     </AuthProvider>
   );
 }

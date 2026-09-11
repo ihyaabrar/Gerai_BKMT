@@ -4,10 +4,16 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatRupiah } from "@/lib/utils";
-import { Receipt, Search, Download } from "lucide-react";
+import { Receipt, Search, Download, Ban } from "lucide-react";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import * as XLSX from "xlsx";
+import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
 
 interface Penjualan {
   id: string;
@@ -17,53 +23,138 @@ interface Penjualan {
   diskon: number;
   total: number;
   metodeBayar: string;
+  status: string;
+  alasanBatal: string | null;
+  dibatalkanPada: string | null;
+  dibatalkanOleh: { nama: string } | null;
   member: {
     nama: string;
   } | null;
 }
 
+const ITEMS_PER_PAGE = 10;
+
 export default function PenjualanPage() {
+  const { user } = useAuthStore();
+  // Membatalkan penjualan mengubah uang dan stok sekaligus, jadi hanya
+  // pengelola. Kasir yang salah input memanggil pengelola.
+  const bolehBatalkan = user?.role === "master" || user?.role === "admin";
+
+  const [targetBatal, setTargetBatal] = useState<Penjualan | null>(null);
+  const [alasanBatal, setAlasanBatal] = useState("");
+  const [membatalkan, setMembatalkan] = useState(false);
+
   const [penjualan, setPenjualan] = useState<Penjualan[]>([]);
-  const [filteredData, setFilteredData] = useState<Penjualan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [exporting, setExporting] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+
+  // Tunda pencarian supaya tidak memanggil API di setiap ketikan.
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setCurrentPage(1);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  // Paginasi & pencarian dikerjakan server, bukan lagi memuat
+  // seluruh riwayat transaksi ke browser.
+  const [versi, setVersi] = useState(0);
 
   useEffect(() => {
+    const controller = new AbortController();
+
+    const fetchPenjualan = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams({
+          page: String(currentPage),
+          limit: String(ITEMS_PER_PAGE),
+        });
+        if (debouncedSearch) params.set("search", debouncedSearch);
+
+        const res = await fetch(`/api/penjualan?${params}`, { signal: controller.signal });
+        if (!res.ok) throw new Error();
+        const json = await res.json();
+
+        setPenjualan(json.data ?? []);
+        setTotalItems(json.pagination?.total ?? 0);
+        setTotalPages(Math.max(json.pagination?.totalPages ?? 1, 1));
+      } catch (error) {
+        if ((error as Error)?.name !== "AbortError") {
+          toast.error("Gagal memuat riwayat penjualan");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
     fetchPenjualan();
-  }, []);
+    return () => controller.abort();
+  }, [currentPage, debouncedSearch, versi]);
 
-  useEffect(() => {
-    const filtered = penjualan.filter(
-      (p) =>
-        p.nomorTransaksi.toLowerCase().includes(search.toLowerCase()) ||
-        p.member?.nama.toLowerCase().includes(search.toLowerCase()) ||
-        p.metodeBayar.toLowerCase().includes(search.toLowerCase())
-    );
-    setFilteredData(filtered);
-    setCurrentPage(1);
-  }, [search, penjualan]);
-
-  const fetchPenjualan = async () => {
+  const batalkan = async () => {
+    if (!targetBatal || membatalkan) return;
+    setMembatalkan(true);
     try {
-      const res = await fetch("/api/penjualan");
-      const data = await res.json();
-      setPenjualan(data);
-      setFilteredData(data);
-    } catch (error) {
-      console.error("Failed to fetch penjualan:", error);
+      const res = await fetch("/api/penjualan", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: targetBatal.id,
+          aksi: "batal",
+          alasan: alasanBatal.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        toast.error(json?.error || "Gagal membatalkan penjualan");
+        return;
+      }
+      toast.success(`${targetBatal.nomorTransaksi} dibatalkan, stok dikembalikan`);
+      setTargetBatal(null);
+      setAlasanBatal("");
+      setVersi((v) => v + 1);
+    } catch {
+      toast.error("Terjadi kesalahan");
     } finally {
-      setLoading(false);
+      setMembatalkan(false);
     }
   };
 
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
+  const handleExportExcel = async () => {
+    setExporting(true);
+    try {
+      const params = new URLSearchParams({ page: "1", limit: "200" });
+      if (debouncedSearch) params.set("search", debouncedSearch);
 
-  const handleExportExcel = () => {
-    const exportData = filteredData.map((p) => ({
+      // Ambil sampai 200 baris terbaru sesuai filter aktif.
+      const res = await fetch(`/api/penjualan?${params}`);
+      if (!res.ok) throw new Error();
+      const json = await res.json();
+      const rows: Penjualan[] = json.data ?? [];
+
+      if (rows.length === 0) {
+        toast.info("Tidak ada data untuk diekspor");
+        return;
+      }
+
+      exportRows(rows);
+      toast.success(`${rows.length} transaksi diekspor`);
+    } catch {
+      toast.error("Gagal mengekspor data");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const exportRows = (rows: Penjualan[]) => {
+    const exportData = rows.map((p) => ({
       "No. Transaksi": p.nomorTransaksi,
       Tanggal: new Date(p.tanggal).toLocaleDateString("id-ID"),
       Member: p.member?.nama || "Umum",
@@ -78,7 +169,10 @@ export default function PenjualanPage() {
     XLSX.utils.book_append_sheet(wb, ws, "Penjualan");
 
     // Auto width columns
-    const maxWidth = exportData.reduce((w, r) => Math.max(w, r["No. Transaksi"].length), 10);
+    const maxWidth = exportData.reduce(
+      (w, r) => Math.max(w, r["No. Transaksi"].length),
+      10
+    );
     ws["!cols"] = [
       { wch: maxWidth },
       { wch: 15 },
@@ -94,30 +188,30 @@ export default function PenjualanPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Riwayat Penjualan</h1>
-          <p className="text-gray-500">Data transaksi penjualan</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Riwayat Penjualan</h1>
+          <p className="text-slate-500">Data transaksi penjualan</p>
         </div>
-        <Button
+        <Button variant="outline"
           onClick={handleExportExcel}
-          className="bg-green-600 hover:bg-green-700"
+          disabled={exporting || loading}
         >
           <Download className="h-4 w-4 mr-2" />
-          Export Excel
+          {exporting ? "Menyiapkan..." : "Export Excel"}
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <Receipt className="h-5 w-5" />
               Transaksi Terbaru
             </CardTitle>
             <div className="relative w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Input aria-label="Cari transaksi..."
                 placeholder="Cari transaksi..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -128,15 +222,15 @@ export default function PenjualanPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
-          ) : filteredData.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <TableSkeleton cols={7} />
+          ) : penjualan.length === 0 ? (
+            <div className="text-center py-8 text-slate-500">
               {search ? "Tidak ada data yang cocok" : "Belum ada transaksi"}
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[760px]">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left py-3 px-4">No. Transaksi</th>
@@ -146,12 +240,40 @@ export default function PenjualanPage() {
                       <th className="text-right py-3 px-4">Diskon</th>
                       <th className="text-right py-3 px-4">Total</th>
                       <th className="text-center py-3 px-4">Metode</th>
+                      {bolehBatalkan && <th className="w-10" />}
                     </tr>
                   </thead>
                   <tbody>
-                    {paginatedData.map((p) => (
-                      <tr key={p.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4 font-medium">{p.nomorTransaksi}</td>
+                    {penjualan.map((p) => {
+                      const batal = p.status === "batal";
+                      return (
+                      <tr
+                        key={p.id}
+                        className={cn(
+                          "border-b hover:bg-surface-muted",
+                          batal && "bg-rose-50/40 text-slate-400"
+                        )}
+                      >
+                        <td className="py-3 px-4 font-medium">
+                          <span className={cn(batal && "line-through")}>
+                            {p.nomorTransaksi}
+                          </span>
+                          {batal && (
+                            <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                              <Badge variant="destructive">Dibatalkan</Badge>
+                              {p.dibatalkanOleh?.nama && (
+                                <span className="text-[11px] text-slate-400">
+                                  oleh {p.dibatalkanOleh.nama}
+                                </span>
+                              )}
+                            </div>
+                          )}
+                          {batal && p.alasanBatal && (
+                            <p className="text-[11px] text-slate-400 mt-0.5 max-w-xs font-normal">
+                              {p.alasanBatal}
+                            </p>
+                          )}
+                        </td>
                         <td className="py-3 px-4">
                           {new Date(p.tanggal).toLocaleDateString("id-ID", {
                             day: "2-digit",
@@ -163,19 +285,51 @@ export default function PenjualanPage() {
                         </td>
                         <td className="py-3 px-4">{p.member?.nama || "Umum"}</td>
                         <td className="py-3 px-4 text-right">{formatRupiah(p.subtotal)}</td>
-                        <td className="py-3 px-4 text-right text-emerald-600">
-                          {p.diskon > 0 ? `-${formatRupiah((p.subtotal * p.diskon) / 100)}` : "-"}
+                        <td className="py-3 px-4 text-right text-brand-600">
+                          {p.diskon > 0 ? `-${formatRupiah(p.diskon)}` : "-"}
                         </td>
-                        <td className="py-3 px-4 text-right font-semibold">
+                        <td
+                          className={cn(
+                            "py-3 px-4 text-right font-semibold",
+                            batal && "line-through"
+                          )}
+                        >
                           {formatRupiah(p.total)}
                         </td>
                         <td className="py-3 px-4 text-center">
-                          <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                          <span
+                            className={cn(
+                              "px-2 py-1 rounded-full text-xs font-medium",
+                              batal
+                                ? "bg-slate-100 text-slate-400"
+                                : "bg-brand-100 text-brand-800"
+                            )}
+                          >
                             {p.metodeBayar}
                           </span>
                         </td>
+                        {bolehBatalkan && (
+                          <td className="py-3 pr-4">
+                            {!batal && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                aria-label={"Batalkan " + p.nomorTransaksi}
+                                title="Batalkan transaksi"
+                                className="text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                                onClick={() => {
+                                  setTargetBatal(p);
+                                  setAlasanBatal("");
+                                }}
+                              >
+                                <Ban className="h-4 w-4" />
+                              </Button>
+                            )}
+                          </td>
+                        )}
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
@@ -184,13 +338,93 @@ export default function PenjualanPage() {
                 currentPage={currentPage}
                 totalPages={totalPages}
                 onPageChange={setCurrentPage}
-                itemsPerPage={itemsPerPage}
-                totalItems={filteredData.length}
+                itemsPerPage={ITEMS_PER_PAGE}
+                totalItems={totalItems}
               />
             </>
           )}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={Boolean(targetBatal)}
+        onOpenChange={(buka) => {
+          if (!buka && !membatalkan) {
+            setTargetBatal(null);
+            setAlasanBatal("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Batalkan {targetBatal?.nomorTransaksi}?</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="rounded-card border border-border bg-surface-muted p-3.5 text-sm space-y-1">
+              <div className="flex justify-between gap-4">
+                <span className="text-slate-500">Total</span>
+                <span className="font-semibold text-slate-900">
+                  {formatRupiah(targetBatal?.total ?? 0)}
+                </span>
+              </div>
+              <div className="flex justify-between gap-4">
+                <span className="text-slate-500">Member</span>
+                <span className="text-slate-700">
+                  {targetBatal?.member?.nama || "Umum"}
+                </span>
+              </div>
+            </div>
+
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Stok akan dikembalikan dan poin member ditarik kembali. Transaksinya
+              tidak dihapus — tetap tercatat sebagai dibatalkan, lengkap dengan
+              nama Anda dan alasan di bawah.
+            </p>
+
+            <div>
+              <label
+                htmlFor="alasan-batal"
+                className="block text-sm font-medium text-slate-700"
+              >
+                Alasan pembatalan <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="alasan-batal"
+                rows={3}
+                value={alasanBatal}
+                onChange={(e) => setAlasanBatal(e.target.value)}
+                placeholder="Contoh: salah input jumlah, pembeli membatalkan pesanan"
+                className="mt-1.5 flex w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">
+                Minimal 5 karakter. Inilah yang dibaca kalau pertanyaannya muncul
+                lagi bulan depan.
+              </p>
+            </div>
+
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <Button
+                variant="outline"
+                disabled={membatalkan}
+                onClick={() => {
+                  setTargetBatal(null);
+                  setAlasanBatal("");
+                }}
+              >
+                Tutup
+              </Button>
+              <Button
+                className="bg-rose-600 hover:bg-rose-700 text-white"
+                disabled={membatalkan || alasanBatal.trim().length < 5}
+                onClick={batalkan}
+              >
+                {membatalkan ? "Membatalkan..." : "Batalkan Transaksi"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

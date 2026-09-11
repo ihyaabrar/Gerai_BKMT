@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 const VALID_TINGKATAN = ["PD", "PC", "Permata"];
 
 export async function GET(request: NextRequest) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {

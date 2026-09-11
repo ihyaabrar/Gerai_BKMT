@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { generateBarcode, formatRupiah } from "@/lib/utils";
 import { PackagePlus, Package, Search, Plus, RefreshCw, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useAuthStore } from "@/store/auth";
 
 interface Barang {
   id: string;
@@ -28,6 +30,13 @@ interface KategoriBarang {
 }
 
 export default function BarangMasukPage() {
+  // Menerima kiriman barang adalah pekerjaan kasir. Mendaftarkan barang baru
+  // dan mengubah harga beli bukan — keduanya menentukan laba, dan laba
+  // menentukan bagi hasil nasabah. Server menolak keduanya untuk kasir,
+  // jadi tombolnya pun tidak ditampilkan.
+  const { user } = useAuthStore();
+  const bolehUbahHarga = user?.role === "master" || user?.role === "admin";
+
   const [mode, setMode] = useState<"pilih" | "baru">("pilih");
   const [barangList, setBarangList] = useState<Barang[]>([]);
   const [kategoriList, setKategoriList] = useState<KategoriBarang[]>([]);
@@ -36,6 +45,7 @@ export default function BarangMasukPage() {
   const [jumlahMasuk, setJumlahMasuk] = useState("");
   const [updateHargaBeli, setUpdateHargaBeli] = useState(false);
   const [hargaBeliBaru, setHargaBeliBaru] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   
   const [formBaru, setFormBaru] = useState({
     kode: "",
@@ -47,6 +57,7 @@ export default function BarangMasukPage() {
     stok: "",
     stokMinimum: "5",
     satuan: "pcs",
+    gambarUrl: "",
   });
 
   useEffect(() => {
@@ -67,9 +78,10 @@ export default function BarangMasukPage() {
   const fetchBarang = async () => {
     try {
       const res = await fetch("/api/barang");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setBarangList(data);
-    } catch (error) {
+      setBarangList(Array.isArray(data) ? data : []);
+    } catch {
       toast.error("Gagal memuat data barang");
     }
   };
@@ -85,132 +97,96 @@ export default function BarangMasukPage() {
     }
 
     const qty = parseInt(jumlahMasuk);
-    if (qty <= 0) {
+    if (!Number.isFinite(qty) || qty <= 0) {
       toast.error("Jumlah harus lebih dari 0");
       return;
     }
 
-    // Hitung total pengeluaran
-    const hargaBeli = updateHargaBeli && hargaBeliBaru 
-      ? parseFloat(hargaBeliBaru) 
-      : selectedBarang.hargaBeli;
-    
-    const totalPengeluaran = hargaBeli * qty;
-
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      // 1. Update stok barang (dan harga beli jika diupdate)
-      const updateData: any = {
-        id: selectedBarang.id,
-        stok: selectedBarang.stok + qty,
-      };
-
-      if (updateHargaBeli && hargaBeliBaru) {
-        updateData.hargaBeli = parseFloat(hargaBeliBaru);
-      }
-
-      const resBarang = await fetch("/api/barang", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(updateData),
-      });
-
-      if (!resBarang.ok) {
-        toast.error("Gagal update stok");
-        return;
-      }
-
-      // 2. Catat sebagai pengeluaran
-      const resPengeluaran = await fetch("/api/pengeluaran", {
+      // Satu endpoint: penambahan stok dan pencatatan pengeluaran
+      // dilakukan dalam satu transaksi di server.
+      const res = await fetch("/api/barang-masuk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tanggal: new Date().toISOString(),
-          kategori: "Pembelian Barang",
-          keterangan: `Pembelian ${selectedBarang.nama} (${qty} ${selectedBarang.satuan}) @ ${formatRupiah(hargaBeli)}`,
-          jumlah: totalPengeluaran,
+          mode: "existing",
+          barangId: selectedBarang.id,
+          qty,
+          updateHargaBeli,
+          hargaBeliBaru: updateHargaBeli ? hargaBeliBaru : null,
         }),
       });
 
-      if (resBarang.ok && resPengeluaran.ok) {
-        toast.success(
-          `Stok ${selectedBarang.nama} berhasil ditambah ${qty} ${selectedBarang.satuan}. ` +
-          `Pengeluaran ${formatRupiah(totalPengeluaran)} tercatat.`
-        );
-        setSelectedBarang(null);
-        setJumlahMasuk("");
-        setUpdateHargaBeli(false);
-        setHargaBeliBaru("");
-        fetchBarang();
-      } else {
-        toast.error("Gagal mencatat pengeluaran");
+      const data = await res.json();
+      if (!res.ok) {
+        toast.error(data?.error || "Gagal mencatat barang masuk");
+        return;
       }
-    } catch (error) {
+
+      toast.success(
+        `Stok ${selectedBarang.nama} bertambah ${qty} ${selectedBarang.satuan}. ` +
+          `Pengeluaran ${formatRupiah(data.totalPengeluaran)} tercatat.`
+      );
+      setSelectedBarang(null);
+      setJumlahMasuk("");
+      setUpdateHargaBeli(false);
+      setHargaBeliBaru("");
+      fetchBarang();
+    } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleTambahBaru = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const stok = parseInt(formBaru.stok);
-    const hargaBeli = parseFloat(formBaru.hargaBeli);
-    const totalPengeluaran = hargaBeli * stok;
 
-    const payload = {
-      ...formBaru,
-      hargaBeli,
-      hargaJual: parseFloat(formBaru.hargaJual),
-      stok,
-      stokMinimum: parseInt(formBaru.stokMinimum),
-    };
-
+    if (submitting) return;
+    setSubmitting(true);
     try {
-      // 1. Tambah barang baru
-      const resBarang = await fetch("/api/barang", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      if (!resBarang.ok) {
-        toast.error("Gagal menambah barang");
-        return;
-      }
-
-      // 2. Catat sebagai pengeluaran
-      const resPengeluaran = await fetch("/api/pengeluaran", {
+      const res = await fetch("/api/barang-masuk", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          tanggal: new Date().toISOString(),
-          kategori: "Pembelian Barang",
-          keterangan: `Pembelian barang baru: ${formBaru.nama} (${stok} ${formBaru.satuan}) @ ${formatRupiah(hargaBeli)}`,
-          jumlah: totalPengeluaran,
+          mode: "baru",
+          ...formBaru,
+          hargaBeli: Number(formBaru.hargaBeli),
+          hargaJual: Number(formBaru.hargaJual),
+          stok: Number(formBaru.stok),
+          stokMinimum: Number(formBaru.stokMinimum),
         }),
       });
 
-      if (resBarang.ok && resPengeluaran.ok) {
-        toast.success(
-          `Barang baru berhasil ditambahkan! ` +
-          `Pengeluaran ${formatRupiah(totalPengeluaran)} tercatat.`
-        );
-        setFormBaru({
-          kode: "",
-          barcode: "",
-          nama: "",
-          kategori: "",
-          hargaBeli: "",
-          hargaJual: "",
-          stok: "",
-          stokMinimum: "5",
-          satuan: "pcs",
-        });
-        fetchBarang();
-      } else {
-        toast.error("Gagal mencatat pengeluaran");
+      const data = await res.json();
+      if (!res.ok) {
+        // Tampilkan pesan spesifik dari server (kode/barcode duplikat, dll)
+        toast.error(data?.error || "Gagal menambah barang");
+        return;
       }
-    } catch (error) {
+
+      toast.success(
+        `Barang baru ditambahkan. Pengeluaran ${formatRupiah(data.totalPengeluaran)} tercatat.`
+      );
+      setFormBaru({
+        kode: "",
+        barcode: "",
+        nama: "",
+        kategori: "",
+        hargaBeli: "",
+        hargaJual: "",
+        stok: "",
+        stokMinimum: "5",
+        satuan: "pcs",
+        gambarUrl: "",
+      });
+      fetchBarang();
+    } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -234,10 +210,10 @@ export default function BarangMasukPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl font-bold">
           Barang Masuk
         </h1>
-        <p className="text-gray-600 mt-2">Tambah stok barang yang sudah ada atau tambah produk baru</p>
+        <p className="text-slate-600 mt-2">Tambah stok barang yang sudah ada atau tambah produk baru</p>
       </div>
 
       {/* Mode Selector */}
@@ -251,19 +227,21 @@ export default function BarangMasukPage() {
             setHargaBeliBaru("");
           }}
           variant={mode === "pilih" ? "default" : "outline"}
-          className={mode === "pilih" ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" : ""}
+          className={mode === "pilih" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
         >
           <Package className="h-4 w-4 mr-2" />
           Update Stok Barang
         </Button>
-        <Button
-          onClick={() => setMode("baru")}
-          variant={mode === "baru" ? "default" : "outline"}
-          className={mode === "baru" ? "bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700" : ""}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Tambah Barang Baru
-        </Button>
+        {bolehUbahHarga && (
+          <Button
+            onClick={() => setMode("baru")}
+            variant={mode === "baru" ? "default" : "outline"}
+            className={mode === "baru" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Barang Baru
+          </Button>
+        )}
       </div>
 
       {/* Mode: Update Stok */}
@@ -279,8 +257,8 @@ export default function BarangMasukPage() {
                 Pilih Barang
               </CardTitle>
               <div className="relative mt-4">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
+                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Input aria-label="Cari barang..."
                   placeholder="Cari barang..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
@@ -303,23 +281,23 @@ export default function BarangMasukPage() {
                         : "border-gray-200 hover:border-blue-300"
                     }`}
                   >
-                    <div className="flex justify-between items-start">
+                    <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
-                        <p className="font-bold text-gray-900">{barang.nama}</p>
-                        <p className="text-sm text-gray-500">{barang.kode} • {barang.barcode}</p>
-                        <p className="text-xs text-gray-400 mt-1">{barang.kategori}</p>
+                        <p className="font-bold text-slate-900">{barang.nama}</p>
+                        <p className="text-sm text-slate-500">{barang.kode} • {barang.barcode}</p>
+                        <p className="text-xs text-slate-400 mt-1">{barang.kategori}</p>
                       </div>
                       <div className="text-right">
                         <Badge variant={barang.stok <= barang.stokMinimum ? "destructive" : "outline"}>
                           Stok: {barang.stok} {barang.satuan}
                         </Badge>
-                        <p className="text-sm text-gray-600 mt-1">{formatRupiah(barang.hargaBeli)}</p>
+                        <p className="text-sm text-slate-600 mt-1">{formatRupiah(barang.hargaBeli)}</p>
                       </div>
                     </div>
                   </div>
                 ))}
                 {filteredBarang.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-slate-500">
                     {search ? "Tidak ada barang yang cocok" : "Belum ada barang"}
                   </div>
                 )}
@@ -340,24 +318,24 @@ export default function BarangMasukPage() {
             <CardContent>
               {selectedBarang ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                    <p className="font-bold text-gray-900 mb-1">{selectedBarang.nama}</p>
-                    <p className="text-sm text-gray-600">{selectedBarang.kode}</p>
-                    <div className="mt-3 pt-3 border-t border-blue-200">
+                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-brand-200">
+                    <p className="font-bold text-slate-900 mb-1">{selectedBarang.nama}</p>
+                    <p className="text-sm text-slate-600">{selectedBarang.kode}</p>
+                    <div className="mt-3 pt-3 border-t border-brand-200">
                       <div className="flex justify-between text-sm mb-1">
-                        <span className="text-gray-600">Stok Saat Ini:</span>
+                        <span className="text-slate-600">Stok Saat Ini:</span>
                         <span className="font-semibold">{selectedBarang.stok} {selectedBarang.satuan}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-600">Harga Beli:</span>
+                        <span className="text-slate-600">Harga Beli:</span>
                         <span className="font-semibold">{formatRupiah(selectedBarang.hargaBeli)}</span>
                       </div>
                     </div>
                   </div>
 
                   <div>
-                    <label className="text-sm font-medium text-gray-700">Jumlah Masuk</label>
-                    <Input
+                    <label className="text-sm font-medium text-slate-700" htmlFor="jumlah-masuk">Jumlah Masuk</label>
+                    <Input id="jumlah-masuk"
                       type="number"
                       value={jumlahMasuk}
                       onChange={(e) => setJumlahMasuk(e.target.value)}
@@ -367,25 +345,32 @@ export default function BarangMasukPage() {
                     />
                   </div>
 
-                  {/* Checkbox Update Harga Beli */}
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="updateHargaBeli"
-                      checked={updateHargaBeli}
-                      onChange={(e) => setUpdateHargaBeli(e.target.checked)}
-                      className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="updateHargaBeli" className="text-sm font-medium text-gray-700 cursor-pointer">
-                      Update Harga Beli
-                    </label>
-                  </div>
+                  {/* Checkbox Update Harga Beli — pengelola saja */}
+                  {bolehUbahHarga ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="updateHargaBeli"
+                        checked={updateHargaBeli}
+                        onChange={(e) => setUpdateHargaBeli(e.target.checked)}
+                        className="w-4 h-4 text-brand-600 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="updateHargaBeli" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Update Harga Beli
+                      </label>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Harga beli hanya bisa diubah oleh pengelola. Stok tetap
+                      bisa Anda tambahkan dengan harga yang berlaku sekarang.
+                    </p>
+                  )}
 
                   {/* Input Harga Beli Baru */}
                   {updateHargaBeli && (
                     <div>
-                      <label className="text-sm font-medium text-gray-700">Harga Beli Baru</label>
-                      <Input
+                      <label className="text-sm font-medium text-slate-700" htmlFor="harga-beli-baru">Harga Beli Baru</label>
+                      <Input id="harga-beli-baru"
                         type="number"
                         value={hargaBeliBaru}
                         onChange={(e) => setHargaBeliBaru(e.target.value)}
@@ -399,9 +384,9 @@ export default function BarangMasukPage() {
                   {/* Preview */}
                   {jumlahMasuk && parseInt(jumlahMasuk) > 0 && (
                     <div className="space-y-2">
-                      <div className="p-3 bg-emerald-50 rounded-lg border border-emerald-200">
-                        <p className="text-sm text-gray-600 mb-1">Stok Setelah Update:</p>
-                        <p className="text-2xl font-bold text-emerald-600">
+                      <div className="p-3 bg-brand-50 rounded-lg border border-brand-200">
+                        <p className="text-sm text-slate-600 mb-1">Stok Setelah Update:</p>
+                        <p className="text-2xl font-bold text-brand-600">
                           {selectedBarang.stok + parseInt(jumlahMasuk)} {selectedBarang.satuan}
                         </p>
                       </div>
@@ -409,12 +394,12 @@ export default function BarangMasukPage() {
                       <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                         <div className="flex items-center gap-2 mb-1">
                           <DollarSign className="h-4 w-4 text-amber-600" />
-                          <p className="text-sm font-medium text-gray-700">Total Pengeluaran:</p>
+                          <p className="text-sm font-medium text-slate-700">Total Pengeluaran:</p>
                         </div>
                         <p className="text-xl font-bold text-amber-600">
                           {formatRupiah(calculateTotalPengeluaran())}
                         </p>
-                        <p className="text-xs text-gray-500 mt-1">
+                        <p className="text-xs text-slate-500 mt-1">
                           {parseInt(jumlahMasuk)} × {formatRupiah(updateHargaBeli && hargaBeliBaru ? parseFloat(hargaBeliBaru) : selectedBarang.hargaBeli)}
                         </p>
                       </div>
@@ -423,15 +408,15 @@ export default function BarangMasukPage() {
 
                   <Button
                     onClick={handleUpdateStok}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-                    disabled={!jumlahMasuk || parseInt(jumlahMasuk) <= 0}
+                    className="w-full"
+                    disabled={submitting || !jumlahMasuk || parseInt(jumlahMasuk) <= 0}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    Update Stok & Catat Pengeluaran
+                    {submitting ? "Menyimpan..." : "Update Stok & Catat Pengeluaran"}
                   </Button>
                 </div>
               ) : (
-                <div className="text-center py-12 text-gray-500">
+                <div className="text-center py-12 text-slate-500">
                   <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
                   <p>Pilih barang dari daftar</p>
                 </div>
@@ -442,7 +427,7 @@ export default function BarangMasukPage() {
       )}
 
       {/* Mode: Tambah Baru */}
-      {mode === "baru" && (
+      {mode === "baru" && bolehUbahHarga && (
         <Card className="max-w-2xl border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -454,10 +439,10 @@ export default function BarangMasukPage() {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleTambahBaru} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Kode Barang</label>
-                  <Input
+                  <label className="text-sm font-medium text-slate-700" htmlFor="kode-barang">Kode Barang</label>
+                  <Input id="kode-barang"
                     required
                     value={formBaru.kode}
                     onChange={(e) => setFormBaru({ ...formBaru, kode: e.target.value })}
@@ -466,9 +451,10 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Barcode</label>
+                  <label htmlFor="barang-barcode" className="text-sm font-medium text-slate-700">Barcode</label>
                   <div className="flex gap-2 mt-1">
                     <Input
+                      id="barang-barcode"
                       value={formBaru.barcode}
                       onChange={(e) => setFormBaru({ ...formBaru, barcode: e.target.value })}
                       placeholder="Auto generate"
@@ -481,8 +467,8 @@ export default function BarangMasukPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">Nama Barang</label>
-                <Input
+                <label className="text-sm font-medium text-slate-700" htmlFor="nama-barang">Nama Barang</label>
+                <Input id="nama-barang"
                   required
                   value={formBaru.nama}
                   onChange={(e) => setFormBaru({ ...formBaru, nama: e.target.value })}
@@ -492,8 +478,8 @@ export default function BarangMasukPage() {
               </div>
 
               <div>
-                <label className="text-sm font-medium text-gray-700">Kategori</label>
-                <select
+                <label className="text-sm font-medium text-slate-700" htmlFor="kategori">Kategori</label>
+                <select id="kategori"
                   value={formBaru.kategori}
                   onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
                   className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -510,10 +496,10 @@ export default function BarangMasukPage() {
                 )}
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Harga Beli</label>
-                  <Input
+                  <label className="text-sm font-medium text-slate-700" htmlFor="harga-beli">Harga Beli</label>
+                  <Input id="harga-beli"
                     required
                     type="number"
                     value={formBaru.hargaBeli}
@@ -523,8 +509,8 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Harga Jual</label>
-                  <Input
+                  <label className="text-sm font-medium text-slate-700" htmlFor="harga-jual">Harga Jual</label>
+                  <Input id="harga-jual"
                     required
                     type="number"
                     value={formBaru.hargaJual}
@@ -535,10 +521,10 @@ export default function BarangMasukPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stok Awal</label>
-                  <Input
+                  <label className="text-sm font-medium text-slate-700" htmlFor="stok-awal">Stok Awal</label>
+                  <Input id="stok-awal"
                     required
                     type="number"
                     value={formBaru.stok}
@@ -548,8 +534,8 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Stok Minimum</label>
-                  <Input
+                  <label className="text-sm font-medium text-slate-700" htmlFor="stok-minimum">Stok Minimum</label>
+                  <Input id="stok-minimum"
                     required
                     type="number"
                     value={formBaru.stokMinimum}
@@ -559,8 +545,8 @@ export default function BarangMasukPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-700">Satuan</label>
-                  <Input
+                  <label className="text-sm font-medium text-slate-700" htmlFor="satuan">Satuan</label>
+                  <Input id="satuan"
                     required
                     value={formBaru.satuan}
                     onChange={(e) => setFormBaru({ ...formBaru, satuan: e.target.value })}
@@ -570,29 +556,45 @@ export default function BarangMasukPage() {
                 </div>
               </div>
 
+              <div>
+                <p className="text-sm font-medium text-slate-700">Foto Produk</p>
+                <p className="text-xs text-slate-400 mt-0.5 mb-2">
+                  Tampil di halaman kasir dan daftar stok. Opsional.
+                </p>
+                <ImageUpload
+                  value={formBaru.gambarUrl}
+                  onChange={(url) => setFormBaru({ ...formBaru, gambarUrl: url })}
+                  folder="barang"
+                  label="Pilih Foto Produk"
+                  shape="square"
+                  previewSize="md"
+                />
+              </div>
+
               {/* Preview Total Pengeluaran */}
               {formBaru.stok && formBaru.hargaBeli && (
                 <div className="p-4 bg-amber-50 rounded-lg border border-amber-200">
                   <div className="flex items-center gap-2 mb-2">
                     <DollarSign className="h-5 w-5 text-amber-600" />
-                    <p className="text-sm font-semibold text-gray-700">Total Pengeluaran:</p>
+                    <p className="text-sm font-semibold text-slate-700">Total Pengeluaran:</p>
                   </div>
                   <p className="text-2xl font-bold text-amber-600">
                     {formatRupiah(parseInt(formBaru.stok || "0") * parseFloat(formBaru.hargaBeli || "0"))}
                   </p>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     {formBaru.stok} {formBaru.satuan} × {formatRupiah(parseFloat(formBaru.hargaBeli || "0"))}
                   </p>
                 </div>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 font-semibold" 
+              <Button
+                type="submit"
+                disabled={submitting}
+                className="w-full h-12 font-semibold"
                 size="lg"
               >
                 <PackagePlus className="mr-2 h-5 w-5" />
-                Simpan Barang & Catat Pengeluaran
+                {submitting ? "Menyimpan..." : "Simpan Barang & Catat Pengeluaran"}
               </Button>
             </form>
           </CardContent>

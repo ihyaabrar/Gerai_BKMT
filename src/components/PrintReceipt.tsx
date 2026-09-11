@@ -18,6 +18,7 @@ interface ReceiptData {
   tanggal: Date;
   items: ReceiptItem[];
   subtotal: number;
+  /** Nilai diskon dalam rupiah (bukan persen). */
   diskon: number;
   total: number;
   bayar: number;
@@ -185,8 +186,14 @@ export function PrintReceipt({ data }: { data: ReceiptData }) {
           </div>
           {data.diskon > 0 && (
             <div className="flex justify-between text-xs mb-1">
-              <span>Diskon ({data.diskon}%):</span>
-              <span>-{formatRupiah(data.subtotal * data.diskon / 100)}</span>
+              <span>
+                Diskon
+                {data.subtotal > 0
+                  ? ` (${Math.round((data.diskon / data.subtotal) * 100)}%)`
+                  : ""}
+                :
+              </span>
+              <span>-{formatRupiah(data.diskon)}</span>
             </div>
           )}
           <div className="flex justify-between font-bold text-base border-t border-gray-400 pt-2 mt-2">

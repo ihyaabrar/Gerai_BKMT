@@ -6,10 +6,14 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle, Search } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
+import { toast } from "sonner";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Barang {
   id: string;
   kode: string;
+  gambarUrl: string | null;
   nama: string;
   kategori: string | null;
   hargaBeli: number;
@@ -29,8 +33,9 @@ export default function StokPage() {
 
   useEffect(() => {
     fetch("/api/barang")
-      .then((r) => r.json())
-      .then((data) => setBarang(data))
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setBarang(Array.isArray(data) ? data : []))
+      .catch(() => toast.error("Gagal memuat data stok"))
       .finally(() => setLoading(false));
   }, []);
 
@@ -60,8 +65,8 @@ export default function StokPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold">Stok Barang</h1>
-        <p className="text-gray-500">Monitoring inventori real-time</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Stok Barang</h1>
+        <p className="text-slate-500">Monitoring inventori real-time</p>
       </div>
 
       {/* Alert stok rendah/habis */}
@@ -92,8 +97,8 @@ export default function StokPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Total Barang</CardTitle>
-            <Package className="h-5 w-5 text-blue-600" />
+            <CardTitle className="text-sm font-medium text-slate-600">Total Barang</CardTitle>
+            <Package className="h-5 w-5 text-brand-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{barang.length}</div>
@@ -101,20 +106,20 @@ export default function StokPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Stok Rendah / Habis</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Stok Rendah / Habis</CardTitle>
             <AlertTriangle className="h-5 w-5 text-amber-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-amber-600">
               {stokRendah.length + stokHabis.length}
             </div>
-            <p className="text-xs text-gray-400 mt-1">{stokHabis.length} habis · {stokRendah.length} rendah</p>
+            <p className="text-xs text-slate-400 mt-1">{stokHabis.length} habis · {stokRendah.length} rendah</p>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-gray-600">Nilai Inventori</CardTitle>
-            <Package className="h-5 w-5 text-emerald-600" />
+            <CardTitle className="text-sm font-medium text-slate-600">Nilai Inventori</CardTitle>
+            <Package className="h-5 w-5 text-brand-600" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatRupiah(nilaiInventori)}</div>
@@ -143,8 +148,8 @@ export default function StokPage() {
               ))}
             </div>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-              <Input
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Input aria-label="Cari barang..."
                 placeholder="Cari barang..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -155,15 +160,15 @@ export default function StokPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-400">Loading...</div>
+            <TableSkeleton cols={8} />
           ) : filtered.length === 0 ? (
-            <div className="text-center py-10 text-gray-400">
+            <div className="text-center py-10 text-slate-400">
               <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
               <p>Tidak ada barang ditemukan</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-[760px]">
                 <thead>
                   <tr className="border-b">
                     <th className="text-left py-3 px-4">Kode</th>
@@ -180,16 +185,38 @@ export default function StokPage() {
                   {filtered.map((b) => {
                     const status = getStatus(b);
                     return (
-                      <tr key={b.id} className={`border-b hover:bg-gray-50 ${b.stok === 0 ? "bg-red-50" : b.stok <= b.stokMinimum ? "bg-amber-50" : ""}`}>
+                      <tr key={b.id} className={`border-b border-border/70 hover:bg-surface-muted ${b.stok === 0 ? "bg-rose-50/40" : b.stok <= b.stokMinimum ? "bg-amber-50/40" : ""}`}>
                         <td className="py-3 px-4 font-medium text-sm">{b.kode}</td>
-                        <td className="py-3 px-4">{b.nama}</td>
-                        <td className="py-3 px-4 text-gray-500 text-sm">{b.kategori || "-"}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {/* Foto produk; inisial nama dipakai bila belum ada */}
+                            <div className="h-9 w-9 rounded-lg bg-surface-sunken border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                              {b.gambarUrl ? (
+                                <img
+                                    src={gambarLebar(b.gambarUrl, LEBAR.ikon)}
+                                    alt=""
+                                    loading="lazy"
+                                    decoding="async"
+                                    width={LEBAR.ikon}
+                                    height={LEBAR.ikon}
+                                    className="h-full w-full object-cover"
+                                  />
+                              ) : (
+                                <span className="text-xs font-bold text-brand-300">
+                                  {b.nama.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <span className="truncate">{b.nama}</span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-slate-500 text-sm">{b.kategori || "-"}</td>
                         <td className="py-3 px-4 text-right text-sm">{formatRupiah(b.hargaBeli)}</td>
                         <td className="py-3 px-4 text-right text-sm">{formatRupiah(b.hargaJual)}</td>
                         <td className="py-3 px-4 text-center font-semibold">
-                          {b.stok} <span className="text-xs text-gray-400">{b.satuan}</span>
+                          {b.stok} <span className="text-xs text-slate-400">{b.satuan}</span>
                         </td>
-                        <td className="py-3 px-4 text-center text-xs text-gray-400">{b.stokMinimum}</td>
+                        <td className="py-3 px-4 text-center text-xs text-slate-400">{b.stokMinimum}</td>
                         <td className="py-3 px-4 text-center">
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${status.color}`}>
                             {status.label}

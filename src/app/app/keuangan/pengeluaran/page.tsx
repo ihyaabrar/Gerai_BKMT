@@ -11,6 +11,8 @@ import { format } from "date-fns";
 import { Pagination } from "@/components/ui/pagination";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Pengeluaran {
   id: string;
@@ -26,6 +28,7 @@ interface KategoriPengeluaran {
 }
 
 export default function PengeluaranPage() {
+  const { konfirmasi, dialog } = useConfirm();
   const [pengeluaran, setPengeluaran] = useState<Pengeluaran[]>([]);
   const [filteredData, setFilteredData] = useState<Pengeluaran[]>([]);
   const [kategoriList, setKategoriList] = useState<KategoriPengeluaran[]>([]);
@@ -44,7 +47,9 @@ export default function PengeluaranPage() {
   const fetchKategori = async () => {
     try {
       const res = await fetch("/api/kategori-pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
+      if (!Array.isArray(data)) return;
       setKategoriList(data);
       if (data.length > 0) {
         setForm((f) => ({ ...f, kategori: f.kategori || data[0].nama }));
@@ -57,11 +62,13 @@ export default function PengeluaranPage() {
   const fetchPengeluaran = async () => {
     try {
       const res = await fetch("/api/pengeluaran");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setPengeluaran(data);
-      setFilteredData(data);
-    } catch (error) {
-      console.error("Failed to fetch pengeluaran:", error);
+      const rows = Array.isArray(data) ? data : [];
+      setPengeluaran(rows);
+      setFilteredData(rows);
+    } catch {
+      toast.error("Gagal memuat data pengeluaran");
     } finally {
       setLoading(false);
     }
@@ -112,17 +119,25 @@ export default function PengeluaranPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Hapus pengeluaran ini?")) return;
-    try {
-      const res = await fetch(`/api/pengeluaran?id=${id}`, { method: "DELETE" });
-      if (res.ok) {
-        toast.success("Pengeluaran dihapus");
-        fetchPengeluaran();
-      }
-    } catch {
-      toast.error("Gagal menghapus");
-    }
+  const handleDelete = (id: string, keterangan: string) => {
+    konfirmasi({
+      judul: "Hapus pengeluaran?",
+      pesan: <>Catatan <strong>{keterangan}</strong> akan dihapus permanen.</>,
+      aksi: async () => {
+        try {
+          const res = await fetch(`/api/pengeluaran?id=${id}`, { method: "DELETE" });
+          if (res.ok) {
+            toast.success("Pengeluaran dihapus");
+            fetchPengeluaran();
+          } else {
+            const data = await res.json().catch(() => null);
+            toast.error(data?.error || "Gagal menghapus");
+          }
+        } catch {
+          toast.error("Gagal menghapus");
+        }
+      },
+    });
   };
 
   const totalPengeluaran = filteredData.reduce((sum, p) => sum + p.jumlah, 0);
@@ -146,17 +161,13 @@ export default function PengeluaranPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Pengeluaran</h1>
-          <p className="text-gray-500">Catat pengeluaran operasional</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Pengeluaran</h1>
+          <p className="text-slate-500">Catat pengeluaran operasional</p>
         </div>
         <div className="flex gap-2">
-          <Button
-            onClick={handleExportExcel}
-            variant="outline"
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
+          <Button onClick={handleExportExcel} variant="outline">
             <Download className="h-4 w-4 mr-2" />
             Export Excel
           </Button>
@@ -173,8 +184,8 @@ export default function PengeluaranPage() {
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium">Tanggal</label>
-                  <Input
+                  <label className="text-sm font-medium" htmlFor="tanggal">Tanggal</label>
+                  <Input id="tanggal"
                     type="date"
                     value={form.tanggal}
                     onChange={(e) => setForm({ ...form, tanggal: e.target.value })}
@@ -182,8 +193,8 @@ export default function PengeluaranPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Kategori</label>
-                  <select
+                  <label className="text-sm font-medium" htmlFor="kategori">Kategori</label>
+                  <select id="kategori"
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
                     value={form.kategori}
                     onChange={(e) => setForm({ ...form, kategori: e.target.value })}
@@ -201,8 +212,8 @@ export default function PengeluaranPage() {
                   )}
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Keterangan</label>
-                  <Input
+                  <label className="text-sm font-medium" htmlFor="keterangan">Keterangan</label>
+                  <Input id="keterangan"
                     value={form.keterangan}
                     onChange={(e) => setForm({ ...form, keterangan: e.target.value })}
                     placeholder="Deskripsi pengeluaran"
@@ -210,8 +221,8 @@ export default function PengeluaranPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Jumlah</label>
-                  <Input
+                  <label className="text-sm font-medium" htmlFor="jumlah">Jumlah</label>
+                  <Input id="jumlah"
                     type="number"
                     value={form.jumlah}
                     onChange={(e) => setForm({ ...form, jumlah: e.target.value })}
@@ -240,14 +251,14 @@ export default function PengeluaranPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
+          <div className="flex flex-wrap gap-3 justify-between items-center">
             <CardTitle className="flex items-center gap-2">
               <DollarSign className="h-5 w-5" />
               Riwayat Pengeluaran
             </CardTitle>
             <div className="relative w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
+              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Input aria-label="Cari pengeluaran..."
                 placeholder="Cari pengeluaran..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -258,15 +269,15 @@ export default function PengeluaranPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
+            <TableSkeleton cols={5} />
           ) : filteredData.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               {search ? "Tidak ada data yang cocok" : "Belum ada data pengeluaran"}
             </div>
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[640px]">
                   <thead>
                     <tr className="border-b">
                       <th className="text-left p-3">Tanggal</th>
@@ -278,10 +289,10 @@ export default function PengeluaranPage() {
                   </thead>
                   <tbody>
                     {paginatedData.map((p) => (
-                      <tr key={p.id} className="border-b hover:bg-gray-50">
+                      <tr key={p.id} className="border-b hover:bg-surface-muted">
                         <td className="p-3">
                           <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-gray-400" />
+                            <Calendar className="h-4 w-4 text-slate-400" />
                             {format(new Date(p.tanggal), "dd/MM/yyyy")}
                           </div>
                         </td>
@@ -295,10 +306,10 @@ export default function PengeluaranPage() {
                           {formatRupiah(p.jumlah)}
                         </td>
                         <td className="p-3 text-center">
-                          <Button
+                          <Button aria-label={`Hapus ${p.keterangan}`}
                             variant="ghost"
                             size="sm"
-                            onClick={() => handleDelete(p.id)}
+                            onClick={() => handleDelete(p.id, p.keterangan)}
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
                             <Trash2 className="h-4 w-4" />
@@ -320,6 +331,7 @@ export default function PengeluaranPage() {
           )}
         </CardContent>
       </Card>
+      {dialog}
     </div>
   );
 }

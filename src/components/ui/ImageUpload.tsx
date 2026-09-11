@@ -3,6 +3,7 @@
 import { useState, useRef, useId } from "react";
 import { Upload, X, Loader2, ImageIcon } from "lucide-react";
 import { toast } from "sonner";
+import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 interface ImageUploadProps {
   value: string;
@@ -109,8 +110,9 @@ export function ImageUpload({
         <div className="flex items-start gap-4">
           <div className={`relative ${sizeClass} shrink-0`}>
             <img
-              src={value}
+              src={gambarLebar(value, LEBAR.pratinjau)}
               alt="Preview"
+              decoding="async"
               className={`${sizeClass} ${shapeClass} object-cover border-2 border-gray-200`}
             />
             <button
@@ -134,7 +136,7 @@ export function ImageUpload({
                 <><Upload className="h-4 w-4" /> Ganti Gambar</>
               )}
             </label>
-            <p className="text-xs text-gray-400">JPG, PNG, WebP · Maks 5MB</p>
+            <p className="text-xs text-slate-400">JPG, PNG, WebP · Maks 5MB</p>
           </div>
         </div>
       ) : (
@@ -147,16 +149,16 @@ export function ImageUpload({
           {uploading ? (
             <>
               <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
-              <p className="text-sm text-gray-500">Mengupload gambar...</p>
+              <p className="text-sm text-slate-500">Mengupload gambar...</p>
             </>
           ) : (
             <>
               <div className="p-3 bg-gray-100 rounded-xl">
-                <ImageIcon className="h-6 w-6 text-gray-400" />
+                <ImageIcon className="h-6 w-6 text-slate-400" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-gray-700">{label}</p>
-                <p className="text-xs text-gray-400 mt-1">JPG, PNG, WebP · Maks 5MB</p>
+                <p className="text-sm font-medium text-slate-700">{label}</p>
+                <p className="text-xs text-slate-400 mt-1">JPG, PNG, WebP · Maks 5MB</p>
               </div>
             </>
           )}

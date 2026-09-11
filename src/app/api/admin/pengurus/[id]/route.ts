@@ -5,7 +5,7 @@ import { requireAdminAuth } from "@/lib/auth-middleware";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
@@ -18,7 +18,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
@@ -38,7 +38,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 }
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
-  const auth = requireAdminAuth(request);
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {

@@ -9,7 +9,7 @@ import { Clock, PlayCircle, StopCircle, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
-import { useAuthStore } from "@/store/auth";
+import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Shift {
   id: string;
@@ -17,7 +17,10 @@ interface Shift {
   jamTutup: string | null;
   saldoAwal: number;
   saldoAkhir: number | null;
-  totalPenjualan: number | null;
+  totalPenjualan: number;
+  penjualanTunai: number;
+  penjualanNonTunai: number;
+  jumlahTransaksi: number;
   catatan: string | null;
   user: {
     nama: string;
@@ -37,19 +40,18 @@ export default function ShiftPage() {
     saldoAkhir: "",
     catatan: "",
   });
+  const [submitting, setSubmitting] = useState(false);
   
-  const { user } = useAuthStore();
 
   const fetchShifts = async () => {
     try {
       const res = await fetch("/api/shift");
+      if (!res.ok) throw new Error();
       const data = await res.json();
-      setShifts(data);
-
-      const active = data.find((s: Shift) => s.jamTutup === null);
-      setActiveShift(active || null);
-    } catch (error) {
-      console.error("Failed to fetch shifts:", error);
+      setShifts(data.data ?? []);
+      setActiveShift(data.shiftAktif ?? null);
+    } catch {
+      toast.error("Gagal memuat data shift");
     } finally {
       setLoading(false);
     }
@@ -61,20 +63,17 @@ export default function ShiftPage() {
 
   const handleBukaShift = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!user) {
-      toast.error("User tidak ditemukan, silakan login ulang");
-      return;
-    }
-    
+
+    if (submitting) return;
+    setSubmitting(true);
     try {
+      // userId tidak lagi dikirim dari client — server memakai sesi login.
       const res = await fetch("/api/shift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "buka",
-          userId: user.id,
-          saldoAwal: formBuka.saldoAwal,
+          saldoAwal: Number(formBuka.saldoAwal),
         }),
       });
 
@@ -89,48 +88,59 @@ export default function ShiftPage() {
       }
     } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   const handleTutupShift = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (submitting) return;
+    setSubmitting(true);
     try {
       const res = await fetch("/api/shift", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "tutup",
-          saldoAkhir: formTutup.saldoAkhir,
+          saldoAkhir: Number(formTutup.saldoAkhir),
           catatan: formTutup.catatan,
         }),
       });
 
       if (res.ok) {
+        const hasil = await res.json();
         setOpenTutup(false);
         setFormTutup({ saldoAkhir: "", catatan: "" });
         fetchShifts();
-        toast.success("Shift berhasil ditutup");
+        toast.success(
+          hasil.selisih === 0
+            ? "Shift ditutup — kas sesuai"
+            : `Shift ditutup — selisih kas ${formatRupiah(hasil.selisih)}`
+        );
       } else {
         const error = await res.json();
         toast.error(error.error || "Gagal menutup shift");
       }
     } catch {
       toast.error("Terjadi kesalahan");
+    } finally {
+      setSubmitting(false);
     }
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold">Shift Kasir</h1>
-          <p className="text-gray-500">Manajemen shift dan rekap kasir</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Shift Kasir</h1>
+          <p className="text-slate-500">Manajemen shift dan rekap kasir</p>
         </div>
         <div className="flex gap-2">
           {!activeShift ? (
             <Button
               onClick={() => setOpenBuka(true)}
-              className="bg-green-600 hover:bg-green-700"
             >
               <PlayCircle className="h-4 w-4 mr-2" />
               Buka Shift
@@ -197,9 +207,9 @@ export default function ShiftPage() {
         </CardHeader>
         <CardContent>
           {loading ? (
-            <div className="text-center py-8 text-gray-500">Loading...</div>
+            <TableSkeleton cols={4} />
           ) : shifts.filter((s) => s.jamTutup).length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-slate-500">
               Belum ada riwayat shift
             </div>
           ) : (
@@ -212,42 +222,57 @@ export default function ShiftPage() {
                       new Date(s.jamBuka).getTime()) /
                       (1000 * 60)
                   );
-                  const selisih = (s.saldoAkhir || 0) - s.saldoAwal - (s.totalPenjualan || 0);
+                  // Hanya penjualan tunai yang masuk laci. Versi sebelumnya
+                  // memakai seluruh penjualan, sehingga setiap shift dengan
+                  // pembayaran transfer/QRIS tampak kekurangan uang.
+                  const tunai = s.penjualanTunai ?? 0;
+                  const nonTunai = s.penjualanNonTunai ?? 0;
+                  const selisih = (s.saldoAkhir || 0) - s.saldoAwal - tunai;
 
                   return (
                     <div key={s.id} className="border rounded-lg p-4">
-                      <div className="flex justify-between items-start">
+                      <div className="flex flex-wrap gap-3 justify-between items-start">
                         <div className="flex gap-4">
-                          <div className="bg-blue-100 p-3 rounded-lg">
-                            <User className="h-6 w-6 text-blue-600" />
+                          <div className="bg-brand-100 p-3 rounded-lg">
+                            <User className="h-6 w-6 text-brand-600" />
                           </div>
                           <div>
                             <h3 className="font-semibold text-lg">{s.user.nama}</h3>
-                            <p className="text-sm text-gray-500">
+                            <p className="text-sm text-slate-500">
                               {format(new Date(s.jamBuka), "dd/MM/yyyy HH:mm")} -{" "}
                               {format(new Date(s.jamTutup!), "HH:mm")} ({durasi} menit)
                             </p>
                             <div className="grid grid-cols-2 gap-4 mt-3">
                               <div>
-                                <p className="text-xs text-gray-500">Saldo Awal</p>
+                                <p className="text-xs text-slate-500">Saldo Awal</p>
                                 <p className="font-semibold">
                                   {formatRupiah(s.saldoAwal)}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Total Penjualan</p>
-                                <p className="font-semibold text-green-600">
-                                  {formatRupiah(s.totalPenjualan || 0)}
+                                <p className="text-xs text-slate-500">
+                                  Penjualan Tunai ({s.jumlahTransaksi ?? 0} transaksi)
                                 </p>
+                                <p className="font-semibold text-green-600">
+                                  {formatRupiah(tunai)}
+                                </p>
+                                {nonTunai > 0 && (
+                                  <p className="text-[11px] text-slate-400 mt-0.5">
+                                    + {formatRupiah(nonTunai)} non-tunai, tidak
+                                    masuk laci
+                                  </p>
+                                )}
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Saldo Akhir</p>
+                                <p className="text-xs text-slate-500">Saldo Akhir</p>
                                 <p className="font-semibold">
                                   {formatRupiah(s.saldoAkhir || 0)}
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-gray-500">Selisih</p>
+                                <p className="text-xs text-slate-500">
+                                  Selisih Kas
+                                </p>
                                 <p
                                   className={`font-semibold ${
                                     selisih === 0
@@ -262,7 +287,7 @@ export default function ShiftPage() {
                               </div>
                             </div>
                             {s.catatan && (
-                              <p className="text-sm mt-2 text-gray-600">
+                              <p className="text-sm mt-2 text-slate-600">
                                 Catatan: {s.catatan}
                               </p>
                             )}
@@ -284,8 +309,8 @@ export default function ShiftPage() {
           </DialogHeader>
           <form onSubmit={handleBukaShift} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Saldo Awal Kas</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="saldo-awal-kas">Saldo Awal Kas</label>
+              <Input id="saldo-awal-kas"
                 type="number"
                 value={formBuka.saldoAwal}
                 onChange={(e) => setFormBuka({ saldoAwal: e.target.value })}
@@ -293,8 +318,12 @@ export default function ShiftPage() {
                 required
               />
             </div>
-            <Button type="submit" className="w-full bg-green-600 hover:bg-green-700">
-              Buka Shift
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full"
+            >
+              {submitting ? "Memproses..." : "Buka Shift"}
             </Button>
           </form>
         </DialogContent>
@@ -307,8 +336,8 @@ export default function ShiftPage() {
           </DialogHeader>
           <form onSubmit={handleTutupShift} className="space-y-4">
             <div>
-              <label className="text-sm font-medium">Saldo Akhir Kas</label>
-              <Input
+              <label className="text-sm font-medium" htmlFor="saldo-akhir-kas">Saldo Akhir Kas</label>
+              <Input id="saldo-akhir-kas"
                 type="number"
                 value={formTutup.saldoAkhir}
                 onChange={(e) => setFormTutup({ ...formTutup, saldoAkhir: e.target.value })}
@@ -317,8 +346,8 @@ export default function ShiftPage() {
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Catatan (Opsional)</label>
-              <textarea
+              <label className="text-sm font-medium" htmlFor="catatan-opsional">Catatan (Opsional)</label>
+              <textarea id="catatan-opsional"
                 className="w-full border rounded-lg px-3 py-2"
                 value={formTutup.catatan}
                 onChange={(e) => setFormTutup({ ...formTutup, catatan: e.target.value })}
@@ -326,8 +355,12 @@ export default function ShiftPage() {
                 rows={3}
               />
             </div>
-            <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
-              Tutup Shift
+            <Button
+              type="submit"
+              disabled={submitting}
+              className="w-full bg-red-600 hover:bg-red-700"
+            >
+              {submitting ? "Memproses..." : "Tutup Shift"}
             </Button>
           </form>
         </DialogContent>
