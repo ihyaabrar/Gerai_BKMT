@@ -208,6 +208,23 @@ akan memberi tahu untuk mengekspor per bulan saja.
 
 ---
 
+## 10. Kalau tidak ada yang bisa masuk
+
+Master lupa passwordnya, atau akun awal terlanjur dibuat tanpa password yang
+tercatat. Tanpa alat ini satu-satunya jalan keluar adalah mengutak-atik
+database secara manual.
+
+```bash
+read -s -p "Password baru: " P && echo && printf 'admin
+%s
+' "$P" | DATABASE_URL="<connection-string>" node scripts/reset-password.mjs
+```
+
+Password diketik langsung di terminal, tidak tampil di layar, dan tidak masuk
+riwayat perintah shell. Ganti `admin` dengan username lain bila perlu.
+
+---
+
 ## 10. Kalau ada yang error
 
 Setiap kegagalan yang tidak terduga menampilkan **kode enam karakter**,
