@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { useIdentitasStore } from "@/store/identitas";
 import {
   LayoutDashboard, ShoppingCart, Package, Wallet, Users, Settings,
   ChevronDown, LogOut, Globe, Shield, X,
@@ -59,7 +60,16 @@ const menuItems = [
   },
 ];
 
-export function Sidebar({ logoUrl }: { logoUrl?: string | null }) {
+export function Sidebar() {
+  // Logo diambil di sisi klien: halaman ini dirender statis saat build, jadi
+  // membacanya di server akan membekukan logo sampai deploy berikutnya.
+  const logoUrl = useIdentitasStore((s) => s.logoUrl);
+  const muatIdentitas = useIdentitasStore((s) => s.muat);
+  useEffect(() => {
+    muatIdentitas();
+  }, [muatIdentitas]);
+
+
   const { open, close } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useIdentitasStore } from "@/store/identitas";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,19 +44,13 @@ export default function LoginPage() {
     }
   };
 
-  // Logo diambil dari profil organisasi supaya halaman login ikut berubah
-  // ketika pengurus mengganti logo. Sebelumnya lambang di sini ditulis
-  // langsung di kode, jadi mengganti logo terasa tidak berfungsi.
-  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  // Memakai store yang sama dengan sidebar supaya logonya diambil sekali saja.
+  const logoUrl = useIdentitasStore((s) => s.logoUrl);
+  const muatIdentitas = useIdentitasStore((s) => s.muat);
 
   useEffect(() => {
-    fetch("/api/public/profil")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => setLogoUrl(d?.data?.logoUrl ?? null))
-      .catch(() => {
-        // Logo hanya hiasan; kegagalannya tidak boleh mengganggu login.
-      });
-  }, []);
+    muatIdentitas();
+  }, [muatIdentitas]);
 
   return (
     <div className="min-h-screen lg:grid lg:grid-cols-2">

@@ -1,11 +1,13 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Globe, LogOut, LayoutDashboard, FileText, Users, Store, Building2, ShoppingCart, X, Image as ImageIcon, CalendarDays } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 import { useSidebar } from "@/components/layout/DashboardShell";
+import { useIdentitasStore } from "@/store/identitas";
 
 const adminMenuItems = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
@@ -17,7 +19,16 @@ const adminMenuItems = [
   { icon: CalendarDays, label: "Agenda", href: "/admin/agenda" },
 ];
 
-export function AdminSidebar({ logoUrl }: { logoUrl?: string | null }) {
+export function AdminSidebar() {
+  // Logo diambil di sisi klien: halaman ini dirender statis saat build, jadi
+  // membacanya di server akan membekukan logo sampai deploy berikutnya.
+  const logoUrl = useIdentitasStore((s) => s.logoUrl);
+  const muatIdentitas = useIdentitasStore((s) => s.muat);
+  useEffect(() => {
+    muatIdentitas();
+  }, [muatIdentitas]);
+
+
   const { open, close } = useSidebar();
   const pathname = usePathname();
   const router = useRouter();

@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { useIdentitasStore } from "@/store/identitas";
 import { Menu } from "lucide-react";
 
 interface SidebarState {
@@ -22,8 +23,6 @@ interface DashboardShellProps {
   sidebar: React.ReactNode;
   /** Judul singkat di header mobile. */
   brand: string;
-  /** Logo organisasi. Bila kosong, dipakai kotak berinisial. */
-  logoUrl?: string | null;
   /** Label kecil di atas judul, mis. "Admin Panel". */
   brandLabel?: string;
   /** Kelas Tailwind untuk gradient kotak inisial. */
@@ -44,12 +43,20 @@ interface DashboardShellProps {
 export function DashboardShell({
   sidebar,
   brand,
-  logoUrl,
   brandLabel,
   brandAccent = "bg-gold-400",
   topbar,
   children,
 }: DashboardShellProps) {
+  // Logo diambil di sisi klien: halaman /app dan /admin dirender statis saat
+  // build, jadi membacanya di server akan membekukan logo sampai deploy
+  // berikutnya.
+  const logoUrl = useIdentitasStore((x) => x.logoUrl);
+  const muatIdentitas = useIdentitasStore((x) => x.muat);
+  useEffect(() => {
+    muatIdentitas();
+  }, [muatIdentitas]);
+
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
