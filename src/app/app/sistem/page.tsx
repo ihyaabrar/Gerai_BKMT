@@ -82,8 +82,8 @@ export default function SistemPage() {
     },
     {
       href: "/app/sistem/backup",
-      label: "Backup & Restore",
-      desc: "Unduh salinan seluruh data",
+      label: "Ekspor Data",
+      desc: "Unduh arsip data per bulan",
       icon: DatabaseBackup,
       warna: "bg-sky-50 text-sky-600",
       adminSaja: true,

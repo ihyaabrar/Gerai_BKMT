@@ -1,9 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Database, Download, AlertTriangle, Loader2 } from "lucide-react";
+import { Select } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Database, Download, ShieldCheck, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Statistik {
@@ -15,6 +17,7 @@ interface Statistik {
   pengeluaran: number;
   retur: number;
   shift: number;
+  distribusi: number;
 }
 
 const LABEL: Record<keyof Statistik, string> = {
@@ -26,39 +29,66 @@ const LABEL: Record<keyof Statistik, string> = {
   pengeluaran: "Pengeluaran",
   retur: "Retur",
   shift: "Shift Kasir",
+  distribusi: "Distribusi Laba",
 };
 
-export default function BackupPage() {
+const NAMA_BULAN = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+];
+
+/** Pilihan periode: 24 bulan terakhir, ditambah opsi seluruh data. */
+function daftarPeriode() {
+  const sekarang = new Date();
+  const bulan = Array.from({ length: 24 }, (_, i) => {
+    const d = new Date(sekarang.getFullYear(), sekarang.getMonth() - i, 1);
+    return {
+      nilai: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`,
+      label: `${NAMA_BULAN[d.getMonth()]} ${d.getFullYear()}`,
+    };
+  });
+  return [{ nilai: "", label: "Seluruh data" }, ...bulan];
+}
+
+export default function EksporPage() {
+  const periodeOpsi = useMemo(daftarPeriode, []);
+  // Bulan berjalan jadi pilihan awal: inilah yang biasanya benar-benar
+  // dibutuhkan pengurus, dan ukurannya tidak pernah mendekati batas.
+  const [periode, setPeriode] = useState(periodeOpsi[1].nilai);
+
   const [statistik, setStatistik] = useState<Statistik | null>(null);
   const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
+  const [mengunduh, setMengunduh] = useState(false);
 
   useEffect(() => {
-    const fetchStatistik = async () => {
-      try {
-        const res = await fetch("/api/backup", { method: "POST" });
-        if (!res.ok) throw new Error();
-        const data = await res.json();
-        setStatistik(data.statistik);
-      } catch {
-        toast.error("Gagal memuat statistik database");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchStatistik();
+    fetch("/api/backup", { method: "POST" })
+      .then((r) => (r.ok ? r.json() : Promise.reject()))
+      .then((data) => setStatistik(data.statistik))
+      .catch(() => toast.error("Gagal memuat statistik database"))
+      .finally(() => setLoading(false));
   }, []);
 
-  const handleDownload = async () => {
-    setDownloading(true);
+  const unduh = async () => {
+    setMengunduh(true);
     try {
-      const res = await fetch("/api/backup");
-      if (!res.ok) throw new Error();
+      const res = await fetch(`/api/backup${periode ? `?periode=${periode}` : ""}`);
+
+      if (!res.ok) {
+        // Pesan dari server menjelaskan apa yang harus dilakukan — mis. data
+        // terlalu besar, ekspor per bulan saja. Menggantinya dengan "gagal"
+        // generik justru menghilangkan satu-satunya petunjuk yang ada.
+        const pesan = await res
+          .json()
+          .then((d) => d?.error)
+          .catch(() => null);
+        toast.error(pesan || "Gagal mengekspor data");
+        return;
+      }
 
       const blob = await res.blob();
       const disposition = res.headers.get("Content-Disposition") ?? "";
       const filename =
-        disposition.match(/filename="?([^"]+)"?/)?.[1] ?? "backup-gerai-bkmt.json";
+        disposition.match(/filename="?([^"]+)"?/)?.[1] ?? "gerai-bkmt.json";
 
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
@@ -69,98 +99,122 @@ export default function BackupPage() {
       link.remove();
       URL.revokeObjectURL(url);
 
-      toast.success("Backup berhasil diunduh");
+      toast.success(`${filename} diunduh`);
     } catch {
-      toast.error("Gagal membuat backup");
+      toast.error("Terjadi kesalahan saat mengekspor");
     } finally {
-      setDownloading(false);
+      setMengunduh(false);
     }
   };
 
-  const totalBaris = statistik
-    ? Object.values(statistik).reduce((sum, n) => sum + n, 0)
-    : 0;
+  const labelPeriode =
+    periodeOpsi.find((p) => p.nilai === periode)?.label ?? "Seluruh data";
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap gap-4 justify-between items-center">
+    <div className="space-y-5">
+      <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Backup Data</h1>
-          <p className="text-slate-500">Unduh salinan seluruh data dalam format JSON</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            Ekspor Data
+          </h1>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Salinan data dalam format JSON untuk arsip dan pemeriksaan.
+          </p>
         </div>
-        <Button
-          onClick={handleDownload}
-          disabled={downloading || loading}
-        >
-          {downloading ? (
-            <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Menyiapkan...</>
-          ) : (
-            <><Download className="h-4 w-4 mr-2" /> Unduh Backup</>
-          )}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Select
+            aria-label="Pilih periode ekspor"
+            value={periode}
+            onChange={(e) => setPeriode(e.target.value)}
+            className="h-9 w-auto min-w-[11rem] text-sm"
+          >
+            {periodeOpsi.map((p) => (
+              <option key={p.nilai || "semua"} value={p.nilai}>
+                {p.label}
+              </option>
+            ))}
+          </Select>
+          <Button onClick={unduh} disabled={mengunduh}>
+            {mengunduh ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" /> Menyiapkan...
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" /> Unduh
+              </>
+            )}
+          </Button>
+        </div>
       </div>
 
-      <Card className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white">
-        <CardHeader>
-          <CardTitle className="text-white">Informasi Database</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <p className="text-sm opacity-80">Jenis Database</p>
-              <p className="text-lg font-semibold">PostgreSQL</p>
-            </div>
-            <div>
-              <p className="text-sm opacity-80">Total Baris Data</p>
-              <p className="text-lg font-semibold">
-                {loading ? "…" : totalBaris.toLocaleString("id-ID")}
-              </p>
-            </div>
+      {/* Yang sebenarnya melindungi data */}
+      <Card>
+        <CardContent className="p-5 pt-5 flex items-start gap-3.5">
+          <span className="shrink-0 h-11 w-11 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center">
+            <ShieldCheck className="h-5 w-5" />
+          </span>
+          <div className="min-w-0">
+            <p className="font-bold text-slate-900">
+              Pengaman utama data bukan tombol ini
+            </p>
+            <p className="text-sm text-slate-500 mt-1 leading-relaxed max-w-3xl">
+              Backup yang bergantung pada seseorang menekan tombol setiap minggu
+              adalah backup yang tidak ada. Yang benar-benar melindungi data
+              adalah <strong>backup otomatis dari penyedia database</strong>{" "}
+              (point-in-time restore di Neon, daily backup di Supabase) — aktifkan
+              itu, dan tidak ada yang perlu diingat lagi.
+              <br />
+              <br />
+              Berkas di halaman ini untuk arsip bulanan, pemeriksaan angka, dan
+              pemindahan data. Password pengguna sengaja tidak disertakan.
+            </p>
           </div>
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5" />
-            Isi Backup
+            <Database className="h-5 w-5 text-slate-400" />
+            Isi Database
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {loading ? (
-            <div className="text-center py-8 text-slate-500">
-              <Loader2 className="h-5 w-5 animate-spin mx-auto" />
-            </div>
-          ) : !statistik ? (
-            <p className="text-center py-8 text-slate-400">Statistik tidak tersedia</p>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              {(Object.keys(LABEL) as (keyof Statistik)[]).map((key) => (
-                <div key={key} className="p-4 border rounded-xl">
-                  <p className="text-xs text-slate-500">{LABEL[key]}</p>
-                  <p className="text-xl font-bold text-slate-900 mt-1">
-                    {statistik[key].toLocaleString("id-ID")}
-                  </p>
-                </div>
+            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-20 w-full rounded-card" />
               ))}
             </div>
+          ) : !statistik ? (
+            <p className="text-center py-8 text-slate-400 text-sm">
+              Statistik tidak tersedia
+            </p>
+          ) : (
+            <>
+              <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+                {(Object.keys(LABEL) as (keyof Statistik)[]).map((key) => (
+                  <div
+                    key={key}
+                    className="rounded-card border border-border p-4 bg-white"
+                  >
+                    <p className="text-xs text-slate-500">{LABEL[key]}</p>
+                    <p className="text-xl font-bold text-slate-900 mt-1 tabular-nums">
+                      {(statistik[key] ?? 0).toLocaleString("id-ID")}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-400 mt-4 leading-relaxed">
+                Ekspor <strong>{labelPeriode}</strong> memuat data induk lengkap
+                (barang, member, nasabah, pengaturan) ditambah transaksi pada
+                periode itu. Rekaman distribusi bagi hasil ikut disertakan —
+                itulah yang menjawab pertanyaan anggota tentang pembagian
+                bulan-bulan sebelumnya.
+              </p>
+            </>
           )}
-        </CardContent>
-      </Card>
-
-      <Card className="border-amber-200 bg-amber-50">
-        <CardHeader className="pb-2">
-          <CardTitle className="text-amber-800 flex items-center gap-2 text-base">
-            <AlertTriangle className="h-5 w-5" />
-            Catatan Penting
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-amber-800 space-y-1">
-          <p>• Unduh backup secara berkala dan simpan di lokasi aman (cloud/external drive)</p>
-          <p>• Password pengguna sengaja tidak disertakan dalam file backup</p>
-          <p>• File JSON ini untuk arsip &amp; migrasi data, bukan snapshot penuh PostgreSQL</p>
-          <p>• Untuk backup tingkat database, gunakan fitur snapshot dari penyedia (Neon/Supabase) atau <code className="bg-amber-100 px-1 rounded">pg_dump</code></p>
         </CardContent>
       </Card>
     </div>

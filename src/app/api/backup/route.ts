@@ -1,23 +1,52 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuth } from "@/lib/auth-middleware";
-import { toErrorResponse } from "@/lib/validate";
+import { labelPeriode, periodeValid, rentangPeriode } from "@/lib/keuangan";
+import { ValidationError, toErrorResponse } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
 /**
- * Export seluruh data sebagai satu file JSON yang langsung diunduh browser.
+ * Batas ukuran respons Vercel sekitar 4,5 MB. Ambang di bawahnya dipakai agar
+ * kegagalan terjadi di sini — dengan pesan yang menjelaskan jalan keluarnya —
+ * bukan sebagai FUNCTION_PAYLOAD_TOO_LARGE yang muncul ke pengurus sebagai
+ * "Gagal membuat backup" tanpa keterangan apa pun.
+ */
+const BATAS_BYTE = 3_500_000;
+
+/**
+ * Ekspor data sebagai satu berkas JSON yang langsung diunduh peramban.
  *
- * Versi sebelumnya menyalin file `prisma/dev.db` — sisa dari masa SQLite.
- * Database sekarang PostgreSQL dan aplikasi umumnya berjalan di lingkungan
- * serverless yang filesystem-nya tidak persisten, jadi pendekatan itu
- * tidak akan pernah berhasil.
+ * Ini BUKAN strategi pemulihan bencana utama. Backup yang bergantung pada
+ * seseorang menekan tombol setiap minggu adalah backup yang tidak ada.
+ * Andalkan point-in-time restore bawaan penyedia database; berkas ini untuk
+ * arsip dan pemeriksaan manual.
+ *
+ * Tanpa parameter, seluruh data diekspor. Dengan `?periode=YYYY-MM`, hanya
+ * transaksi bulan itu — inilah yang biasanya benar-benar dibutuhkan pengurus,
+ * dan ukurannya tidak pernah mendekati batas.
  */
 export async function GET(request: NextRequest) {
   const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
+    const periode = new URL(request.url).searchParams.get("periode");
+    if (periode && !periodeValid(periode)) {
+      throw new ValidationError("Periode harus berformat YYYY-MM, misalnya 2026-09");
+    }
+
+    // Data transaksional disaring per periode; data induk (barang, member,
+    // nasabah, pengaturan) selalu ikut penuh karena tanpa itu berkasnya tidak
+    // bisa dibaca sendiri.
+    const rentang = periode ? rentangPeriode(periode) : null;
+    const saring = rentang
+      ? { tanggal: { gte: rentang.mulai, lte: rentang.selesai } }
+      : {};
+    const saringShift = rentang
+      ? { jamBuka: { gte: rentang.mulai, lte: rentang.selesai } }
+      : {};
+
     const [
       barang,
       member,
@@ -28,6 +57,7 @@ export async function GET(request: NextRequest) {
       penyesuaian,
       retur,
       shift,
+      distribusi,
       pengaturan,
       kategoriBarang,
       kategoriPengeluaran,
@@ -37,15 +67,21 @@ export async function GET(request: NextRequest) {
       prisma.member.findMany(),
       prisma.nasabah.findMany(),
       prisma.supplier.findMany(),
-      prisma.penjualan.findMany({ include: { detail: true } }),
-      prisma.pengeluaran.findMany(),
-      prisma.penyesuaianStok.findMany(),
-      prisma.retur.findMany(),
-      prisma.shiftKasir.findMany(),
+      prisma.penjualan.findMany({ where: saring, include: { detail: true } }),
+      prisma.pengeluaran.findMany({ where: saring }),
+      prisma.penyesuaianStok.findMany({ where: saring }),
+      prisma.retur.findMany({ where: saring }),
+      prisma.shiftKasir.findMany({ where: saringShift }),
+      // Rekaman bagi hasil ikut diekspor: inilah yang menjawab pertanyaan
+      // anggota tentang pembagian bulan-bulan sebelumnya.
+      prisma.distribusiLaba.findMany({
+        where: periode ? { periode } : {},
+        include: { detail: true },
+      }),
       prisma.pengaturan.findMany(),
       prisma.kategoriBarang.findMany(),
       prisma.kategoriPengeluaran.findMany(),
-      // Password sengaja tidak diikutkan dalam file backup.
+      // Password sengaja tidak diikutkan dalam berkas ekspor.
       prisma.user.findMany({
         select: {
           id: true,
@@ -61,7 +97,8 @@ export async function GET(request: NextRequest) {
     const payload = {
       meta: {
         aplikasi: "Gerai BKMT",
-        versi: 1,
+        versi: 2,
+        periode: periode ?? "semua",
         dibuatPada: new Date().toISOString(),
         dibuatOleh: auth.user.username,
       },
@@ -78,48 +115,89 @@ export async function GET(request: NextRequest) {
         penyesuaian,
         retur,
         shift,
+        distribusi,
         pengaturan,
       },
     };
 
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+    // Tanpa indentasi: berkas yang sama, sekitar 30% lebih kecil. Berkas ini
+    // dibaca mesin, bukan manusia.
+    const isi = JSON.stringify(payload);
+    const ukuran = Buffer.byteLength(isi, "utf8");
 
-    return new NextResponse(JSON.stringify(payload, null, 2), {
+    if (ukuran > BATAS_BYTE) {
+      throw new ValidationError(
+        `Data terlalu besar untuk diekspor sekaligus (${(ukuran / 1_000_000).toFixed(1)} MB). ` +
+          `Ekspor per bulan saja — pilih periodenya di halaman ini.`
+      );
+    }
+
+    const namaBerkas = periode
+      ? `gerai-bkmt-${periode}.json`
+      : `gerai-bkmt-semua-${new Date().toISOString().slice(0, 10)}.json`;
+
+    return new NextResponse(isi, {
       headers: {
         "Content-Type": "application/json",
-        "Content-Disposition": `attachment; filename="backup-gerai-bkmt-${timestamp}.json"`,
+        "Content-Disposition": `attachment; filename="${namaBerkas}"`,
         "Cache-Control": "no-store",
       },
     });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal membuat backup");
+    const { message, status } = toErrorResponse(error, "Gagal mengekspor data", {
+      endpoint: "/api/backup",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
 
-/** Ringkasan jumlah baris per tabel, untuk ditampilkan di halaman backup. */
+/** Ringkasan jumlah baris per tabel, untuk ditampilkan di halaman ekspor. */
 export async function POST(request: NextRequest) {
   const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
-    const [barang, member, nasabah, supplier, penjualan, pengeluaran, retur, shift] =
-      await Promise.all([
-        prisma.barang.count(),
-        prisma.member.count(),
-        prisma.nasabah.count(),
-        prisma.supplier.count(),
-        prisma.penjualan.count(),
-        prisma.pengeluaran.count(),
-        prisma.retur.count(),
-        prisma.shiftKasir.count(),
-      ]);
+    const [
+      barang,
+      member,
+      nasabah,
+      supplier,
+      penjualan,
+      pengeluaran,
+      retur,
+      shift,
+      distribusi,
+    ] = await Promise.all([
+      prisma.barang.count(),
+      prisma.member.count(),
+      prisma.nasabah.count(),
+      prisma.supplier.count(),
+      prisma.penjualan.count(),
+      prisma.pengeluaran.count(),
+      prisma.retur.count(),
+      prisma.shiftKasir.count(),
+      prisma.distribusiLaba.count(),
+    ]);
 
     return NextResponse.json({
-      statistik: { barang, member, nasabah, supplier, penjualan, pengeluaran, retur, shift },
+      statistik: {
+        barang,
+        member,
+        nasabah,
+        supplier,
+        penjualan,
+        pengeluaran,
+        retur,
+        shift,
+        distribusi,
+      },
     });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memuat statistik");
+    const { message, status } = toErrorResponse(error, "Gagal memuat statistik", {
+      endpoint: "/api/backup",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
