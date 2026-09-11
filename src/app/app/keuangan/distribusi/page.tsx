@@ -1,497 +1,584 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { formatRupiah } from "@/lib/utils";
-import { Users, Building, Download, Printer, TrendingUp, PieChart } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Select } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useConfirm } from "@/components/ui/confirm-dialog";
+import { cn, formatRupiah } from "@/lib/utils";
+import { useAuthStore } from "@/store/auth";
+import {
+  AlertTriangle,
+  Building,
+  Download,
+  Lock,
+  Unlock,
+  Printer,
+  TrendingDown,
+  Users,
+} from "lucide-react";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
 
-interface DistribusiData {
-  totalLaba: number;
-  bagianNasabah: number;
-  bagianPengelola: number;
+/**
+ * Alokasi internal bagian pengelola. Angka ini kesepakatan pengurus dan
+ * tidak diatur lewat halaman pengaturan, jadi ditulis apa adanya di sini.
+ */
+const ALOKASI_PENGELOLA = [
+  { nama: "Gaji Pegawai", persen: 20 },
+  { nama: "Kontribusi Pemilik/Organisasi", persen: 20 },
+  { nama: "Dana Sosial", persen: 20 },
+  { nama: "Dana Pengembangan", persen: 10 },
+  { nama: "Operasional & Lainnya", persen: 30 },
+];
+
+interface BarisNasabah {
+  nasabahId?: string;
+  id?: string;
+  namaNasabah: string;
+  jumlahInvestasi: number;
+  persentase: number;
+  bagian: number;
+}
+
+interface Distribusi {
+  periode: string;
+  totalPenjualan: number;
+  totalHpp: number;
+  totalDiskon: number;
+  labaKotor: number;
+  totalTransaksi?: number;
   persenNasabah: number;
   persenPengelola: number;
-  distribusiNasabah: Array<{
-    id: string;
-    nama: string;
-    jumlahInvestasi: number;
-    bagian: number;
-  }>;
+  bagianNasabah: number;
+  bagianPengelola: number;
   totalInvestasi: number;
+  rugi?: boolean;
+  catatan?: string | null;
+  createdAt?: string;
+  dibuatOleh?: { nama: string } | null;
+  detail: BarisNasabah[];
+}
+
+interface Respons {
+  status: "ditutup" | "pratinjau";
+  label: string;
+  bisaDitutup?: boolean;
+  distribusi: Distribusi;
+}
+
+const NAMA_BULAN = [
+  "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+  "Juli", "Agustus", "September", "Oktober", "November", "Desember",
+];
+
+/** 24 bulan terakhir, terbaru lebih dulu. */
+function daftarPeriode(): { nilai: string; label: string }[] {
+  const sekarang = new Date();
+  return Array.from({ length: 24 }, (_, i) => {
+    const d = new Date(sekarang.getFullYear(), sekarang.getMonth() - i, 1);
+    const nilai = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+    return { nilai, label: `${NAMA_BULAN[d.getMonth()]} ${d.getFullYear()}` };
+  });
 }
 
 export default function DistribusiPage() {
-  const [data, setData] = useState<DistribusiData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuthStore();
+  const isMaster = user?.role === "master";
+  const { konfirmasi, dialog } = useConfirm();
 
-  useEffect(() => {
-    fetchDistribusiData();
+  const periodeOpsi = useMemo(daftarPeriode, []);
+  const [periode, setPeriode] = useState(periodeOpsi[0].nilai);
+  const [data, setData] = useState<Respons | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [menyimpan, setMenyimpan] = useState(false);
+  const [ditutup, setDitutup] = useState<Set<string>>(new Set());
+
+  const ambilDaftar = useCallback(async () => {
+    const res = await fetch("/api/distribusi?daftar=1");
+    if (!res.ok) return;
+    const json = await res.json();
+    setDitutup(new Set((json.daftar ?? []).map((d: { periode: string }) => d.periode)));
   }, []);
 
-  const fetchDistribusiData = async () => {
+  const ambil = useCallback(async (p: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
-
-      // Ambil pengaturan untuk persentase yang benar
-      const [laporanRes, nasabahRes, pengaturanRes] = await Promise.all([
-        fetch(`/api/laporan?type=penjualan&startDate=${
-          new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()
-        }&endDate=${new Date().toISOString()}`),
-        fetch("/api/nasabah"),
-        fetch("/api/pengaturan"),
-      ]);
-
-      const [laporanData, nasabahList, pengaturan] = await Promise.all([
-        laporanRes.json(),
-        nasabahRes.json(),
-        pengaturanRes.json(),
-      ]);
-
-      const totalLaba = laporanData.totalLaba || 0;
-      const persenNasabah = pengaturan.persenNasabah ?? 30;
-      const persenPengelola = pengaturan.persenPengelola ?? 70;
-      const bagianNasabah = totalLaba * (persenNasabah / 100);
-      const bagianPengelola = totalLaba * (persenPengelola / 100);
-
-      const activeNasabah = Array.isArray(nasabahList) ? nasabahList.filter((n: any) => n.aktif) : [];
-      const totalInvestasi = activeNasabah.reduce((sum: number, n: any) => sum + n.jumlahInvestasi, 0);
-
-      const distribusiNasabah = activeNasabah.map((n: any) => ({
-        id: n.id,
-        nama: n.nama,
-        jumlahInvestasi: n.jumlahInvestasi,
-        bagian: totalInvestasi > 0 ? (n.jumlahInvestasi / totalInvestasi) * bagianNasabah : 0,
-      }));
-
-      setData({
-        totalLaba,
-        bagianNasabah,
-        bagianPengelola,
-        persenNasabah,
-        persenPengelola,
-        distribusiNasabah,
-        totalInvestasi,
-      });
-    } catch (error) {
-      console.error("Failed to fetch distribusi data:", error);
-      toast.error("Gagal memuat data distribusi");
+      const res = await fetch(`/api/distribusi?periode=${p}`);
+      const json = await res.json();
+      if (!res.ok) {
+        toast.error(json?.error || "Gagal memuat distribusi");
+        setData(null);
+        return;
+      }
+      setData(json);
+    } catch {
+      toast.error("Gagal memuat distribusi");
+      setData(null);
     } finally {
       setLoading(false);
     }
+  }, []);
+
+  useEffect(() => {
+    ambilDaftar();
+  }, [ambilDaftar]);
+
+  useEffect(() => {
+    ambil(periode);
+  }, [periode, ambil]);
+
+  const tutupPeriode = () => {
+    if (!data) return;
+    const d = data.distribusi;
+    konfirmasi({
+      judul: `Tutup distribusi ${data.label}?`,
+      pesan: (
+        <>
+          Seluruh angka di halaman ini akan <strong>dibekukan</strong> sebagai
+          rekaman resmi periode {data.label}: laba{" "}
+          {formatRupiah(d.labaKotor)}, bagian nasabah{" "}
+          {formatRupiah(d.bagianNasabah)} untuk {d.detail.length} orang.
+          <br />
+          <br />
+          Setelah ditutup, angka ini tidak akan berubah walaupun harga barang
+          atau daftar nasabah diubah kemudian. Inilah yang dipakai untuk
+          menjawab pertanyaan anggota di kemudian hari.
+        </>
+      ),
+      labelKonfirmasi: "Tutup & Simpan",
+      nada: "normal",
+      aksi: async () => {
+        setMenyimpan(true);
+        try {
+          const res = await fetch("/api/distribusi", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ periode }),
+          });
+          const json = await res.json();
+          if (!res.ok) {
+            toast.error(json?.error || "Gagal menutup distribusi");
+            return;
+          }
+          toast.success(`Distribusi ${data.label} tersimpan`);
+          await Promise.all([ambilDaftar(), ambil(periode)]);
+        } finally {
+          setMenyimpan(false);
+        }
+      },
+    });
   };
 
-  const handleExportExcel = () => {
+  const bukaKembali = () => {
     if (!data) return;
+    konfirmasi({
+      judul: `Buka kembali ${data.label}?`,
+      pesan: (
+        <>
+          Rekaman distribusi {data.label} akan <strong>dihapus</strong>. Bukti
+          pembagian yang sudah tercatat ikut hilang, dan periode ini harus
+          ditutup ulang dengan angka yang berlaku saat itu.
+        </>
+      ),
+      labelKonfirmasi: "Buka Kembali",
+      aksi: async () => {
+        const res = await fetch(`/api/distribusi?periode=${periode}`, {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          const json = await res.json().catch(() => null);
+          toast.error(json?.error || "Gagal membuka kembali periode");
+          return;
+        }
+        toast.success("Periode dibuka kembali");
+        await Promise.all([ambilDaftar(), ambil(periode)]);
+      },
+    });
+  };
 
+  const exportExcel = () => {
+    if (!data) return;
+    const d = data.distribusi;
     try {
-      // Sheet 1: Ringkasan
       const ringkasan = [
-        {
-          "Keterangan": "Total Laba Bulan Ini",
-          "Jumlah": data.totalLaba,
-        },
-        {
-          "Keterangan": `Bagian Nasabah (${data.persenNasabah}%)`,
-          "Jumlah": data.bagianNasabah,
-        },
-        {
-          "Keterangan": `Bagian Pengelola (${data.persenPengelola}%)`,
-          "Jumlah": data.bagianPengelola,
-        },
+        { Keterangan: "Periode", Nilai: data.label },
+        { Keterangan: "Status", Nilai: data.status === "ditutup" ? "Ditutup" : "Pratinjau" },
+        { Keterangan: "Total Penjualan", Nilai: d.totalPenjualan },
+        { Keterangan: "Harga Pokok Penjualan", Nilai: d.totalHpp },
+        { Keterangan: "Diskon Member", Nilai: d.totalDiskon },
+        { Keterangan: "Laba Kotor", Nilai: d.labaKotor },
+        { Keterangan: `Bagian Nasabah (${d.persenNasabah}%)`, Nilai: d.bagianNasabah },
+        { Keterangan: `Bagian Pengelola (${d.persenPengelola}%)`, Nilai: d.bagianPengelola },
+        { Keterangan: "Total Investasi", Nilai: d.totalInvestasi },
       ];
 
-      // Sheet 2: Distribusi Nasabah
-      const distribusiNasabah = data.distribusiNasabah.map((n) => ({
-        "Nama Nasabah": n.nama,
-        "Investasi": n.jumlahInvestasi,
-        "Persentase": data.totalInvestasi > 0 
-          ? `${((n.jumlahInvestasi / data.totalInvestasi) * 100).toFixed(2)}%` 
-          : "0%",
+      const perNasabah = d.detail.map((n) => ({
+        "Nama Nasabah": n.namaNasabah,
+        Investasi: n.jumlahInvestasi,
+        Persentase: `${n.persentase.toFixed(2)}%`,
         "Bagi Hasil": n.bagian,
       }));
 
-      // Sheet 3: Alokasi Pengelola
-      const alokasi = [
-        {
-          "Kategori": "Gaji Pegawai",
-          "Persentase": "20%",
-          "Jumlah": data.bagianPengelola * 0.2,
-        },
-        {
-          "Kategori": "Kontribusi Pemilik/Organisasi",
-          "Persentase": "20%",
-          "Jumlah": data.bagianPengelola * 0.2,
-        },
-        {
-          "Kategori": "Dana Sosial",
-          "Persentase": "20%",
-          "Jumlah": data.bagianPengelola * 0.2,
-        },
-        {
-          "Kategori": "Dana Pengembangan",
-          "Persentase": "10%",
-          "Jumlah": data.bagianPengelola * 0.1,
-        },
-        {
-          "Kategori": "Operasional & Lainnya",
-          "Persentase": "30%",
-          "Jumlah": data.bagianPengelola * 0.3,
-        },
-      ];
+      const alokasi = ALOKASI_PENGELOLA.map((a) => ({
+        Kategori: a.nama,
+        Persentase: `${a.persen}%`,
+        Jumlah: Math.round((d.bagianPengelola * a.persen) / 100),
+      }));
 
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(ringkasan), "Ringkasan");
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(distribusiNasabah), "Distribusi Nasabah");
+      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(perNasabah), "Bagi Hasil Nasabah");
       XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(alokasi), "Alokasi Pengelola");
-
-      XLSX.writeFile(wb, `Distribusi_Laba_${new Date().toISOString().split("T")[0]}.xlsx`);
-      toast.success("Data berhasil diekspor ke Excel");
-    } catch (error) {
-      console.error("Export failed:", error);
+      XLSX.writeFile(wb, `Distribusi_Laba_${d.periode}.xlsx`);
+      toast.success("Data diekspor ke Excel");
+    } catch {
       toast.error("Gagal mengekspor data");
     }
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-slate-500">Memuat data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-slate-500">Gagal memuat data</p>
-      </div>
-    );
-  }
-
-  const rataRataBagiHasil = data.distribusiNasabah.length > 0
-    ? data.bagianNasabah / data.distribusiNasabah.length
-    : 0;
+  const d = data?.distribusi;
+  const sudahDitutup = data?.status === "ditutup";
 
   return (
     <>
       <style jsx global>{`
         @media print {
           .no-print { display: none !important; }
-          .print-break { page-break-after: always; }
         }
       `}</style>
 
-      <div className="space-y-6">
-        <div className="flex flex-wrap gap-3 justify-between items-center">
-          <div className="animate-fadeIn">
-            <h1 className="text-2xl sm:text-3xl font-bold">Distribusi Laba</h1>
-            <p className="text-slate-500">Sistem bagi hasil otomatis</p>
+      <div className="space-y-5">
+        <div className="flex flex-wrap gap-3 items-start justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+              Distribusi Laba
+            </h1>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Bagi hasil nasabah per periode, dibekukan saat periode ditutup.
+            </p>
           </div>
 
-          <div className="flex gap-2 no-print">
-            <Button variant="outline"
-              onClick={handleExportExcel}
-              className="transition-all"
+          <div className="flex flex-wrap gap-2 no-print">
+            <Select
+              aria-label="Pilih periode"
+              value={periode}
+              onChange={(e) => setPeriode(e.target.value)}
+              className="h-9 w-auto min-w-[11rem] text-sm"
             >
-              <Download className="h-4 w-4 mr-2" />
-              Export Excel
+              {periodeOpsi.map((p) => (
+                <option key={p.nilai} value={p.nilai}>
+                  {p.label}
+                  {ditutup.has(p.nilai) ? " — ditutup" : ""}
+                </option>
+              ))}
+            </Select>
+            <Button variant="outline" size="sm" onClick={exportExcel} disabled={!d}>
+              <Download className="h-4 w-4" /> Excel
             </Button>
-            <Button
-              onClick={handlePrint}
-              className="transition-all"
-            >
-              <Printer className="h-4 w-4 mr-2" />
-              Print
+            <Button variant="outline" size="sm" onClick={() => window.print()} disabled={!d}>
+              <Printer className="h-4 w-4" /> Cetak
             </Button>
           </div>
         </div>
 
-        {/* Total Laba Card */}
-        <Card className="bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-600 text-white overflow-hidden relative animate-fadeIn hover-lift transition-all-smooth">
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full" />
-            <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full" />
-          </div>
-          <CardHeader className="relative z-10">
-            <CardTitle className="text-white flex items-center gap-2">
-              <TrendingUp className="h-6 w-6" />
-              Total Laba Bulan Ini
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="relative z-10">
-            <div className="text-5xl font-bold mb-2">{formatRupiah(data.totalLaba)}</div>
-            <p className="text-white/80 text-sm">Periode: {new Date().toLocaleDateString("id-ID", { month: "long", year: "numeric" })}</p>
-          </CardContent>
-        </Card>
-
-        {/* Distribusi Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="hover-lift transition-all-smooth animate-slideInLeft overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-violet-500 to-purple-600 opacity-5" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-              <CardTitle className="text-lg">Bagian Nasabah ({data.persenNasabah}%)</CardTitle>
-              <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg">
-                <Users className="h-6 w-6 text-white" />
-              </div>
-            </CardHeader>
-            <CardContent className="relative z-10">
-              <div className="text-4xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent mb-2">
-                {formatRupiah(data.bagianNasabah)}
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
-                <div
-                  className="bg-gradient-to-r from-violet-500 to-purple-600 h-3 rounded-full transition-all duration-1000"
-                  style={{ width: `${data.persenNasabah}%` }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift transition-all-smooth animate-slideInRight overflow-hidden relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500 to-teal-600 opacity-5" />
-            <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-              <CardTitle className="text-lg">Bagian Pengelola ({data.persenPengelola}%)</CardTitle>
-              <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg">
-                <Building className="h-6 w-6 text-white" />
-              </div>
-            </CardHeader>
-            <CardContent className="relative z-10">
-              <div className="text-4xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent mb-2">
-                {formatRupiah(data.bagianPengelola)}
-              </div>
-              <div className="w-full bg-gray-200 rounded-full h-3 mt-4">
-                <div
-                  className="bg-gradient-to-r from-emerald-500 to-teal-600 h-3 rounded-full transition-all duration-1000"
-                  style={{ width: `${data.persenPengelola}%` }}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Visualisasi & Statistik */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="hover-lift transition-all-smooth animate-fadeIn">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <PieChart className="h-5 w-5" />
-                Visualisasi Distribusi
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium">Nasabah</span>
-                    <span className="font-bold text-violet-600">{data.persenNasabah}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-violet-500 to-purple-600 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-medium transition-all duration-1000"
-                      style={{ width: `${data.persenNasabah}%` }}
-                    >
-                      {formatRupiah(data.bagianNasabah)}
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-2">
-                    <span className="font-medium">Pengelola</span>
-                    <span className="font-bold text-brand-600">{data.persenPengelola}%</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-8 overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-emerald-500 to-teal-600 h-8 rounded-full flex items-center justify-end pr-3 text-white text-sm font-medium transition-all duration-1000"
-                      style={{ width: `${data.persenPengelola}%` }}
-                    >
-                      {formatRupiah(data.bagianPengelola)}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="hover-lift transition-all-smooth animate-fadeIn">
-            <CardHeader>
-              <CardTitle>Statistik Nasabah</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex justify-between items-center p-3 bg-violet-50 rounded-lg border border-violet-200">
-                  <span className="text-slate-700">Total Nasabah Aktif</span>
-                  <span className="text-2xl font-bold text-violet-600">
-                    {data.distribusiNasabah.length}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-brand-50 rounded-lg border border-brand-200">
-                  <span className="text-slate-700">Total Investasi</span>
-                  <span className="text-lg font-bold text-brand-600">
-                    {formatRupiah(data.totalInvestasi)}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center p-3 bg-brand-50 rounded-lg border border-brand-200">
-                  <span className="text-slate-700">Rata-rata Bagi Hasil</span>
-                  <span className="text-lg font-bold text-brand-600">
-                    {formatRupiah(rataRataBagiHasil)}
-                  </span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Distribusi Per Nasabah */}
-        <Card className="animate-fadeIn print-break">
-          <CardHeader>
-            <CardTitle>Distribusi Per Nasabah</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {data.distribusiNasabah.map((n, index) => {
-                const persenInvestasi =
-                  data.totalInvestasi > 0
-                    ? (n.jumlahInvestasi / data.totalInvestasi) * 100
-                    : 0;
-
-                return (
-                  <div
-                    key={n.id}
-                    className="border rounded-lg p-4 hover-lift transition-all-smooth bg-gradient-to-r from-white to-violet-50/30"
-                    style={{ animationDelay: `${index * 0.1}s` }}
-                  >
-                    <div className="flex justify-between items-start mb-3">
-                      <div>
-                        <h3 className="font-semibold text-lg">{n.nama}</h3>
-                        <p className="text-sm text-slate-500">
-                          Investasi: {formatRupiah(n.jumlahInvestasi)} ({persenInvestasi.toFixed(1)}%)
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-slate-600">Bagi Hasil</p>
-                        <p className="text-2xl font-bold bg-gradient-to-r from-violet-600 to-purple-600 bg-clip-text text-transparent">
-                          {formatRupiah(n.bagian)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-3 overflow-hidden">
-                      <div
-                        className="bg-gradient-to-r from-violet-500 to-purple-600 h-3 rounded-full transition-all duration-1000"
-                        style={{ width: `${persenInvestasi}%` }}
-                      />
-                    </div>
-                  </div>
-                );
-              })}
+        {loading || !d ? (
+          <div className="space-y-4">
+            <Skeleton className="h-24 w-full rounded-card" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[0, 1, 2].map((i) => (
+                <Skeleton key={i} className="h-28 w-full rounded-card" />
+              ))}
             </div>
+            <Skeleton className="h-64 w-full rounded-card" />
+          </div>
+        ) : (
+          <>
+            {/* Status periode */}
+            <Card>
+              <CardContent className="p-5 pt-5 flex flex-wrap items-start justify-between gap-4">
+                <div className="flex items-start gap-3.5 min-w-0">
+                  <span
+                    className={cn(
+                      "shrink-0 h-11 w-11 rounded-2xl flex items-center justify-center",
+                      sudahDitutup
+                        ? "bg-brand-50 text-brand-600"
+                        : "bg-gold-50 text-gold-600"
+                    )}
+                  >
+                    {sudahDitutup ? (
+                      <Lock className="h-5 w-5" />
+                    ) : (
+                      <Unlock className="h-5 w-5" />
+                    )}
+                  </span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <p className="font-bold text-slate-900">{data.label}</p>
+                      <Badge variant={sudahDitutup ? "default" : "secondary"}>
+                        {sudahDitutup ? "Ditutup" : "Pratinjau"}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-slate-500 mt-1 leading-relaxed max-w-2xl">
+                      {sudahDitutup ? (
+                        <>
+                          Angka periode ini sudah dibekukan
+                          {d.dibuatOleh?.nama ? ` oleh ${d.dibuatOleh.nama}` : ""}
+                          {d.createdAt
+                            ? ` pada ${new Date(d.createdAt).toLocaleDateString("id-ID", {
+                                day: "numeric",
+                                month: "long",
+                                year: "numeric",
+                              })}`
+                            : ""}
+                          . Mengubah harga barang atau daftar nasabah tidak
+                          mengubah angka ini lagi.
+                        </>
+                      ) : (
+                        <>
+                          Angka ini <strong>dihitung ulang setiap dibuka</strong> dan
+                          masih bisa berubah — ikut berubah bila harga beli barang
+                          atau daftar nasabah diubah. Tutup periode untuk
+                          membekukannya sebagai rekaman resmi.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                </div>
 
-            {data.distribusiNasabah.length === 0 && (
-              <div className="text-center py-12">
-                <Users className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-slate-500 text-lg">Belum ada data nasabah aktif</p>
-                <p className="text-slate-400 text-sm mt-2">Tambahkan nasabah di menu Master Data</p>
+                <div className="flex gap-2 no-print shrink-0">
+                  {sudahDitutup
+                    ? isMaster && (
+                        <Button variant="outline" size="sm" onClick={bukaKembali}>
+                          Buka Kembali
+                        </Button>
+                      )
+                    : data.bisaDitutup && (
+                        <Button size="sm" onClick={tutupPeriode} disabled={menyimpan}>
+                          {menyimpan ? "Menyimpan..." : "Tutup & Simpan"}
+                        </Button>
+                      )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {!sudahDitutup && data.bisaDitutup === false && (
+              <div className="rounded-card border border-gold-200 bg-gold-50/60 px-4 py-3 flex gap-3">
+                <AlertTriangle className="h-4 w-4 text-gold-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-gold-900 leading-relaxed">
+                  Periode ini belum berakhir, jadi belum bisa ditutup. Transaksi
+                  yang masuk sampai akhir bulan masih akan mengubah angkanya.
+                </p>
               </div>
             )}
-          </CardContent>
-        </Card>
 
-        {/* Alokasi Dana Pengelola */}
-        <Card className="animate-fadeIn">
-          <CardHeader>
-            <CardTitle>Alokasi Dana Pengelola ({data.persenPengelola}%)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-emerald-50 to-emerald-100 rounded-lg border-2 border-brand-200 hover-lift transition-all-smooth">
-                <div>
-                  <span className="font-semibold text-emerald-900">Gaji Pegawai</span>
-                  <p className="text-sm text-brand-600">20% dari bagian pengelola</p>
-                </div>
-                <span className="text-2xl font-bold text-brand-700">
-                  {formatRupiah(data.bagianPengelola * 0.2)}
-                </span>
+            {d.rugi && (
+              <div className="rounded-card border border-rose-200 bg-rose-50/60 px-4 py-3 flex gap-3">
+                <TrendingDown className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-rose-900 leading-relaxed">
+                  Periode ini <strong>tidak menghasilkan laba</strong>. Sesuai
+                  kebijakan sistem, kerugian tidak dibebankan ke nasabah — bagian
+                  mereka nol, tidak negatif. Bila pengurus memutuskan lain,
+                  kebijakan ini harus diubah lebih dulu.
+                </p>
               </div>
+            )}
 
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-brand-200 hover-lift transition-all-smooth">
-                <div>
-                  <span className="font-semibold text-blue-900">Kontribusi Pemilik/Organisasi</span>
-                  <p className="text-sm text-brand-600">20% dari bagian pengelola</p>
-                </div>
-                <span className="text-2xl font-bold text-blue-700">
-                  {formatRupiah(data.bagianPengelola * 0.2)}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-lg border-2 border-amber-200 hover-lift transition-all-smooth">
-                <div>
-                  <span className="font-semibold text-amber-900">Dana Sosial</span>
-                  <p className="text-sm text-amber-600">20% dari bagian pengelola</p>
-                </div>
-                <span className="text-2xl font-bold text-amber-700">
-                  {formatRupiah(data.bagianPengelola * 0.2)}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border-2 border-purple-200 hover-lift transition-all-smooth">
-                <div>
-                  <span className="font-semibold text-purple-900">Dana Pengembangan</span>
-                  <p className="text-sm text-purple-600">10% dari bagian pengelola</p>
-                </div>
-                <span className="text-2xl font-bold text-purple-700">
-                  {formatRupiah(data.bagianPengelola * 0.1)}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border-2 border-gray-200 hover-lift transition-all-smooth">
-                <div>
-                  <span className="font-semibold text-slate-900">Operasional & Lainnya</span>
-                  <p className="text-sm text-slate-600">30% dari bagian pengelola</p>
-                </div>
-                <span className="text-2xl font-bold text-slate-700">
-                  {formatRupiah(data.bagianPengelola * 0.3)}
-                </span>
-              </div>
+            {/* Ringkasan */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                {
+                  label: "Laba Kotor",
+                  nilai: d.labaKotor,
+                  catatan: `${d.totalTransaksi ?? "—"} transaksi`,
+                  warna: "bg-gold-50 text-gold-600",
+                  icon: Building,
+                },
+                {
+                  label: `Bagian Nasabah (${d.persenNasabah}%)`,
+                  nilai: d.bagianNasabah,
+                  catatan: `${d.detail.length} nasabah · modal ${formatRupiah(d.totalInvestasi)}`,
+                  warna: "bg-brand-50 text-brand-600",
+                  icon: Users,
+                },
+                {
+                  label: `Bagian Pengelola (${d.persenPengelola}%)`,
+                  nilai: d.bagianPengelola,
+                  catatan: "Dialokasikan menurut tabel di bawah",
+                  warna: "bg-sky-50 text-sky-600",
+                  icon: Building,
+                },
+              ].map((k) => (
+                <Card key={k.label}>
+                  <CardContent className="p-5 pt-5">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-slate-500">{k.label}</p>
+                        <p
+                          title={formatRupiah(k.nilai)}
+                          className={cn(
+                            "mt-1.5 text-xl sm:text-2xl font-extrabold truncate",
+                            k.nilai < 0 ? "text-rose-600" : "text-brand-900"
+                          )}
+                        >
+                          {formatRupiah(k.nilai)}
+                        </p>
+                        <p className="text-[11px] text-slate-400 mt-1">{k.catatan}</p>
+                      </div>
+                      <span
+                        className={cn(
+                          "shrink-0 h-11 w-11 rounded-2xl flex items-center justify-center",
+                          k.warna
+                        )}
+                      >
+                        <k.icon className="h-5 w-5" />
+                      </span>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
 
-            <div className="mt-6 p-4 bg-gradient-to-r from-gray-50 to-gray-100 rounded-lg border border-gray-200">
-              <p className="text-sm font-semibold text-slate-700 mb-3">📋 Rincian Pembagian:</p>
-              <ul className="text-sm text-slate-600 space-y-2">
-                <li className="flex items-start gap-2">
-                  <span className="text-brand-600">•</span>
-                  <span>20% untuk gaji pegawai/karyawan</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-brand-600">•</span>
-                  <span>20% untuk kontribusi pemilik/organisasi</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-amber-600">•</span>
-                  <span>20% untuk dana sosial dan kegiatan kemasyarakatan</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-purple-600">•</span>
-                  <span>10% untuk dana pengembangan usaha</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <span className="text-slate-600">•</span>
-                  <span>30% untuk operasional dan kebutuhan lainnya</span>
-                </li>
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
+            {/* Asal-usul angka laba */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Dari Mana Angka Laba Ini</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <dl className="divide-y divide-border text-sm">
+                  {[
+                    ["Penjualan diterima", d.totalPenjualan, "Sudah dipotong diskon member"],
+                    ["Harga pokok penjualan", -d.totalHpp, "Harga beli saat transaksi terjadi"],
+                  ].map(([label, nilai, catatan]) => (
+                    <div key={label as string} className="flex items-baseline justify-between gap-4 py-2.5">
+                      <div className="min-w-0">
+                        <dt className="text-slate-700">{label as string}</dt>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          {catatan as string}
+                        </p>
+                      </div>
+                      <dd
+                        className={cn(
+                          "font-semibold tabular-nums shrink-0",
+                          (nilai as number) < 0 ? "text-rose-600" : "text-slate-900"
+                        )}
+                      >
+                        {formatRupiah(nilai as number)}
+                      </dd>
+                    </div>
+                  ))}
+                  <div className="flex items-baseline justify-between gap-4 py-3">
+                    <dt className="font-bold text-slate-900">Laba kotor</dt>
+                    <dd
+                      className={cn(
+                        "font-extrabold tabular-nums",
+                        d.labaKotor < 0 ? "text-rose-600" : "text-brand-700"
+                      )}
+                    >
+                      {formatRupiah(d.labaKotor)}
+                    </dd>
+                  </div>
+                </dl>
+                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                  Diskon member sebesar {formatRupiah(d.totalDiskon)} sudah
+                  terpotong dari penjualan di atas, jadi tidak dikurangkan lagi.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Bagi hasil per nasabah */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Bagi Hasil Per Nasabah</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                {d.detail.length === 0 ? (
+                  <div className="text-center py-12 text-slate-400">
+                    <Users className="h-12 w-12 mx-auto mb-3 opacity-30" />
+                    <p className="text-sm">Belum ada nasabah aktif pada periode ini</p>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto -mx-5 px-5">
+                    <table className="w-full text-sm min-w-[34rem]">
+                      <thead>
+                        <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-border">
+                          <th className="py-2.5 font-medium">Nasabah</th>
+                          <th className="py-2.5 font-medium text-right">Investasi</th>
+                          <th className="py-2.5 font-medium text-right">Porsi</th>
+                          <th className="py-2.5 font-medium text-right">Bagi Hasil</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-border">
+                        {d.detail.map((n) => (
+                          <tr key={n.id ?? n.nasabahId}>
+                            <td className="py-2.5 font-medium text-slate-900">
+                              {n.namaNasabah}
+                            </td>
+                            <td className="py-2.5 text-right tabular-nums text-slate-600">
+                              {formatRupiah(n.jumlahInvestasi)}
+                            </td>
+                            <td className="py-2.5 text-right tabular-nums text-slate-500">
+                              {n.persentase.toFixed(2)}%
+                            </td>
+                            <td className="py-2.5 text-right tabular-nums font-semibold text-brand-700">
+                              {formatRupiah(n.bagian)}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                      <tfoot>
+                        <tr className="border-t-2 border-border font-bold text-slate-900">
+                          <td className="py-2.5">Total</td>
+                          <td className="py-2.5 text-right tabular-nums">
+                            {formatRupiah(d.totalInvestasi)}
+                          </td>
+                          <td className="py-2.5 text-right tabular-nums">100%</td>
+                          <td className="py-2.5 text-right tabular-nums text-brand-700">
+                            {formatRupiah(
+                              d.detail.reduce((s, n) => s + n.bagian, 0)
+                            )}
+                          </td>
+                        </tr>
+                      </tfoot>
+                    </table>
+                  </div>
+                )}
+                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
+                  Pembagian dibulatkan ke rupiah penuh. Sisa pembulatan diberikan
+                  ke porsi terbesar lebih dulu, sehingga jumlah seluruh bagian
+                  selalu persis sama dengan bagian nasabah di atas.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Alokasi pengelola */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle>Alokasi Bagian Pengelola</CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <dl className="divide-y divide-border text-sm">
+                  {ALOKASI_PENGELOLA.map((a) => (
+                    <div key={a.nama} className="flex items-center justify-between gap-4 py-2.5">
+                      <dt className="text-slate-700">
+                        {a.nama}
+                        <span className="text-slate-400 ml-2 text-xs">{a.persen}%</span>
+                      </dt>
+                      <dd className="font-semibold tabular-nums text-slate-900 shrink-0">
+                        {formatRupiah(Math.round((d.bagianPengelola * a.persen) / 100))}
+                      </dd>
+                    </div>
+                  ))}
+                </dl>
+              </CardContent>
+            </Card>
+          </>
+        )}
       </div>
+
+      {dialog}
     </>
   );
 }
