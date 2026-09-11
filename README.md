@@ -1,162 +1,148 @@
-# 🕌 Gerai BKMT — Sistem POS, Inventory & Profil Publik
+<div align="center">
 
-Aplikasi terintegrasi untuk **PD BKMT Kabupaten Kubu Raya** yang menggabungkan:
-- **Halaman Profil Publik** — wajah digital organisasi BKMT yang dapat diakses siapa saja
-- **Sistem POS & Inventory** — kasir digital untuk Gerai BKMT
-- **Admin Panel** — pengelolaan konten profil publik
+<img src="public/images/masjid.webp" alt="Gerai BKMT" width="240" />
 
----
+# 🕌 Gerai BKMT
 
-## 🚀 Tech Stack
+**Sistem kasir, inventori, bagi hasil, dan profil publik**
+untuk **PD BKMT Kabupaten Kubu Raya**
 
-| Layer | Teknologi |
-|-------|-----------|
-| Framework | Next.js 14 (App Router) + TypeScript |
-| Styling | Tailwind CSS |
-| Database | PostgreSQL (Neon) + Prisma ORM |
-| State | Zustand (persist) |
-| Upload | Cloudinary |
-| Auth | Cookie sesi bertanda tangan HMAC-SHA256 (HTTP-only) + Next.js middleware |
-| Deploy | Vercel |
-| Notifikasi | Sonner |
-| Export | SheetJS (xlsx) |
-| Barcode | html5-qrcode |
+[![Next.js](https://img.shields.io/badge/Next.js-14.2-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Prisma](https://img.shields.io/badge/Prisma-5-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://neon.tech)
+
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Vercel](https://img.shields.io/badge/Vercel-sin1-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com)
+[![Uji](https://img.shields.io/badge/uji-179%20pemeriksaan-1E7A4D?style=for-the-badge)](#-pengujian)
+[![Lisensi](https://img.shields.io/badge/lisensi-MIT-F5C518?style=for-the-badge)](./LICENSE)
+
+</div>
 
 ---
 
-## 📱 Struktur Aplikasi
+## 📖 Tentang
 
-```
-/                   → Halaman profil publik BKMT (bebas akses)
-/berita/[slug]      → Detail berita publik
-/login              → Halaman login
-/app                → Dashboard sistem kasir (butuh login)
-/app/kasir          → POS kasir
-/app/inventori/*    → Manajemen inventori
-/app/keuangan/*     → Laporan keuangan & distribusi laba
-/app/master/*       → Data master (member, nasabah, supplier)
-/app/sistem/*       → Pengaturan sistem
-/admin              → Admin panel konten (master/admin only)
-/admin/profil       → Edit profil organisasi
-/admin/berita       → CRUD berita & pengumuman
-/admin/pengurus     → CRUD pengurus (PD/PC/Permata)
-/admin/gerai        → Edit informasi gerai
-```
+PD BKMT Kubu Raya adalah organisasi kemasyarakatan Islam dengan sekitar **20 cabang** dan **130 majelis taklim**. Aplikasi ini melayani dua hal sekaligus dari satu basis kode:
+
+🏪 **Gerai BKMT** — toko kecil yang dijalankan 1–3 kasir relawan, sering dari tablet atau HP.
+🌐 **Website organisasi** — profil, berita, pengurus, galeri, dan agenda kegiatan.
+
+> **Yang membuat aplikasi ini tidak biasa:** modal gerai berasal dari **nasabah** — anggota yang menanamkan uangnya. Laba bulanan dibagi menurut rasio yang disepakati, lalu bagian nasabah dibagi lagi **pro-rata** sesuai porsi modal masing-masing.
+>
+> Artinya setiap angka di sini menyangkut uang orang lain, dan harus bisa dipertanggungjawabkan berbulan-bulan kemudian.
 
 ---
 
-## ✨ Fitur Utama
+## ✨ Yang Bisa Dilakukan
 
-### 🌐 Halaman Profil Publik
-- Hero section dengan gradient hijau + statistik organisasi
-- Profil organisasi: visi, misi, sejarah
-- Berita & pengumuman (featured + sidebar layout)
-- Susunan pengurus (PD, PC, Permata BKMT)
-- Informasi gerai dengan CTA login kasir
-- Responsive mobile & desktop
-- SEO-friendly (Server Components)
+<table>
+<tr>
+<td width="50%" valign="top">
 
-### 🛡️ Admin Panel
-- Dashboard dengan progress kelengkapan konten
-- Edit profil organisasi (nama, visi, misi, sejarah, kontak, sosmed)
-- CRUD berita dengan auto-slug generation
-- CRUD pengurus dengan upload foto (Cloudinary)
-- Edit informasi gerai
-- Upload gambar langsung dari komputer (JPG/PNG/WebP, maks 5MB)
+### 💳 Kasir
+- Pencarian cepat & pemindai barcode
+- Diskon member otomatis
+- **Aman dari transaksi ganda** saat koneksi putus
+- Struk cetak & cetak ulang
+- Shift buka/tutup dengan rekap kas
 
-### ♿ Aksesibilitas & Konsistensi
-- Setiap kolom form terhubung ke labelnya; tombol ikon punya nama yang terbaca
-- Link "lewati ke konten" untuk pengguna keyboard
-- Warna tombol punya arti tetap: emerald = aksi utama, merah = hapus,
-  violet = area admin, outline = aksi sekunder
-- Dialog konfirmasi menyebut entitas dan konsekuensinya, bukan `confirm()` bawaan
-- Skeleton loading supaya tata letak tidak melompat saat data datang
+</td>
+<td width="50%" valign="top">
 
-### 📱 Responsif
-- Sidebar berubah jadi drawer di bawah 1024px — bisa dipakai dari HP & tablet
-- Dialog tampil sebagai sheet yang bisa di-scroll di layar kecil
-- Bar pembayaran melayang di halaman kasir versi mobile
-- Semua tabel bisa digeser horizontal tanpa merusak lebar halaman
+### 📦 Inventori
+- Barang, kategori, stok minimum
+- Barang masuk + pencatatan pengeluaran sekaligus
+- Penyesuaian stok beralasan
+- Retur barang
+- Peringatan stok menipis
 
-### 💳 Sistem Kasir (POS)
-- Product grid responsif (2/3/4 kolom) dengan search & barcode scanner
-- Shopping cart dengan validasi stok real-time
-- Member selection dengan diskon otomatis
-- Multiple payment methods (Tunai/Transfer/QRIS)
-- Print struk thermal 58mm
-- Poin member otomatis (1 poin/Rp1.000)
-
-### 📦 Inventory Management
-- Barang masuk dengan pencatatan pengeluaran otomatis
-- Monitoring stok real-time dengan alert stok minimum
-- Penyesuaian stok (stock opname)
-- Retur barang (stok dikurangi saat status selesai)
-- Kategori barang dari database (bisa tambah di Pengaturan)
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
 
 ### 💰 Keuangan
-- Riwayat penjualan dengan export Excel
-- Pengeluaran operasional dengan kategori dari database
-- Distribusi laba otomatis (nasabah + pengelola)
-- Laporan penjualan dengan grafik & produk terlaris
-- Persentase nasabah auto-rebalance saat tambah/edit/hapus
+- **Distribusi laba per periode yang dibekukan**
+- Pembatalan penjualan dengan jejak lengkap
+- Laporan penjualan & pengeluaran
+- Ekspor Excel
+- Rekap kas shift (hanya tunai)
 
-### 👥 Master Data
-- Member dengan sistem poin
-- Nasabah/investor dengan perhitungan bagi hasil
-- Supplier
+</td>
+<td width="50%" valign="top">
 
-### ⚙️ Sistem
-- Shift kasir dengan rekap saldo
-- Pengaturan toko (nama, prefix transaksi, diskon member, persentase bagi hasil)
-- Manajemen kategori barang & pengeluaran
-- Backup database (SQLite)
+### 🌐 Publik & Admin
+- Profil, visi-misi, sejarah organisasi
+- Berita & pengumuman
+- Pengurus PD/PC/Permata
+- Galeri dokumentasi & agenda
+- Informasi & lokasi gerai
 
----
-
-## 🗄️ Database Schema
-
-**16 tabel:**
-
-| Model | Deskripsi |
-|-------|-----------|
-| User | Pengguna sistem (master/kasir) |
-| Barang | Produk/barang dagangan |
-| Member | Pelanggan setia dengan poin |
-| Nasabah | Investor dengan bagi hasil |
-| Supplier | Pemasok barang |
-| Penjualan | Transaksi penjualan |
-| DetailPenjualan | Item per transaksi |
-| Pengeluaran | Pengeluaran operasional |
-| ShiftKasir | Shift kasir |
-| PenyesuaianStok | Stock opname |
-| Retur | Pengembalian barang |
-| Pengaturan | Konfigurasi sistem |
-| KategoriBarang | Kategori produk (dinamis) |
-| KategoriPengeluaran | Kategori pengeluaran (dinamis) |
-| ProfilOrganisasi | Profil publik BKMT |
-| Berita | Artikel & pengumuman |
-| Pengurus | Susunan pengurus (PD/PC/Permata) |
-| InformasiGerai | Info operasional gerai |
+</td>
+</tr>
+</table>
 
 ---
 
-## 🔐 Role & Akses
+## 💡 Sistem Bagi Hasil
 
-| Role | Akses |
-|------|-------|
-| `master` | Semua fitur + admin panel |
-| `admin` | Semua fitur + admin panel |
-| `kasir` | POS, inventori, pengeluaran, master member/supplier |
+```
+Laba Kotor = Uang diterima − Harga pokok saat barang terjual
+                              └── dibekukan per transaksi, bukan harga hari ini
 
-Kasir **tidak** dapat mengakses: admin panel, laporan keuangan, distribusi laba,
-data nasabah, pengaturan sistem, dan backup. Pembatasan ini ditegakkan di
-`src/middleware.ts` (server), bukan hanya disembunyikan di UI.
+├── 30% → Nasabah       dibagi pro-rata sesuai porsi modal
+└── 70% → Pengelola     ├── Gaji Pegawai ......... 20%
+                        ├── Kontribusi Organisasi . 20%
+                        ├── Dana Sosial .......... 20%
+                        ├── Dana Pengembangan .... 10%
+                        └── Operasional & Lainnya  30%
+```
+
+Rasio 30/70 dapat diubah di **Pengaturan**.
+
+### 🔒 Kenapa periode harus "ditutup"
+
+| Keadaan | Artinya |
+|---|---|
+| **Pratinjau** | Angka dihitung ulang tiap dibuka — masih bisa berubah |
+| **Ditutup** | Seluruh angka dibekukan: laba, HPP, diskon, rasio, serta **nama, modal, persentase, dan bagian setiap nasabah saat itu** |
+
+Ketika seorang anggota bertanya *"kenapa bagian saya bulan Juli segini?"*, jawabannya dibaca dari rekaman bulan Juli — bukan dihitung ulang dengan daftar nasabah hari ini.
+
+📘 Penjelasan lengkap untuk pengurus: **[`docs/INTEGRITAS_KEUANGAN.md`](./docs/INTEGRITAS_KEUANGAN.md)**
 
 ---
 
-## 📦 Quick Start (Development)
+## 🛠️ Teknologi
 
-### 1. Clone & Install
+| Lapisan | Pilihan | Alasan |
+|---|---|---|
+| Framework | Next.js 14 App Router + TypeScript | Server component untuk halaman berat data |
+| Database | PostgreSQL (Neon) + Prisma | Transaksi atomik untuk penjualan |
+| Styling | Tailwind CSS | Token desain terpusat |
+| State | Zustand + persist | Keranjang selamat saat halaman dimuat ulang |
+| Auth | Cookie HMAC-SHA256 via Web Crypto | Jalan di Edge middleware **dan** Node runtime |
+| Upload | Cloudinary | Ukuran gambar dibatasi lewat URL |
+| Uji | Vitest + skrip integrasi | 179 pemeriksaan otomatis |
+| Deploy | Vercel, region `sin1` | Singapura — terdekat dari Kalimantan Barat |
+
+---
+
+## 🎨 Palet
+
+| | Warna | Peran |
+|---|---|---|
+| 🟩 | `brand` `#1E7A4D` → `#072518` | Aksi utama, sidebar, footer |
+| 🟨 | `gold` `#F5C518` | Aksen, lambang BKMT |
+| ⬜ | `surface` `#FBFDFC` | Latar halaman |
+| 🟥 | `rose` | Pembatalan, selisih negatif |
+
+---
+
+## 🚀 Menjalankan di Komputer Sendiri
+
+### 1 — Pasang
 
 ```bash
 git clone https://github.com/ihyaabrar/Gerai_BKMT.git
@@ -164,47 +150,30 @@ cd Gerai_BKMT
 npm install
 ```
 
-### 2. Setup Environment
+### 2 — Environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env`:
-```env
-# PostgreSQL (Neon, Supabase, Railway, dll)
-DATABASE_URL="postgresql://user:password@host/dbname?sslmode=require"
+| Variabel | Wajib | Keterangan |
+|---|:---:|---|
+| `DATABASE_URL` | ✅ | PostgreSQL (Neon / Supabase / lokal) |
+| `AUTH_SECRET` | ✅ | **Minimal 32 karakter.** `openssl rand -base64 32` |
+| `CLOUDINARY_*` | ➖ | Tanpa ini aplikasi tetap jalan, hanya upload foto yang mati |
+| `SEED_ADMIN_PASSWORD` | ➖ | Wajib bila database bukan lokal |
+| `SEED_KASIR_PASSWORD` | ➖ | Sama |
 
-# Kunci penandatangan cookie sesi — WAJIB di produksi, minimal 32 karakter
-AUTH_SECRET="ganti-dengan-string-acak-minimal-32-karakter"
+> ⚠️ Aplikasi **menolak berjalan** tanpa `AUTH_SECRET` di mana pun selain mesin pengembang — termasuk preview Vercel. Itu disengaja.
 
-# Cloudinary (untuk upload foto)
-CLOUDINARY_CLOUD_NAME="your_cloud_name"
-CLOUDINARY_API_KEY="your_api_key"
-CLOUDINARY_API_SECRET="your_api_secret"
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your_cloud_name"
-```
-
-Generate `AUTH_SECRET`:
+### 3 — Database
 
 ```bash
-openssl rand -base64 32
+npm run db:migrate   # jalankan migrasi
+npm run db:seed      # isi data awal
 ```
 
-Tanpa `AUTH_SECRET` yang valid, aplikasi menolak membuat sesi di mode produksi.
-Di mode development sebuah kunci sementara dipakai otomatis.
-
-### 3. Setup Database
-
-```bash
-# Jalankan migrasi
-npx prisma migrate deploy
-
-# Isi data awal
-npx prisma db seed
-```
-
-### 4. Jalankan
+### 4 — Jalankan
 
 ```bash
 npm run dev
@@ -212,171 +181,154 @@ npm run dev
 
 Buka **http://localhost:3000**
 
-### 5. Login
+<details>
+<summary><b>Akun bawaan (pengembangan lokal saja)</b></summary>
 
-Untuk **pengembangan lokal saja**, seed membuat dua akun:
+<br>
 
 | Role | Username | Password |
-|------|----------|----------|
+|---|---|---|
 | Master | `admin` | `admin123` |
 | Kasir | `kasir` | `kasir123` |
 
-> **Jangan pernah memakai password ini di server yang sesungguhnya.**
-> Seed menolak berjalan dengan password bawaan bila `NODE_ENV=production`;
-> tentukan `SEED_ADMIN_PASSWORD` dan `SEED_KASIR_PASSWORD` lebih dulu.
-> Seed juga tidak menimpa password akun yang sudah ada, jadi password yang
-> sudah Anda ganti aman dari deploy berikutnya.
+Seed **menolak** password bawaan bila `DATABASE_URL` bukan localhost, dan **tidak pernah menimpa** password akun yang sudah ada.
 
----
-
-## 🚀 Deploy ke Vercel
-
-### 1. Push ke GitHub
+Lupa password master? Ada alat pemulihnya:
 
 ```bash
-git push origin main
+read -s -p "Password baru: " P && echo && \
+printf 'admin\n%s\n' "$P" | DATABASE_URL="<connection-string>" \
+node scripts/reset-password.mjs
 ```
 
-### 2. Import di Vercel
+</details>
 
-Buka [vercel.com](https://vercel.com) → New Project → Import dari GitHub
+---
 
-### 3. Set Environment Variables
+## ☁️ Deploy ke Vercel
 
-Di Vercel Dashboard → Settings → Environment Variables:
-
-```
-DATABASE_URL          = postgresql://...
-AUTH_SECRET           = <hasil: openssl rand -base64 32>
-CLOUDINARY_CLOUD_NAME = your_cloud_name
-CLOUDINARY_API_KEY    = your_api_key
-CLOUDINARY_API_SECRET = your_api_secret
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME = your_cloud_name
-```
-
-### 4. Jalankan Migrasi & Seed
-
-Setelah deploy pertama, jalankan dari terminal lokal dengan DATABASE_URL production:
+1. **Buat database** — Neon, region **Singapore** (cocok dengan `vercel.json`)
+2. **Import repo** di [vercel.com/new](https://vercel.com/new)
+3. **Isi environment variables** — `DATABASE_URL`, `AUTH_SECRET`, dan `CLOUDINARY_*`, centang **Production dan Preview**
+4. **Deploy** — migrasi berjalan otomatis lewat skrip `vercel-build`
+5. **Seed sekali** dari komputer Anda:
 
 ```bash
-npx prisma migrate deploy
-npx prisma db seed
+DATABASE_URL="<url-produksi>" SEED_ADMIN_PASSWORD="..." SEED_KASIR_PASSWORD="..." npm run db:seed
 ```
+
+6. **Aktifkan backup otomatis** di penyedia database — ini pengaman data yang sebenarnya
+
+> 💡 Neon paket gratis menidurkan database saat menganggur. Transaksi pertama setelah toko sepi butuh **±3 detik** untuk membangunkannya. Itu bukan kerusakan.
 
 ---
 
-## 📝 Scripts
+## 🧪 Pengujian
 
 ```bash
-npm run dev          # Development server
-npm run build        # Build production
-npm run start        # Start production server
-npm run db:push      # Push schema ke database (tanpa migrasi)
-npm run db:migrate   # Deploy migrasi ke production
-npm run db:seed      # Isi data awal
-npm run db:studio    # Buka Prisma Studio (GUI database)
+npm test                          # 37  perhitungan laba, periode WIB, sesi, gambar
+bash scripts/smoke-test.sh        # 71  hak akses, pencabutan sesi, bypass middleware
+node scripts/uji-distribusi.mjs   # 22  rekaman bagi hasil kebal perubahan
+node scripts/uji-idempotensi.mjs  # 17  transaksi ganda & stok negatif
+node scripts/uji-pembatalan.mjs   # 32  pembatalan penjualan
+                                  # ───
+                                  # 179 pemeriksaan
+```
+
+Tiga skrip terakhir butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.
+
+Uji yang paling penting: setelah sebuah periode ditutup, harga beli dinaikkan dan daftar nasabah diubah — lalu periode itu dibaca ulang. **Seluruh angkanya tidak boleh bergeser satu rupiah pun.**
+
+---
+
+## 🔐 Keamanan
+
+| | |
+|---|---|
+| 🔑 | Password di-hash **bcrypt cost 12**. Password tersimpan yang bukan hash bcrypt ditolak, bukan diterima |
+| 🍪 | Cookie sesi **HMAC-SHA256**, berlaku 12 jam |
+| 🚫 | Menonaktifkan pengguna **langsung** mencabut akses — role dibaca dari database, bukan cookie |
+| 🛡️ | Seluruh route non-publik dijaga `src/middleware.ts` **dan** tiap route handler |
+| 💵 | Harga, diskon, dan total **dihitung ulang di server** — angka dari browser tidak pernah dipercaya |
+| ⏱️ | Waktu respons login diseragamkan agar username terdaftar tidak bisa ditebak |
+| 📋 | Penjualan, pengeluaran, penyesuaian stok, dan retur mencatat **siapa pembuatnya** |
+| 🔢 | Kesalahan tak terduga diberi **kode 6 karakter** yang muncul di layar dan di log |
+
+---
+
+## 👥 Hak Akses
+
+| Tindakan | Kasir | Admin | Master |
+|---|:---:|:---:|:---:|
+| Melayani penjualan | ✅ | ✅ | ✅ |
+| Barang masuk & penyesuaian stok | ✅ | ✅ | ✅ |
+| Daftarkan barang baru / ubah harga | ❌ | ✅ | ✅ |
+| Lihat angka laba & laporan | ❌ | ✅ | ✅ |
+| Batalkan penjualan | ❌ | ✅ | ✅ |
+| Tutup distribusi laba | ❌ | ✅ | ✅ |
+| Buka kembali distribusi | ❌ | ❌ | ✅ |
+| Kelola pengguna | ❌ | ❌ | ✅ |
+
+Kasir tidak menyentuh harga karena harga beli menentukan laba, dan laba menentukan bagi hasil nasabah.
+
+---
+
+## 📂 Peta Kode
+
+```
+prisma/
+  schema.prisma          skema database
+  migrations/            riwayat migrasi
+  seed.ts                data awal
+src/
+  app/
+    page.tsx             beranda publik
+    login/  berita/      halaman publik
+    app/                 sistem kasir      (butuh login)
+    admin/               panel konten      (master/admin)
+    api/                 route handler
+  components/
+    layout/  public/  ui/
+  lib/
+    keuangan.ts          ⭐ satu-satunya sumber perhitungan laba
+    session.ts           tanda tangan & verifikasi cookie
+    permissions.ts       peta hak akses per role
+    identitas.ts         nama, singkatan, logo organisasi
+    gambar.ts            pembatas ukuran gambar Cloudinary
+    validate.ts          validasi body request
+  store/                 auth & keranjang (Zustand)
+  middleware.ts          penjaga route di sisi server
+scripts/
+  smoke-test.sh          uji hak akses
+  uji-*.mjs              uji integrasi
+  reset-password.mjs     pemulihan password
+docs/
+  INTEGRITAS_KEUANGAN.md panduan untuk pengurus
 ```
 
 ---
 
-## 📂 Struktur Folder
+## 📜 Perintah
 
-```
-gerai-bkmt/
-├── prisma/
-│   ├── schema.prisma        # Database schema
-│   ├── seed.ts              # Data awal
-│   └── migrations/          # Riwayat migrasi
-├── src/
-│   ├── app/
-│   │   ├── page.tsx         # Halaman profil publik (/)
-│   │   ├── login/           # Halaman login
-│   │   ├── berita/[slug]/   # Detail berita publik
-│   │   ├── app/             # Sistem kasir (/app)
-│   │   ├── admin/           # Admin panel (/admin)
-│   │   └── api/             # API routes
-│   │       ├── public/      # API publik (tanpa auth)
-│   │       ├── admin/       # API admin (butuh auth)
-│   │       ├── auth/        # Login & logout
-│   │       └── upload/      # Upload gambar ke Cloudinary
-│   ├── components/
-│   │   ├── layout/          # Sidebar, AuthProvider, AdminSidebar
-│   │   ├── public/          # Komponen halaman publik
-│   │   └── ui/              # Komponen UI reusable
-│   ├── lib/
-│   │   ├── prisma.ts        # Prisma client
-│   │   ├── cloudinary.ts    # Cloudinary config & upload
-│   │   ├── session.ts       # Tanda tangan & verifikasi cookie sesi (HMAC)
-│   │   ├── permissions.ts   # Peta hak akses per role (server + client)
-│   │   ├── auth-middleware.ts # requireAuth / requireAdminAuth untuk API
-│   │   ├── validate.ts      # Validasi & parsing body request
-│   │   └── utils.ts         # Utility functions
-│   ├── store/
-│   │   ├── auth.ts          # Auth state (Zustand)
-│   │   └── cart.ts          # Cart state (Zustand + persist)
-│   └── types/
-│       └── public-profile.ts # TypeScript interfaces
-│   └── middleware.ts        # Penjaga route & API di sisi server
-├── .env.example             # Template environment variables
-├── next.config.js           # Next.js config (Cloudinary domain)
-└── tailwind.config.ts       # Tailwind config
-```
+| Perintah | Kegunaan |
+|---|---|
+| `npm run dev` | Server pengembangan |
+| `npm run build` | Build produksi |
+| `npm test` | Uji unit |
+| `npm run db:migrate` | Terapkan migrasi |
+| `npm run db:seed` | Isi data awal |
+| `npm run db:studio` | GUI database |
 
 ---
 
-## 🎨 Sistem Warna
+<div align="center">
 
-| Warna | Penggunaan |
-|-------|-----------|
-| Emerald/Teal | Primary — halaman publik, kasir |
-| Violet/Purple | Admin panel |
-| Blue/Indigo | Informasi, laporan |
-| Amber/Orange | Warning, pengeluaran |
-| Red | Error, hapus |
+**Dikembangkan untuk PD BKMT Kabupaten Kubu Raya**
 
----
+*Bersama Umat, Membangun Masyarakat*
 
-## 💡 Sistem Bagi Hasil
+[![Lisensi MIT](https://img.shields.io/badge/Lisensi-MIT-F5C518?style=flat-square)](./LICENSE)
+![Versi](https://img.shields.io/badge/versi-3.4.0-1E7A4D?style=flat-square)
+![Diperbarui](https://img.shields.io/badge/diperbarui-September%202026-8DCFAA?style=flat-square)
 
-```
-Total Laba Bulanan
-├── X% → Dana Nasabah
-│   └── Dibagi per nasabah sesuai porsi investasi
-└── Y% → Dana Pengelola
-    ├── Gaji Pegawai (20%)
-    ├── Kontribusi Organisasi (20%)
-    ├── Dana Sosial (20%)
-    ├── Dana Pengembangan (10%)
-    └── Operasional & Lainnya (30%)
-```
-
-Persentase X dan Y dapat diatur di menu **Pengaturan** (default: 30% nasabah, 70% pengelola).
-
----
-
-## ⚠️ Catatan Keamanan
-
-- Password di-hash dengan **bcrypt** (auto-upgrade dari plain text saat login)
-- Cookie sesi **ditandatangani HMAC-SHA256** dengan `AUTH_SECRET` dan punya masa
-  berlaku 12 jam — cookie yang dipalsukan atau kedaluwarsa ditolak
-- **Seluruh** route `/app`, `/admin` dan `/api` non-publik dijaga
-  `src/middleware.ts` di sisi server, bukan hanya oleh state di browser
-- Hak akses per role terpusat di `src/lib/permissions.ts`
-- Endpoint tulis memvalidasi field secara eksplisit (tidak ada mass assignment)
-- Harga, diskon dan total penjualan **dihitung ulang di server** — angka dari
-  browser tidak pernah dipercaya
-- Login dibatasi 10 percobaan gagal per username setiap 15 menit
-- Upload gambar divalidasi tipe file dan ukuran (maks 5MB)
-- File backup tidak menyertakan password pengguna
-
----
-
-## 📄 Lisensi
-
-MIT License — Lihat [LICENSE](./LICENSE) untuk detail.
-
----
-
-**Dikembangkan untuk PD BKMT Kabupaten Kubu Raya**  
-**Version:** 3.3.0  
-**Last Updated:** September 2026
+</div>
