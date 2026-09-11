@@ -1,0 +1,184 @@
+# Integritas Keuangan & Bagi Hasil
+
+Catatan ini menjelaskan bagaimana angka keuangan Gerai BKMT dihitung, dan apa
+yang berubah setelah perbaikan September 2026. Ditujukan untuk pengurus, bukan
+hanya untuk yang mengerti kode.
+
+---
+
+## 1. Bagaimana "laba" dihitung
+
+Satu definisi saja, dipakai di seluruh aplikasi:
+
+```
+Laba kotor = Uang yang diterima − Harga pokok barang yang terjual
+Laba bersih = Laba kotor − Biaya operasional
+```
+
+Yang perlu dipahami:
+
+- **"Uang yang diterima" sudah dipotong diskon member.** Jadi diskon tidak
+  dikurangkan lagi. Dulu diskon tidak pernah dikurangkan sama sekali, sehingga
+  laba dilaporkan lebih besar daripada kenyataan.
+- **"Harga pokok" adalah harga beli saat barang itu terjual**, bukan harga beli
+  hari ini. Kalau harga beli gula naik bulan depan, laba bulan ini tidak ikut
+  berubah.
+- **"Biaya operasional" tidak termasuk kategori "Pembelian Barang".** Pembelian
+  barang dagangan sudah terhitung sebagai harga pokok pada setiap penjualan;
+  menguranginya lagi berarti menghitung modal barang dua kali.
+
+Semua rumus ini ada di satu berkas: `src/lib/keuangan.ts`. Perubahan apa pun
+pada cara menghitung laba harus dilakukan di sana, bukan di halaman.
+
+---
+
+## 2. Menutup distribusi bagi hasil
+
+**Menu: Keuangan → Distribusi Laba**
+
+Setiap periode punya dua keadaan:
+
+| Keadaan | Artinya |
+|---|---|
+| **Pratinjau** | Angka dihitung ulang setiap halaman dibuka. Masih bisa berubah kalau ada transaksi baru, harga barang diubah, atau daftar nasabah berubah. |
+| **Ditutup** | Angka sudah dibekukan. Tidak akan berubah lagi, apa pun yang terjadi setelahnya. |
+
+### Cara menutup periode
+
+1. Tunggu sampai bulannya **benar-benar berakhir**. Sistem menolak menutup bulan
+   yang masih berjalan — transaksi yang masuk sampai tanggal terakhir masih akan
+   mengubah angkanya.
+2. Buka halaman Distribusi Laba, pilih periodenya.
+3. Periksa angkanya. Bagian "Dari Mana Angka Laba Ini" menunjukkan
+   penjualan dikurangi harga pokok.
+4. Tekan **Tutup & Simpan**.
+
+Yang disimpan: laba, harga pokok, diskon, rasio bagi hasil, total investasi,
+serta **nama, modal, persentase, dan bagian setiap nasabah saat itu**. Nama ikut
+disalin supaya rekaman tetap terbaca walau nasabahnya kemudian keluar.
+
+### Kenapa ini penting
+
+Kalau ada anggota bertanya *"kenapa bagian saya bulan Juli segini?"*, jawabannya
+ada di rekaman periode Juli — bukan hasil perhitungan ulang memakai daftar
+nasabah hari ini. Sebelum ada rekaman ini, sistem tidak punya jawaban.
+
+### Membuka kembali periode
+
+Hanya **master** yang bisa. Rekamannya dihapus dan periode harus ditutup ulang.
+Gunakan hanya kalau memang ada kesalahan data yang sudah diperbaiki — bukan
+untuk "menghitung ulang biar lebih bagus".
+
+---
+
+## 3. Pembulatan
+
+Pembagian pro-rata hampir selalu menghasilkan pecahan rupiah. Aturannya:
+
+- Semua bagian dibulatkan ke rupiah penuh.
+- Sisa pembulatan diberikan ke porsi terbesar lebih dulu.
+- **Jumlah seluruh bagian selalu persis sama dengan total yang dibagikan.**
+
+Contoh: laba Rp 1.000.000, bagian nasabah 30% = Rp 300.000, dibagi tiga nasabah
+dengan modal 5 : 3 : 2 juta → Rp 150.000, Rp 90.000, Rp 60.000. Jumlahnya persis
+Rp 300.000.
+
+---
+
+## 4. Bulan rugi — keputusan yang perlu pengurus sepakati
+
+Kalau sebuah periode **tidak menghasilkan laba**, sistem saat ini:
+
+- memberi bagian **nol** kepada seluruh nasabah (bukan angka negatif),
+- membebankan kerugian sepenuhnya ke pengelola.
+
+Ini keputusan kebijakan yang dipilih sebagai bawaan, **bukan keharusan teknis**.
+Kalau pengurus memutuskan lain — misalnya kerugian ikut mengurangi modal
+nasabah — kebijakan itu harus diubah lebih dulu di
+`src/app/api/distribusi/route.ts` sebelum periode rugi ditutup.
+
+---
+
+## 5. Siapa boleh apa
+
+| Tindakan | Kasir | Admin | Master |
+|---|:---:|:---:|:---:|
+| Melayani penjualan | ✅ | ✅ | ✅ |
+| Mencatat barang masuk (stok bertambah) | ✅ | ✅ | ✅ |
+| Penyesuaian stok (dengan alasan) | ✅ | ✅ | ✅ |
+| Mendaftarkan barang baru | ❌ | ✅ | ✅ |
+| Mengubah harga beli / harga jual | ❌ | ✅ | ✅ |
+| Menghapus barang | ❌ | ✅ | ✅ |
+| Melihat angka laba | ❌ | ✅ | ✅ |
+| Laporan keuangan & distribusi | ❌ | ✅ | ✅ |
+| Menutup distribusi | ❌ | ✅ | ✅ |
+| Membuka kembali distribusi | ❌ | ❌ | ✅ |
+| Mengelola pengguna | ❌ | ❌ | ✅ |
+
+Alasan kasir tidak boleh menyentuh harga: harga beli menentukan laba, dan laba
+menentukan bagi hasil nasabah. Menambah stok tidak punya efek itu, jadi tetap
+boleh.
+
+Semua pencatatan yang mengubah uang atau stok — penjualan, pengeluaran,
+penyesuaian stok, retur — sekarang menyimpan **siapa yang membuatnya**.
+
+---
+
+## 6. Rekap kas shift
+
+Selisih kas dihitung **hanya dari penjualan tunai**:
+
+```
+Saldo seharusnya = Saldo awal + Penjualan tunai
+Selisih = Saldo akhir (dihitung manual) − Saldo seharusnya
+```
+
+Pembayaran transfer, QRIS, dan debit ditampilkan terpisah karena uangnya tidak
+pernah masuk ke laci. Sebelum perbaikan ini, semua pembayaran dihitung sebagai
+uang laci, sehingga setiap shift dengan pembayaran non-tunai tampak kekurangan
+uang — dan kasirnya yang dicurigai.
+
+---
+
+## 7. Transaksi ganda
+
+Kasir bekerja dari HP atau tablet di jaringan yang tidak selalu stabil. Kalau
+koneksi terputus tepat setelah tombol Bayar ditekan, aplikasi tidak bisa tahu
+apakah transaksinya sudah masuk atau belum.
+
+Sekarang aman: **tekan Bayar lagi.** Setiap keranjang membawa penanda unik, dan
+server mengenali percobaan kedua sebagai transaksi yang sama. Struk yang keluar
+adalah struk transaksi yang pertama, bukan transaksi baru.
+
+---
+
+## 8. Sebelum dipakai untuk uang sungguhan
+
+- [ ] `AUTH_SECRET` diisi minimal 32 karakter acak (aplikasi menolak membuat
+      sesi tanpa ini di produksi)
+- [ ] `SEED_ADMIN_PASSWORD` dan `SEED_KASIR_PASSWORD` ditentukan sendiri —
+      **jangan** pakai `admin123` / `kasir123`
+- [ ] Database dibuat di region **Singapura** agar cocok dengan
+      `vercel.json` (`"regions": ["sin1"]`). Beda region menambah sekitar
+      200 ms pada setiap kali aplikasi menghubungi database.
+- [ ] Backup otomatis provider diaktifkan (point-in-time restore). Tombol
+      backup di aplikasi adalah pelengkap, bukan andalan.
+- [ ] Rasio bagi hasil di Pengaturan diperiksa (bawaan 30% nasabah /
+      70% pengelola)
+- [ ] Daftar nasabah dan jumlah investasinya diperiksa sebelum periode pertama
+      ditutup
+
+---
+
+## 9. Menjalankan pengujian
+
+```bash
+npm test                          # 18 uji perhitungan laba, periode WIB, pembagian
+bash scripts/smoke-test.sh        # 65 uji hak akses
+node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
+node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
+```
+
+Tiga skrip terakhir butuh server berjalan (`npm run build && npm start`) dan
+**menulis ke database** — jalankan hanya terhadap database uji, tidak pernah
+terhadap produksi.
