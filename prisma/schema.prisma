@@ -16,30 +16,37 @@ model User {
   aktif     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
-  shifts    ShiftKasir[]
-  berita    Berita[]
+
+  shifts         ShiftKasir[]
+  berita         Berita[]
+  penjualan      Penjualan[]
+  pengeluaran    Pengeluaran[]
+  penyesuaian    PenyesuaianStok[]
+  retur          Retur[]
+  distribusiLaba DistribusiLaba[]
 }
 
 model Barang {
-  id            String   @id @default(cuid())
-  kode          String   @unique
-  barcode       String?  @unique
-  nama          String
-  kategori      String?
-  gambarUrl     String?
-  hargaBeli     Float
-  hargaJual     Float
-  stok          Int      @default(0)
-  stokMinimum   Int      @default(5)
-  satuan        String   @default("pcs")
-  aktif         Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  
+  id          String   @id @default(cuid())
+  kode        String   @unique
+  barcode     String?  @unique
+  nama        String
+  kategori    String?
+  gambarUrl   String?
+  hargaBeli   Float
+  hargaJual   Float
+  stok        Int      @default(0)
+  stokMinimum Int      @default(5)
+  satuan      String   @default("pcs")
+  aktif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   detailPenjualan DetailPenjualan[]
   penyesuaian     PenyesuaianStok[]
   retur           Retur[]
+
+  @@index([aktif, nama])
 }
 
 model Member {
@@ -52,7 +59,7 @@ model Member {
   aktif     Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   penjualan Penjualan[]
 }
 
@@ -66,6 +73,8 @@ model Nasabah {
   aktif           Boolean  @default(true)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+
+  distribusi DistribusiLabaNasabah[]
 }
 
 model Supplier {
@@ -79,22 +88,33 @@ model Supplier {
 }
 
 model Penjualan {
-  id            String   @id @default(cuid())
-  nomorTransaksi String  @unique
-  tanggal       DateTime @default(now())
-  memberId      String?
-  member        Member?  @relation(fields: [memberId], references: [id])
-  subtotal      Float
-  diskon        Float    @default(0)
-  total         Float
-  bayar         Float
-  kembalian     Float
-  metodeBayar   String   @default("Tunai")
-  shiftId       String?
-  shift         ShiftKasir? @relation(fields: [shiftId], references: [id])
-  createdAt     DateTime @default(now())
-  
-  detail        DetailPenjualan[]
+  id             String      @id @default(cuid())
+  nomorTransaksi String      @unique
+  // Kunci idempotensi dibuat oleh kasir sekali per keranjang. Kalau respons
+  // hilang di jalan dan kasir menekan Bayar lagi, transaksi yang sama
+  // dikembalikan alih-alih dibuat dua kali.
+  idempotencyKey String?     @unique
+  tanggal        DateTime    @default(now())
+  memberId       String?
+  member         Member?     @relation(fields: [memberId], references: [id])
+  subtotal       Float
+  diskon         Float       @default(0)
+  total          Float
+  bayar          Float
+  kembalian      Float
+  metodeBayar    String      @default("Tunai")
+  shiftId        String?
+  shift          ShiftKasir? @relation(fields: [shiftId], references: [id])
+  userId         String?
+  user           User?       @relation(fields: [userId], references: [id])
+  createdAt      DateTime    @default(now())
+
+  detail DetailPenjualan[]
+
+  @@index([tanggal])
+  @@index([shiftId])
+  @@index([memberId])
+  @@index([userId])
 }
 
 model DetailPenjualan {
@@ -105,34 +125,49 @@ model DetailPenjualan {
   barang      Barang    @relation(fields: [barangId], references: [id])
   qty         Int
   hargaJual   Float
+  // Harga pokok dibekukan saat transaksi terjadi. Tanpa kolom ini, mengubah
+  // harga beli hari ini akan menulis ulang laba bulan-bulan yang sudah lewat
+  // — dan ikut mengubah distribusi yang sudah dibayarkan.
+  hargaBeli   Float     @default(0)
   subtotal    Float
   createdAt   DateTime  @default(now())
+
+  @@index([penjualanId])
+  @@index([barangId])
 }
 
 model Pengeluaran {
-  id          String   @id @default(cuid())
-  tanggal     DateTime @default(now())
-  kategori    String
-  keterangan  String
-  jumlah      Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(cuid())
+  tanggal    DateTime @default(now())
+  kategori   String
+  keterangan String
+  jumlah     Float
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([tanggal])
+  @@index([userId])
 }
 
 model ShiftKasir {
-  id          String    @id @default(cuid())
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  tanggal     DateTime  @default(now())
-  jamBuka     DateTime  @default(now())
-  jamTutup    DateTime?
-  saldoAwal   Float
-  saldoAkhir  Float?
-  catatan     String?
-  status      String    @default("buka")
-  createdAt   DateTime  @default(now())
-  
-  penjualan   Penjualan[]
+  id         String    @id @default(cuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  tanggal    DateTime  @default(now())
+  jamBuka    DateTime  @default(now())
+  jamTutup   DateTime?
+  saldoAwal  Float
+  saldoAkhir Float?
+  catatan    String?
+  status     String    @default("buka")
+  createdAt  DateTime  @default(now())
+
+  penjualan Penjualan[]
+
+  @@index([userId])
+  @@index([jamTutup])
 }
 
 model PenyesuaianStok {
@@ -143,32 +178,44 @@ model PenyesuaianStok {
   jenis     String
   qty       Int
   alasan    String
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
   createdAt DateTime @default(now())
+
+  @@index([tanggal])
+  @@index([barangId])
+  @@index([userId])
 }
 
 model Retur {
-  id          String   @id @default(cuid())
-  tanggal     DateTime @default(now())
-  barangId    String
-  barang      Barang   @relation(fields: [barangId], references: [id])
-  qty         Int
-  alasan      String
-  status      String   @default("proses")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  tanggal   DateTime @default(now())
+  barangId  String
+  barang    Barang   @relation(fields: [barangId], references: [id])
+  qty       Int
+  alasan    String
+  status    String   @default("proses")
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tanggal])
+  @@index([barangId])
+  @@index([userId])
 }
 
 model Pengaturan {
-  id                String   @id @default(cuid())
-  namaToko          String   @default("Gerai BKMT")
-  alamatToko        String?
-  teleponToko       String?
-  prefixTransaksi   String   @default("TRX")
-  diskonMember      Float    @default(5)
-  persenNasabah     Float    @default(30)
-  persenPengelola   Float    @default(70)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(cuid())
+  namaToko        String   @default("Gerai BKMT")
+  alamatToko      String?
+  teleponToko     String?
+  prefixTransaksi String   @default("TRX")
+  diskonMember    Float    @default(5)
+  persenNasabah   Float    @default(30)
+  persenPengelola Float    @default(70)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 model KategoriBarang {
@@ -185,26 +232,80 @@ model KategoriPengeluaran {
   createdAt DateTime @default(now())
 }
 
+// ─── Bagi Hasil ──────────────────────────────────────────────────────────────
+
+/// Rekaman distribusi laba satu periode. Seluruh angka DIBEKUKAN saat
+/// distribusi ditutup, tidak pernah dihitung ulang. Inilah yang menjawab
+/// pertanyaan "kenapa bagian saya bulan lalu segini?" — tanpa tabel ini
+/// jawabannya hanya bisa diperkirakan dari komposisi nasabah hari ini.
+model DistribusiLaba {
+  id             String   @id @default(cuid())
+  /// Format "YYYY-MM", mis. "2026-09". Satu periode hanya boleh ditutup sekali.
+  periode        String   @unique
+  periodeMulai   DateTime
+  periodeSelesai DateTime
+
+  totalPenjualan Float
+  totalHpp       Float
+  totalDiskon    Float
+  labaKotor      Float
+
+  persenNasabah   Float
+  persenPengelola Float
+  bagianNasabah   Float
+  bagianPengelola Float
+  totalInvestasi  Float
+
+  catatan      String?
+  dibuatOlehId String?
+  dibuatOleh   User?    @relation(fields: [dibuatOlehId], references: [id])
+  createdAt    DateTime @default(now())
+
+  detail DistribusiLabaNasabah[]
+
+  @@index([periodeMulai])
+  @@index([dibuatOlehId])
+}
+
+/// Bagian satu nasabah pada satu periode. Nama, investasi, dan persentase
+/// ikut disalin supaya rekaman tetap terbaca walau nasabahnya kemudian
+/// berubah, keluar, atau menambah modal.
+model DistribusiLabaNasabah {
+  id           String         @id @default(cuid())
+  distribusiId String
+  distribusi   DistribusiLaba @relation(fields: [distribusiId], references: [id], onDelete: Cascade)
+  nasabahId    String
+  nasabah      Nasabah        @relation(fields: [nasabahId], references: [id])
+
+  namaNasabah     String
+  jumlahInvestasi Float
+  persentase      Float
+  bagian          Float
+
+  @@unique([distribusiId, nasabahId])
+  @@index([nasabahId])
+}
+
 // ─── Public Profile Models ───────────────────────────────────────────────────
 
 model ProfilOrganisasi {
-  id          String   @id @default(cuid())
-  nama        String
-  singkatan   String?
-  deskripsi   String?
-  visi        String?
-  misi        String?
-  sejarah     String?
-  logoUrl     String?
-  email       String?
-  telepon     String?
-  alamat      String?
-  facebook    String?
-  instagram   String?
-  youtube     String?
-  website     String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  nama      String
+  singkatan String?
+  deskripsi String?
+  visi      String?
+  misi      String?
+  sejarah   String?
+  logoUrl   String?
+  email     String?
+  telepon   String?
+  alamat    String?
+  facebook  String?
+  instagram String?
+  youtube   String?
+  website   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model Berita {
@@ -223,18 +324,18 @@ model Berita {
 }
 
 model Pengurus {
-  id         String   @id @default(cuid())
-  nama       String
-  nik        String?
-  alamat     String?
-  jabatan    String
-  tingkatan  String   @default("PD")
-  periode    String?
-  fotoUrl    String?
-  urutan     Int      @default(0)
-  aktif      Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String   @id @default(cuid())
+  nama      String
+  nik       String?
+  alamat    String?
+  jabatan   String
+  tingkatan String   @default("PD")
+  periode   String?
+  fotoUrl   String?
+  urutan    Int      @default(0)
+  aktif     Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model InformasiGerai {
