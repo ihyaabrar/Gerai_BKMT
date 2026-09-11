@@ -14,7 +14,8 @@ import {
 interface ChartData {
   bulan: string;
   penjualan: number;
-  laba: number;
+  /** Tidak dikirim untuk kasir — angka laba memang tidak boleh mereka lihat. */
+  laba?: number;
 }
 
 interface SalesChartProps {
@@ -49,6 +50,8 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function SalesChart({ data }: SalesChartProps) {
+  const adaLaba = data.some((d) => typeof d.laba === "number");
+
   if (data.length === 0) {
     return (
       <div className="flex items-center justify-center h-64 text-slate-400 text-sm">
@@ -98,15 +101,17 @@ export function SalesChart({ data }: SalesChartProps) {
           dot={{ r: 3, fill: "#1E7A4D", strokeWidth: 0 }}
           activeDot={{ r: 5 }}
         />
-        <Line
-          type="monotone"
-          dataKey="laba"
-          name="Laba"
-          stroke="#E0AC08"
-          strokeWidth={2}
-          strokeDasharray="4 4"
-          dot={false}
-        />
+        {adaLaba && (
+          <Line
+            type="monotone"
+            dataKey="laba"
+            name="Laba"
+            stroke="#E0AC08"
+            strokeWidth={2}
+            strokeDasharray="4 4"
+            dot={false}
+          />
+        )}
       </ComposedChart>
     </ResponsiveContainer>
   );

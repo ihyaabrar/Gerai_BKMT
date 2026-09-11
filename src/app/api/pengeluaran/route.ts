@@ -55,7 +55,9 @@ export async function POST(request: NextRequest) {
     }
 
     const pengeluaran = await prisma.pengeluaran.create({
-      data: { tanggal, kategori, keterangan, jumlah },
+      // Siapa yang mencatat pengeluaran ini — sebelumnya tidak tersimpan
+      // di mana pun, jadi catatan uang keluar tidak bisa ditelusuri.
+      data: { tanggal, kategori, keterangan, jumlah, userId: auth.user.id },
     });
     return NextResponse.json(pengeluaran);
   } catch (error) {

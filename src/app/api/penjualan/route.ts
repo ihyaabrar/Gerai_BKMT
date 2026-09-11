@@ -97,6 +97,7 @@ export async function POST(request: NextRequest) {
         barangId: string;
         qty: number;
         hargaJual: number;
+        hargaBeli: number;
         subtotal: number;
       }[] = [];
 
@@ -116,6 +117,9 @@ export async function POST(request: NextRequest) {
           barangId: barang.id,
           qty,
           hargaJual: barang.hargaJual,
+          // Harga pokok ikut dibekukan di sini. Kalau nanti harga beli barang
+          // diubah, laba bulan ini tetap seperti yang dilaporkan hari ini.
+          hargaBeli: barang.hargaBeli,
           subtotal: itemSubtotal,
         });
       }
@@ -168,6 +172,9 @@ export async function POST(request: NextRequest) {
           // Menghubungkan transaksi ke shift aktif — sebelumnya selalu null
           // sehingga total penjualan per shift selalu 0.
           shiftId: shiftAktif?.id ?? null,
+          // Siapa yang melayani transaksi ini. Tanpa kolom ini, selisih kas
+          // tidak bisa ditelusuri ke siapa pun.
+          userId: auth.user.id,
           detail: { create: detail },
         },
         include: { detail: { include: { barang: true } }, member: true },

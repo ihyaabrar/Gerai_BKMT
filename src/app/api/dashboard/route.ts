@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-middleware";
+import { isAdminRole } from "@/lib/permissions";
+import {
+  KATEGORI_PEMBELIAN_BARANG,
+  awalHariWIB,
+  labaTransaksi,
+  periodeDari,
+  rentangPeriode,
+} from "@/lib/keuangan";
 import { toErrorResponse } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
@@ -26,16 +34,22 @@ export async function GET(request: NextRequest) {
   if (auth.error) return auth.error;
 
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Semua batas periode memakai kalender WIB. Server produksi berjalan pada
+    // UTC, jadi tanpa ini penjualan pagi hari masuk ke tanggal sebelumnya.
+    const sekarang = new Date();
+    const today = awalHariWIB(sekarang);
+    const bolehLihatLaba = isAdminRole(auth.user.role);
 
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const awalGrafik = new Date(today.getFullYear(), today.getMonth() - 11, 1);
+    const [tahunIni, bulanIni] = periodeDari(sekarang).split("-").map(Number);
+    const bulanKe = (geser: number) => {
+      const t = new Date(Date.UTC(tahunIni, bulanIni - 1 + geser, 1));
+      return periodeDari(new Date(t.getTime() + 12 * 3600_000));
+    };
 
-    // Pembanding untuk indikator tren pada kartu ringkasan
-    const kemarin = new Date(today);
-    kemarin.setDate(kemarin.getDate() - 1);
-    const awalBulanLalu = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+    const firstDayOfMonth = rentangPeriode(bulanKe(0)).mulai;
+    const awalGrafik = rentangPeriode(bulanKe(-11)).mulai;
+    const kemarin = new Date(today.getTime() - 24 * 3600_000);
+    const awalBulanLalu = rentangPeriode(bulanKe(-1)).mulai;
 
     const [
       penjualanHariIni,
@@ -53,18 +67,25 @@ export async function GET(request: NextRequest) {
       // Satu query untuk 12 bulan, menggantikan 12 query berurutan di dalam loop.
       prisma.penjualan.findMany({
         where: { tanggal: { gte: awalGrafik } },
-        include: { detail: { include: { barang: { select: { hargaBeli: true } } } } },
+        select: {
+          tanggal: true,
+          total: true,
+          diskon: true,
+          detail: { select: { qty: true, hargaBeli: true } },
+        },
       }),
       prisma.pengeluaran.aggregate({
         where: {
           tanggal: { gte: firstDayOfMonth },
-          kategori: { not: "Pembelian Barang" },
+          kategori: { not: KATEGORI_PEMBELIAN_BARANG },
         },
         _sum: { jumlah: true },
       }),
       prisma.barang.count({ where: { aktif: true } }),
+      // Perbandingan antar kolom dikerjakan Postgres, jadi seluruh katalog
+      // tidak perlu ditarik ke memori hanya untuk disaring di JavaScript.
       prisma.barang.findMany({
-        where: { aktif: true },
+        where: { aktif: true, stok: { lte: prisma.barang.fields.stokMinimum } },
         select: {
           id: true,
           nama: true,
@@ -164,15 +185,12 @@ export async function GET(request: NextRequest) {
       }),
       prisma.penjualan.findMany({
         where: { tanggal: { gte: awalBulanLalu, lt: firstDayOfMonth } },
-        include: { detail: { include: { barang: { select: { hargaBeli: true } } } } },
+        select: { total: true, diskon: true, detail: { select: { qty: true, hargaBeli: true } } },
       }),
       prisma.barang.count({
         where: { aktif: true, createdAt: { lt: firstDayOfMonth } },
       }),
     ]);
-
-    const labaTransaksi = (p: (typeof penjualan12Bulan)[number]) =>
-      p.detail.reduce((sum, d) => sum + (d.hargaJual - d.barang.hargaBeli) * d.qty, 0);
 
     const penjualanBulanIni = penjualan12Bulan.filter((p) => p.tanggal >= firstDayOfMonth);
     const labaKotor = penjualanBulanIni.reduce((sum, p) => sum + labaTransaksi(p), 0);
@@ -182,7 +200,7 @@ export async function GET(request: NextRequest) {
     // Kelompokkan 12 bulan terakhir berdasarkan kunci tahun-bulan.
     const perBulan = new Map<string, { penjualan: number; laba: number }>();
     for (const p of penjualan12Bulan) {
-      const key = `${p.tanggal.getFullYear()}-${p.tanggal.getMonth()}`;
+      const key = periodeDari(p.tanggal);
       const entry = perBulan.get(key) ?? { penjualan: 0, laba: 0 };
       entry.penjualan += p.total;
       entry.laba += labaTransaksi(p);
@@ -191,16 +209,17 @@ export async function GET(request: NextRequest) {
 
     const chartData = [];
     for (let i = 11; i >= 0; i--) {
-      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
-      const entry = perBulan.get(`${d.getFullYear()}-${d.getMonth()}`);
+      const periode = bulanKe(-i);
+      const entry = perBulan.get(periode);
       chartData.push({
-        bulan: BULAN[d.getMonth()],
+        bulan: BULAN[Number(periode.slice(5)) - 1],
         penjualan: entry?.penjualan ?? 0,
-        laba: entry?.laba ?? 0,
+        // Kasir tidak melihat angka laba di mana pun, termasuk pada grafik.
+        ...(bolehLihatLaba ? { laba: entry?.laba ?? 0 } : {}),
       });
     }
 
-    const barangStokRendah = semuaBarang.filter((b) => b.stok <= b.stokMinimum);
+    const barangStokRendah = semuaBarang;
     const barangPerluRestock = [
       ...barangStokRendah.filter((b) => b.stok === 0),
       ...barangStokRendah.filter((b) => b.stok > 0),
@@ -210,12 +229,7 @@ export async function GET(request: NextRequest) {
       where: { id: { in: produkTerlaris.map((p) => p.barangId) } },
     });
 
-    const labaBulanLalu = penjualanBulanLalu.reduce(
-      (sum, p) =>
-        sum +
-        p.detail.reduce((n, d) => n + (d.hargaJual - d.barang.hargaBeli) * d.qty, 0),
-      0
-    );
+    const labaBulanLalu = penjualanBulanLalu.reduce((sum, p) => sum + labaTransaksi(p), 0);
 
     return NextResponse.json({
       penjualanHariIni: penjualanHariIni._sum.total || 0,
@@ -224,13 +238,19 @@ export async function GET(request: NextRequest) {
           penjualanHariIni._sum.total || 0,
           penjualanKemarin._sum.total || 0
         ),
-        laba: persenSelisih(labaKotor, labaBulanLalu),
+        ...(bolehLihatLaba ? { laba: persenSelisih(labaKotor, labaBulanLalu) } : {}),
         produk: persenSelisih(totalBarang, produkBulanLalu),
       },
       aktivitas,
-      labaKotor,
-      labaBersih: labaKotor - totalPengeluaranOps,
-      totalPengeluaranOps,
+      // Angka laba dan pengeluaran hanya untuk master/admin — sama seperti
+      // /api/laporan yang memang sudah tertutup bagi kasir.
+      ...(bolehLihatLaba
+        ? {
+            labaKotor,
+            labaBersih: labaKotor - totalPengeluaranOps,
+            totalPengeluaranOps,
+          }
+        : {}),
       totalBarang,
       stokRendah: barangStokRendah.length,
       barangStokRendah: barangPerluRestock,

@@ -54,7 +54,14 @@ export async function POST(request: NextRequest) {
 
     // Stok baru dipotong saat retur diselesaikan (lihat PATCH).
     const retur = await prisma.retur.create({
-      data: { barangId, qty, alasan, tanggal: new Date(), status: "proses" },
+      data: {
+        barangId,
+        qty,
+        alasan,
+        tanggal: new Date(),
+        status: "proses",
+        userId: auth.user.id,
+      },
       include: { barang: true },
     });
 

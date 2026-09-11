@@ -92,15 +92,27 @@ export default function Dashboard() {
       tren: data.tren?.penjualan ?? null,
       satuan: "dari kemarin",
     },
-    {
-      title: "Laba Bulan Ini",
-      value: formatRupiah(data.labaKotor ?? 0),
-      icon: TrendingUp,
-      warna: "bg-gold-50 text-gold-600",
-      latar: "bg-gold-50/40",
-      tren: data.tren?.laba ?? null,
-      satuan: "dari bulan lalu",
-    },
+    // Kasir tidak menerima angka laba dari server, jadi kartunya diganti
+    // dengan sesuatu yang memang jadi urusan mereka.
+    typeof data.labaKotor === "number"
+      ? {
+          title: "Laba Bulan Ini",
+          value: formatRupiah(data.labaKotor),
+          icon: TrendingUp,
+          warna: "bg-gold-50 text-gold-600",
+          latar: "bg-gold-50/40",
+          tren: data.tren?.laba ?? null,
+          satuan: "dari bulan lalu",
+        }
+      : {
+          title: "Transaksi Hari Ini",
+          value: `${data.transaksiTerbaru?.length ?? 0} terbaru`,
+          icon: Receipt,
+          warna: "bg-gold-50 text-gold-600",
+          latar: "bg-gold-50/40",
+          tren: null,
+          satuan: "Lihat riwayat penjualan",
+        },
     {
       title: "Stok Rendah",
       value: `${data.stokRendah} produk`,

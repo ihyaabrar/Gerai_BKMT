@@ -51,6 +51,7 @@ export default function KeuanganPage() {
   const [ringkasan, setRingkasan] = useState<{
     penjualan: number;
     pengeluaran: number;
+    pengeluaranOperasional: number;
     laba: number;
   } | null>(null);
   const [loading, setLoading] = useState(isAdmin);
@@ -77,6 +78,7 @@ export default function KeuanganPage() {
         setRingkasan({
           penjualan: jual.totalPenjualan ?? 0,
           pengeluaran: keluar.totalPengeluaran ?? 0,
+          pengeluaranOperasional: keluar.totalPengeluaranOperasional ?? 0,
           laba: jual.totalLaba ?? 0,
         });
       } finally {
@@ -86,7 +88,13 @@ export default function KeuanganPage() {
     ambil();
   }, [isAdmin]);
 
-  const labaBersih = ringkasan ? ringkasan.laba - ringkasan.pengeluaran : 0;
+  // Yang dikurangkan dari laba hanya biaya operasional. Pembelian barang
+  // dagangan sudah terhitung sebagai harga pokok pada setiap penjualan —
+  // versi sebelumnya menguranginya sekali lagi di sini, sehingga modal barang
+  // terhitung dua kali dan laba bersih tampak jauh lebih kecil dari kenyataan.
+  const labaBersih = ringkasan
+    ? ringkasan.laba - ringkasan.pengeluaranOperasional
+    : 0;
   const margin =
     ringkasan && ringkasan.penjualan > 0
       ? (labaBersih / ringkasan.penjualan) * 100
@@ -99,6 +107,7 @@ export default function KeuanganPage() {
       icon: TrendingUp,
       warna: "bg-brand-50 text-brand-600",
       negatif: false,
+      catatan: undefined as string | undefined,
     },
     {
       label: "Total Pengeluaran",
@@ -106,12 +115,17 @@ export default function KeuanganPage() {
       icon: TrendingDown,
       warna: "bg-rose-50 text-rose-600",
       negatif: false,
+      catatan:
+        ringkasan && ringkasan.pengeluaran !== ringkasan.pengeluaranOperasional
+          ? `Operasional ${formatRupiah(ringkasan.pengeluaranOperasional)} · sisanya pembelian barang`
+          : undefined,
     },
     {
       label: "Laba Bersih",
       nilai: formatRupiah(labaBersih),
       icon: Coins,
       warna: "bg-gold-50 text-gold-600",
+      catatan: "Laba kotor dikurangi biaya operasional",
       // Angka negatif diberi warna peringatan, bukan disembunyikan —
       // pengeluaran yang melebihi laba memang perlu terlihat.
       negatif: labaBersih < 0,
@@ -206,6 +220,11 @@ export default function KeuanganPage() {
                           )}
                         >
                           {c.nilai}
+                        </p>
+                      )}
+                      {!loading && c.catatan && (
+                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                          {c.catatan}
                         </p>
                       )}
                     </div>
