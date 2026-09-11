@@ -222,8 +222,9 @@ hanya bertahan satu jam.
 
 ## 11. Sebelum dipakai untuk uang sungguhan
 
-- [ ] `AUTH_SECRET` diisi minimal 32 karakter acak (aplikasi menolak membuat
-      sesi tanpa ini di produksi)
+- [ ] `AUTH_SECRET` diisi minimal 32 karakter acak. Aplikasi **menolak jalan**
+      tanpa ini di mana pun selain mesin pengembang — termasuk di preview
+      Vercel. Buat dengan `openssl rand -base64 32`.
 - [ ] `SEED_ADMIN_PASSWORD` dan `SEED_KASIR_PASSWORD` ditentukan sendiri —
       **jangan** pakai `admin123` / `kasir123`
 - [ ] Database dibuat di region **Singapura** agar cocok dengan
@@ -242,15 +243,32 @@ hanya bertahan satu jam.
 
 ---
 
-## 12. Menjalankan pengujian
+## 12. Catatan keamanan yang sudah diputuskan
+
+Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
+
+| Tidak dikerjakan | Alasan |
+|---|---|
+| Redis untuk rate limit login | Menambah layanan berbayar, kredensial, dan titik gagal baru demi melindungi tiga akun yang sudah dilindungi bcrypt cost 12 (~500 ms per percobaan). Kalau memang perlu, pakai Vercel WAF — tanpa kode. |
+| Naik ke Next.js 15 / 16 | Migrasi besar untuk aplikasi yang dirawat relawan. Jalur 14.x masih menerima tambalan keamanan; versi terpasang sudah menambal CVE-2025-29927. |
+| Layanan pemantauan (Sentry dll.) | Butuh akun dan DSN yang harus Anda buat sendiri. Sebagai gantinya, setiap kesalahan punya kode enam karakter yang bisa dibacakan kasir lewat telepon dan dicari di log. Kalau nanti ingin Sentry, tinggal ditambahkan. |
+| POS offline-first | Bukan fitur, melainkan sistem terdistribusi: konflik stok antar kasir tidak punya jawaban teknis, hanya kebijakan yang harus diputuskan manusia lalu diajarkan ke relawan. Untuk pemadaman jaringan, modem cadangan dari operator kedua menyelesaikannya hari ini tanpa satu baris kode. |
+| Pembukuan berpasangan (double-entry) | Kompleksitas yang tidak sepadan pada skala satu toko. Yang dibutuhkan — bisa menjelaskan angka bulan lalu — sudah dijawab oleh rekaman distribusi. |
+
+---
+
+## 13. Menjalankan pengujian
 
 ```bash
 npm test                          # 34 uji perhitungan, periode WIB, sesi, gambar
-bash scripts/smoke-test.sh        # 68 uji hak akses & pencabutan sesi
+bash scripts/smoke-test.sh        # 71 uji hak akses, pencabutan sesi, bypass middleware
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
 node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
 ```
+
+Totalnya 176 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
 Tiga skrip terakhir butuh server berjalan (`npm run build && npm start`) dan
 **menulis ke database** — jalankan hanya terhadap database uji, tidak pernah
