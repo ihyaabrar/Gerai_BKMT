@@ -214,10 +214,18 @@ Buka **http://localhost:3000**
 
 ### 5. Login
 
+Untuk **pengembangan lokal saja**, seed membuat dua akun:
+
 | Role | Username | Password |
 |------|----------|----------|
 | Master | `admin` | `admin123` |
 | Kasir | `kasir` | `kasir123` |
+
+> **Jangan pernah memakai password ini di server yang sesungguhnya.**
+> Seed menolak berjalan dengan password bawaan bila `NODE_ENV=production`;
+> tentukan `SEED_ADMIN_PASSWORD` dan `SEED_KASIR_PASSWORD` lebih dulu.
+> Seed juga tidak menimpa password akun yang sudah ada, jadi password yang
+> sudah Anda ganti aman dari deploy berikutnya.
 
 ---
 

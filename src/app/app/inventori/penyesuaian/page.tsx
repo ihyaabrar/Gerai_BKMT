@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ClipboardList, History, Trash2 } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth";
 import { format } from "date-fns";
 
 interface Barang {
@@ -26,6 +27,10 @@ interface Penyesuaian {
 }
 
 export default function PenyesuaianPage() {
+  // Menghapus barang hanya boleh master/admin di server. Menampilkan
+  // tombolnya ke kasir cuma menghasilkan pesan "Akses ditolak".
+  const { user } = useAuthStore();
+  const bolehHapusBarang = user?.role === "master" || user?.role === "admin";
   const [barangList, setBarangList] = useState<Barang[]>([]);
   const [history, setHistory] = useState<Penyesuaian[]>([]);
   const [loading, setLoading] = useState(false);
@@ -181,15 +186,17 @@ export default function PenyesuaianPage() {
                   >
                     − Kurangi Stok
                   </Button>
-                  <Button
-                    type="button"
-                    variant={form.jenis === "hapus" ? "default" : "outline"}
-                    className={form.jenis === "hapus" ? "bg-gray-800 hover:bg-gray-900" : ""}
-                    onClick={() => setForm({ ...form, jenis: "hapus" })}
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Hapus Barang
-                  </Button>
+                  {bolehHapusBarang && (
+                    <Button
+                      type="button"
+                      variant={form.jenis === "hapus" ? "default" : "outline"}
+                      className={form.jenis === "hapus" ? "bg-gray-800 hover:bg-gray-900" : ""}
+                      onClick={() => setForm({ ...form, jenis: "hapus" })}
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Hapus Barang
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -249,7 +256,7 @@ export default function PenyesuaianPage() {
                 </>
               )}
 
-              {form.jenis === "hapus" && selectedBarang && (
+              {form.jenis === "hapus" && bolehHapusBarang && selectedBarang && (
                 <div className="space-y-3">
                   <div className="p-3 rounded-lg border-2 bg-red-50 border-red-300">
                     <p className="text-sm font-semibold text-red-700 flex items-center gap-1">

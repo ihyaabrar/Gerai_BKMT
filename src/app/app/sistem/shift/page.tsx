@@ -18,6 +18,8 @@ interface Shift {
   saldoAwal: number;
   saldoAkhir: number | null;
   totalPenjualan: number;
+  penjualanTunai: number;
+  penjualanNonTunai: number;
   jumlahTransaksi: number;
   catatan: string | null;
   user: {
@@ -220,8 +222,12 @@ export default function ShiftPage() {
                       new Date(s.jamBuka).getTime()) /
                       (1000 * 60)
                   );
-                  const selisih =
-                    (s.saldoAkhir || 0) - s.saldoAwal - (s.totalPenjualan || 0);
+                  // Hanya penjualan tunai yang masuk laci. Versi sebelumnya
+                  // memakai seluruh penjualan, sehingga setiap shift dengan
+                  // pembayaran transfer/QRIS tampak kekurangan uang.
+                  const tunai = s.penjualanTunai ?? 0;
+                  const nonTunai = s.penjualanNonTunai ?? 0;
+                  const selisih = (s.saldoAkhir || 0) - s.saldoAwal - tunai;
 
                   return (
                     <div key={s.id} className="border rounded-lg p-4">
@@ -245,11 +251,17 @@ export default function ShiftPage() {
                               </div>
                               <div>
                                 <p className="text-xs text-slate-500">
-                                  Total Penjualan ({s.jumlahTransaksi ?? 0} transaksi)
+                                  Penjualan Tunai ({s.jumlahTransaksi ?? 0} transaksi)
                                 </p>
                                 <p className="font-semibold text-green-600">
-                                  {formatRupiah(s.totalPenjualan || 0)}
+                                  {formatRupiah(tunai)}
                                 </p>
+                                {nonTunai > 0 && (
+                                  <p className="text-[11px] text-slate-400 mt-0.5">
+                                    + {formatRupiah(nonTunai)} non-tunai, tidak
+                                    masuk laci
+                                  </p>
+                                )}
                               </div>
                               <div>
                                 <p className="text-xs text-slate-500">Saldo Akhir</p>
@@ -258,7 +270,9 @@ export default function ShiftPage() {
                                 </p>
                               </div>
                               <div>
-                                <p className="text-xs text-slate-500">Selisih</p>
+                                <p className="text-xs text-slate-500">
+                                  Selisih Kas
+                                </p>
                                 <p
                                   className={`font-semibold ${
                                     selisih === 0

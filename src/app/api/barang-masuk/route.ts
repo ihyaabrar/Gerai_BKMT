@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-middleware";
+import { isAdminRole } from "@/lib/permissions";
 import {
   ValidationError,
   optionalBoolean,
@@ -31,6 +32,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const mode = body?.mode === "baru" ? "baru" : "existing";
+    const bolehUbahHarga = isAdminRole(auth.user.role);
+
+    // Menerima kiriman barang adalah pekerjaan kasir. Menetapkan harganya
+    // bukan — harga menentukan laba, dan laba menentukan bagi hasil nasabah.
+    if (mode === "baru" && !bolehUbahHarga) {
+      throw new ValidationError(
+        "Barang baru hanya bisa ditambahkan oleh pengelola. Hubungi admin untuk mendaftarkan barang ini."
+      );
+    }
 
     const hasil = await prisma.$transaction(async (tx) => {
       if (mode === "baru") {
@@ -98,6 +108,12 @@ export async function POST(request: NextRequest) {
           ? null
           : requireNumber(body.hargaBeliBaru, "Harga beli baru", { min: 0 });
       const updateHargaBeli = optionalBoolean(body?.updateHargaBeli, false);
+
+      if (updateHargaBeli && !bolehUbahHarga) {
+        throw new ValidationError(
+          "Harga beli hanya bisa diubah oleh pengelola. Stok tetap bisa Anda tambahkan tanpa mengubah harga."
+        );
+      }
 
       const existing = await tx.barang.findUnique({ where: { id: barangId } });
       if (!existing) {

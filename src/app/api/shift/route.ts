@@ -35,23 +35,42 @@ export async function GET(request: NextRequest) {
       }),
     ]);
 
-    // Total penjualan per shift dihitung dari relasi, bukan lagi 0.
+    // Dipecah menurut metode bayar: selisih kas hanya boleh dihitung dari
+    // penjualan tunai, karena transfer dan QRIS tidak masuk ke laci.
     const totals = await prisma.penjualan.groupBy({
-      by: ["shiftId"],
+      by: ["shiftId", "metodeBayar"],
       where: { shiftId: { in: shifts.map((s) => s.id) } },
       _sum: { total: true },
       _count: { _all: true },
     });
-    const totalMap = new Map(
-      totals.map((t) => [t.shiftId, { total: t._sum.total ?? 0, jumlah: t._count._all }])
-    );
+
+    const totalMap = new Map<
+      string,
+      { total: number; tunai: number; nonTunai: number; jumlah: number }
+    >();
+    for (const t of totals) {
+      if (!t.shiftId) continue;
+      const entry =
+        totalMap.get(t.shiftId) ?? { total: 0, tunai: 0, nonTunai: 0, jumlah: 0 };
+      const nilai = t._sum.total ?? 0;
+      entry.total += nilai;
+      entry.jumlah += t._count._all;
+      if (t.metodeBayar === "Tunai") entry.tunai += nilai;
+      else entry.nonTunai += nilai;
+      totalMap.set(t.shiftId, entry);
+    }
 
     return NextResponse.json({
-      data: shifts.map((s) => ({
-        ...s,
-        totalPenjualan: totalMap.get(s.id)?.total ?? 0,
-        jumlahTransaksi: totalMap.get(s.id)?.jumlah ?? 0,
-      })),
+      data: shifts.map((s) => {
+        const t = totalMap.get(s.id);
+        return {
+          ...s,
+          totalPenjualan: t?.total ?? 0,
+          penjualanTunai: t?.tunai ?? 0,
+          penjualanNonTunai: t?.nonTunai ?? 0,
+          jumlahTransaksi: t?.jumlah ?? 0,
+        };
+      }),
       shiftAktif: aktif,
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
@@ -105,12 +124,23 @@ export async function POST(request: NextRequest) {
         throw new ValidationError("Tidak ada shift aktif");
       }
 
-      const agregat = await tx.penjualan.aggregate({
+      // Rekap kas dipecah menurut metode bayar. Yang ada di laci hanya uang
+      // tunai; transfer, QRIS, dan debit tidak pernah masuk ke sana.
+      const perMetode = await tx.penjualan.groupBy({
+        by: ["metodeBayar"],
         where: { shiftId: aktif.id },
         _sum: { total: true },
         _count: { _all: true },
       });
-      const totalPenjualan = agregat._sum.total ?? 0;
+
+      const penjualanTunai = perMetode
+        .filter((m) => m.metodeBayar === "Tunai")
+        .reduce((sum, m) => sum + (m._sum.total ?? 0), 0);
+      const penjualanNonTunai = perMetode
+        .filter((m) => m.metodeBayar !== "Tunai")
+        .reduce((sum, m) => sum + (m._sum.total ?? 0), 0);
+      const totalPenjualan = penjualanTunai + penjualanNonTunai;
+      const jumlahTransaksi = perMetode.reduce((sum, m) => sum + m._count._all, 0);
 
       const shift = await tx.shiftKasir.update({
         where: { id: aktif.id },
@@ -118,12 +148,23 @@ export async function POST(request: NextRequest) {
         include: { user: { select: { id: true, nama: true, username: true } } },
       });
 
-      const saldoSeharusnya = shift.saldoAwal + totalPenjualan;
+      // Versi sebelumnya memakai seluruh penjualan di sini, termasuk yang
+      // dibayar transfer/QRIS. Setiap shift dengan pembayaran non-tunai
+      // otomatis menampilkan selisih kas negatif palsu — dan orang pertama
+      // yang dicurigai adalah kasirnya sendiri.
+      const saldoSeharusnya = shift.saldoAwal + penjualanTunai;
 
       return {
         ...shift,
         totalPenjualan,
-        jumlahTransaksi: agregat._count._all,
+        penjualanTunai,
+        penjualanNonTunai,
+        rincianMetode: perMetode.map((m) => ({
+          metode: m.metodeBayar,
+          total: m._sum.total ?? 0,
+          jumlah: m._count._all,
+        })),
+        jumlahTransaksi,
         saldoSeharusnya,
         selisih: saldoAkhir - saldoSeharusnya,
       };

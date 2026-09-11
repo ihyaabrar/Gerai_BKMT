@@ -9,6 +9,7 @@ import { generateBarcode, formatRupiah } from "@/lib/utils";
 import { PackagePlus, Package, Search, Plus, RefreshCw, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { ImageUpload } from "@/components/ui/ImageUpload";
+import { useAuthStore } from "@/store/auth";
 
 interface Barang {
   id: string;
@@ -29,6 +30,13 @@ interface KategoriBarang {
 }
 
 export default function BarangMasukPage() {
+  // Menerima kiriman barang adalah pekerjaan kasir. Mendaftarkan barang baru
+  // dan mengubah harga beli bukan — keduanya menentukan laba, dan laba
+  // menentukan bagi hasil nasabah. Server menolak keduanya untuk kasir,
+  // jadi tombolnya pun tidak ditampilkan.
+  const { user } = useAuthStore();
+  const bolehUbahHarga = user?.role === "master" || user?.role === "admin";
+
   const [mode, setMode] = useState<"pilih" | "baru">("pilih");
   const [barangList, setBarangList] = useState<Barang[]>([]);
   const [kategoriList, setKategoriList] = useState<KategoriBarang[]>([]);
@@ -224,14 +232,16 @@ export default function BarangMasukPage() {
           <Package className="h-4 w-4 mr-2" />
           Update Stok Barang
         </Button>
-        <Button
-          onClick={() => setMode("baru")}
-          variant={mode === "baru" ? "default" : "outline"}
-          className={mode === "baru" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Tambah Barang Baru
-        </Button>
+        {bolehUbahHarga && (
+          <Button
+            onClick={() => setMode("baru")}
+            variant={mode === "baru" ? "default" : "outline"}
+            className={mode === "baru" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Barang Baru
+          </Button>
+        )}
       </div>
 
       {/* Mode: Update Stok */}
@@ -335,19 +345,26 @@ export default function BarangMasukPage() {
                     />
                   </div>
 
-                  {/* Checkbox Update Harga Beli */}
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      id="updateHargaBeli"
-                      checked={updateHargaBeli}
-                      onChange={(e) => setUpdateHargaBeli(e.target.checked)}
-                      className="w-4 h-4 text-brand-600 rounded focus:ring-blue-500"
-                    />
-                    <label htmlFor="updateHargaBeli" className="text-sm font-medium text-slate-700 cursor-pointer">
-                      Update Harga Beli
-                    </label>
-                  </div>
+                  {/* Checkbox Update Harga Beli — pengelola saja */}
+                  {bolehUbahHarga ? (
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="updateHargaBeli"
+                        checked={updateHargaBeli}
+                        onChange={(e) => setUpdateHargaBeli(e.target.checked)}
+                        className="w-4 h-4 text-brand-600 rounded focus:ring-blue-500"
+                      />
+                      <label htmlFor="updateHargaBeli" className="text-sm font-medium text-slate-700 cursor-pointer">
+                        Update Harga Beli
+                      </label>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 leading-relaxed">
+                      Harga beli hanya bisa diubah oleh pengelola. Stok tetap
+                      bisa Anda tambahkan dengan harga yang berlaku sekarang.
+                    </p>
+                  )}
 
                   {/* Input Harga Beli Baru */}
                   {updateHargaBeli && (
@@ -410,7 +427,7 @@ export default function BarangMasukPage() {
       )}
 
       {/* Mode: Tambah Baru */}
-      {mode === "baru" && (
+      {mode === "baru" && bolehUbahHarga && (
         <Card className="max-w-2xl border-0 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">

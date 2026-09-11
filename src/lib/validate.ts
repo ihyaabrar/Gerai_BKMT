@@ -99,6 +99,14 @@ export function toErrorResponse(error: unknown, fallbackMessage: string) {
   if (error instanceof ValidationError) {
     return { message: error.message, status: 400 as const };
   }
+
+  // Body yang bukan JSON adalah kesalahan pengirim, bukan kesalahan server.
+  // Sebelumnya ini dilaporkan sebagai 500, yang menyesatkan saat menelusuri
+  // masalah: log penuh "error server" padahal requestnya memang cacat.
+  if (error instanceof SyntaxError) {
+    return { message: "Format data tidak valid", status: 400 as const };
+  }
+
   console.error(fallbackMessage, error);
   return { message: fallbackMessage, status: 500 as const };
 }

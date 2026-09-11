@@ -93,7 +93,10 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  const auth = await requireAuth(request);
+  // Membuat barang berarti menetapkan harga beli dan harga jual — keduanya
+  // langsung menentukan laba, dan laba menentukan bagi hasil nasabah.
+  // Kasir mencatat barang masuk lewat /api/barang-masuk, bukan di sini.
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {
@@ -122,7 +125,10 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const auth = await requireAuth(request);
+  // Sebelumnya cukup login apa pun: kasir bisa mengubah hargaBeli, hargaJual,
+  // dan stok siapa pun tanpa jejak. Penyesuaian stok oleh kasir tetap bisa
+  // lewat /api/penyesuaian, yang mencatat alasan dan pelakunya.
+  const auth = await requireAdminAuth(request);
   if (auth.error) return auth.error;
 
   try {

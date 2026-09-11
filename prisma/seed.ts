@@ -23,13 +23,34 @@ async function main() {
   });
   console.log('✅ Pengaturan created');
 
-  // User dengan password ter-hash
-  const adminHash = await bcrypt.hash("admin123", 12);
-  const kasirHash = await bcrypt.hash("kasir123", 12);
+  // Password bawaan hanya untuk pengembangan lokal. Di produksi, seed
+  // menolak berjalan tanpa password yang ditentukan sendiri — kalau tidak,
+  // seluruh dunia tahu cara masuk ke sistem yang memegang uang anggota.
+  const BAWAAN_ADMIN = "admin123";
+  const BAWAAN_KASIR = "kasir123";
+  const passwordAdmin = process.env.SEED_ADMIN_PASSWORD || BAWAAN_ADMIN;
+  const passwordKasir = process.env.SEED_KASIR_PASSWORD || BAWAAN_KASIR;
 
+  if (
+    process.env.NODE_ENV === "production" &&
+    (passwordAdmin === BAWAAN_ADMIN || passwordKasir === BAWAAN_KASIR)
+  ) {
+    throw new Error(
+      "Password bawaan tidak boleh dipakai di produksi. Set SEED_ADMIN_PASSWORD dan SEED_KASIR_PASSWORD lebih dulu."
+    );
+  }
+
+  const adminHash = await bcrypt.hash(passwordAdmin, 12);
+  const kasirHash = await bcrypt.hash(passwordKasir, 12);
+
+  // `update` sengaja dikosongkan.
+  //
+  // Sebelumnya baris ini menulis ulang password setiap kali seed dijalankan.
+  // Pengurus yang sudah mengganti passwordnya akan diam-diam dikembalikan ke
+  // "admin123" pada deploy berikutnya — tanpa ada yang tahu.
   await prisma.user.upsert({
     where: { username: "admin" },
-    update: { password: adminHash },
+    update: {},
     create: {
       nama: "Admin Master",
       username: "admin",
@@ -40,7 +61,7 @@ async function main() {
 
   await prisma.user.upsert({
     where: { username: "kasir" },
-    update: { password: kasirHash },
+    update: {},
     create: {
       nama: "Kasir 1",
       username: "kasir",
@@ -48,7 +69,7 @@ async function main() {
       role: "kasir",
     },
   });
-  console.log('✅ User created (password hashed)');
+  console.log('✅ User created (password hashed, tidak menimpa yang sudah ada)');
 
   // Kategori Barang
   const kategoriBarangData = ["Makanan", "Minuman", "Snack", "Sembako", "Alat Tulis", "Lainnya"];
