@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth-middleware";
+import { requireAdminAuth, requireAuth } from "@/lib/auth-middleware";
+import { STATUS_PENJUALAN, labelPeriode, periodeDari } from "@/lib/keuangan";
 import {
   ValidationError,
   optionalString,
   parsePagination,
   requireInt,
+  requireOneOf,
   requireString,
   toErrorResponse,
 } from "@/lib/validate";
@@ -34,6 +36,41 @@ function ambilPenjualan(idempotencyKey: string) {
   });
 }
 
+/**
+ * Nomor transaksi: awalan, tanggal-jam yang bisa dibaca manusia, lalu empat
+ * karakter acak.
+ *
+ * Versi sebelumnya hanya memakai dua digit acak (0–99) di belakang detik. Dua
+ * kasir yang menekan Bayar pada detik yang sama punya sekitar 1% peluang
+ * menghasilkan nomor yang sama, dan tabrakannya muncul sebagai "Gagal
+ * memproses transaksi" — pesan yang tidak menjelaskan apa pun. Empat karakter
+ * base36 memberi 1,7 juta kemungkinan per detik.
+ */
+function buatNomorTransaksi(prefix: string | undefined): string {
+  const now = new Date();
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const acak = Math.floor(Math.random() * 36 ** 4)
+    .toString(36)
+    .toUpperCase()
+    .padStart(4, "0");
+
+  return (
+    `${prefix || "TRX"}` +
+    `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
+    `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
+    acak
+  );
+}
+
+/** Tabrakan pada kolom tertentu, supaya penanganannya bisa dibedakan. */
+function tabrakanPada(error: unknown, kolom: string): boolean {
+  return (
+    error instanceof Prisma.PrismaClientKnownRequestError &&
+    error.code === "P2002" &&
+    ((error.meta?.target as string[] | undefined)?.includes(kolom) ?? false)
+  );
+}
+
 export async function GET(request: NextRequest) {
   const auth = await requireAuth(request);
   if (auth.error) return auth.error;
@@ -56,7 +93,14 @@ export async function GET(request: NextRequest) {
     const [data, total] = await Promise.all([
       prisma.penjualan.findMany({
         where,
-        include: { member: true, detail: { include: { barang: true } } },
+        // Penjualan yang dibatalkan tetap ditampilkan di daftar — justru itu
+        // gunanya: pengurus harus bisa melihat apa yang dibatalkan, oleh
+        // siapa, dan dengan alasan apa.
+        include: {
+          member: true,
+          detail: { include: { barang: true } },
+          dibatalkanOleh: { select: { nama: true } },
+        },
         orderBy: { tanggal: "desc" },
         skip,
         take: limit,
@@ -69,7 +113,10 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memuat penjualan");
+    const { message, status } = toErrorResponse(
+      error,
+      "Gagal memuat penjualan",
+    );
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -95,11 +142,16 @@ export async function POST(request: NextRequest) {
     const requested = new Map<string, number>();
     for (const item of body.items) {
       const id = requireString(item?.id, "ID barang");
-      const qty = requireInt(item?.qty, "Jumlah barang", { min: 1, max: 100000 });
+      const qty = requireInt(item?.qty, "Jumlah barang", {
+        min: 1,
+        max: 100000,
+      });
       requested.set(id, (requested.get(id) ?? 0) + qty);
     }
 
-    const memberId = body?.memberId ? requireString(body.memberId, "Member") : null;
+    const memberId = body?.memberId
+      ? requireString(body.memberId, "Member")
+      : null;
     const metodeBayar = METODE_BAYAR.includes(body?.metodeBayar)
       ? body.metodeBayar
       : "Tunai";
@@ -128,151 +180,272 @@ export async function POST(request: NextRequest) {
       }),
     ]);
 
-    const result = await prisma.$transaction(async (tx) => {
-      const barangList = await tx.barang.findMany({
-        where: { id: { in: [...requested.keys()] } },
-      });
+    const jalankanTransaksi = () =>
+      prisma.$transaction(async (tx) => {
+        const barangList = await tx.barang.findMany({
+          where: { id: { in: [...requested.keys()] } },
+        });
 
-      if (barangList.length !== requested.size) {
-        throw new ValidationError("Ada barang yang tidak ditemukan");
-      }
-
-      // Harga dan subtotal dihitung ulang dari database.
-      // Nilai dari client hanya dipakai untuk tampilan, tidak pernah dipercaya.
-      let subtotal = 0;
-      const detail: {
-        barangId: string;
-        qty: number;
-        hargaJual: number;
-        hargaBeli: number;
-        subtotal: number;
-      }[] = [];
-
-      for (const barang of barangList) {
-        const qty = requested.get(barang.id)!;
-        if (!barang.aktif) {
-          throw new ValidationError(`Barang ${barang.nama} sudah tidak aktif`);
+        if (barangList.length !== requested.size) {
+          throw new ValidationError("Ada barang yang tidak ditemukan");
         }
-        if (barang.stok < qty) {
+
+        // Harga dan subtotal dihitung ulang dari database.
+        // Nilai dari client hanya dipakai untuk tampilan, tidak pernah dipercaya.
+        let subtotal = 0;
+        const detail: {
+          barangId: string;
+          qty: number;
+          hargaJual: number;
+          hargaBeli: number;
+          subtotal: number;
+        }[] = [];
+
+        for (const barang of barangList) {
+          const qty = requested.get(barang.id)!;
+          if (!barang.aktif) {
+            throw new ValidationError(
+              `Barang ${barang.nama} sudah tidak aktif`,
+            );
+          }
+          if (barang.stok < qty) {
+            throw new ValidationError(
+              `Stok ${barang.nama} tidak mencukupi. Tersedia: ${barang.stok}`,
+            );
+          }
+          const itemSubtotal = barang.hargaJual * qty;
+          subtotal += itemSubtotal;
+          detail.push({
+            barangId: barang.id,
+            qty,
+            hargaJual: barang.hargaJual,
+            // Harga pokok ikut dibekukan di sini. Kalau nanti harga beli barang
+            // diubah, laba bulan ini tetap seperti yang dilaporkan hari ini.
+            hargaBeli: barang.hargaBeli,
+            subtotal: itemSubtotal,
+          });
+        }
+
+        // Persen diskon juga diambil dari pengaturan server, bukan dari client.
+        let persenDiskon = 0;
+        if (memberId) {
+          const member = await tx.member.findUnique({
+            where: { id: memberId },
+          });
+          if (!member || !member.aktif) {
+            throw new ValidationError("Member tidak ditemukan");
+          }
+          persenDiskon = pengaturan?.diskonMember ?? 0;
+        }
+
+        const diskon = Math.round((subtotal * persenDiskon) / 100);
+        const total = subtotal - diskon;
+
+        if (bayar < total) {
           throw new ValidationError(
-            `Stok ${barang.nama} tidak mencukupi. Tersedia: ${barang.stok}`
+            `Jumlah bayar kurang dari total belanja (${total})`,
           );
         }
-        const itemSubtotal = barang.hargaJual * qty;
-        subtotal += itemSubtotal;
-        detail.push({
-          barangId: barang.id,
-          qty,
-          hargaJual: barang.hargaJual,
-          // Harga pokok ikut dibekukan di sini. Kalau nanti harga beli barang
-          // diubah, laba bulan ini tetap seperti yang dilaporkan hari ini.
-          hargaBeli: barang.hargaBeli,
-          subtotal: itemSubtotal,
+
+        const nomorTransaksi = buatNomorTransaksi(pengaturan?.prefixTransaksi);
+
+        const penjualan = await tx.penjualan.create({
+          data: {
+            nomorTransaksi,
+            idempotencyKey,
+            memberId,
+            subtotal,
+            diskon,
+            total,
+            bayar,
+            kembalian: bayar - total,
+            metodeBayar,
+            // Menghubungkan transaksi ke shift aktif — sebelumnya selalu null
+            // sehingga total penjualan per shift selalu 0.
+            shiftId: shiftAktif?.id ?? null,
+            // Siapa yang melayani transaksi ini. Tanpa kolom ini, selisih kas
+            // tidak bisa ditelusuri ke siapa pun.
+            userId: auth.user.id,
+            detail: { create: detail },
+          },
+          include: SERTAKAN,
         });
-      }
 
-      // Persen diskon juga diambil dari pengaturan server, bukan dari client.
-      let persenDiskon = 0;
-      if (memberId) {
-        const member = await tx.member.findUnique({ where: { id: memberId } });
-        if (!member || !member.aktif) {
-          throw new ValidationError("Member tidak ditemukan");
-        }
-        persenDiskon = pengaturan?.diskonMember ?? 0;
-      }
-
-      const diskon = Math.round((subtotal * persenDiskon) / 100);
-      const total = subtotal - diskon;
-
-      if (bayar < total) {
-        throw new ValidationError(
-          `Jumlah bayar kurang dari total belanja (${total})`
-        );
-      }
-
-      const now = new Date();
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const prefix = pengaturan?.prefixTransaksi || "TRX";
-      const nomorTransaksi = `${prefix}${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(
-        now.getDate()
-      )}${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}${pad(
-        Math.floor(Math.random() * 100)
-      )}`;
-
-      const penjualan = await tx.penjualan.create({
-        data: {
-          nomorTransaksi,
-          idempotencyKey,
-          memberId,
-          subtotal,
-          diskon,
-          total,
-          bayar,
-          kembalian: bayar - total,
-          metodeBayar,
-          // Menghubungkan transaksi ke shift aktif — sebelumnya selalu null
-          // sehingga total penjualan per shift selalu 0.
-          shiftId: shiftAktif?.id ?? null,
-          // Siapa yang melayani transaksi ini. Tanpa kolom ini, selisih kas
-          // tidak bisa ditelusuri ke siapa pun.
-          userId: auth.user.id,
-          detail: { create: detail },
-        },
-        include: SERTAKAN,
-      });
-
-      // Seluruh stok dipotong dalam SATU perintah, bukan satu per barang.
-      // Belanjaan 12 item sebelumnya berarti 12 round-trip berurutan di dalam
-      // transaksi — cukup untuk melewati batas waktunya pada jaringan lambat.
-      //
-      // Syarat `b.stok >= v.qty` membuat pemotongan ini sekaligus jadi
-      // penjagaan: pemeriksaan stok di atas dan pemotongan di sini terpisah
-      // waktunya, jadi dua kasir yang menjual barang terakhir bersamaan bisa
-      // lolos keduanya. Kalau ada baris yang tidak memenuhi syarat, jumlah
-      // baris terupdate berkurang dan seluruh transaksi dibatalkan.
-      const terpotong = await tx.$executeRaw`
+        // Seluruh stok dipotong dalam SATU perintah, bukan satu per barang.
+        // Belanjaan 12 item sebelumnya berarti 12 round-trip berurutan di dalam
+        // transaksi — cukup untuk melewati batas waktunya pada jaringan lambat.
+        //
+        // Syarat `b.stok >= v.qty` membuat pemotongan ini sekaligus jadi
+        // penjagaan: pemeriksaan stok di atas dan pemotongan di sini terpisah
+        // waktunya, jadi dua kasir yang menjual barang terakhir bersamaan bisa
+        // lolos keduanya. Kalau ada baris yang tidak memenuhi syarat, jumlah
+        // baris terupdate berkurang dan seluruh transaksi dibatalkan.
+        const terpotong = await tx.$executeRaw`
         UPDATE "Barang" AS b
         SET stok = b.stok - v.qty
         FROM (VALUES ${Prisma.join(
-          detail.map((d) => Prisma.sql`(${d.barangId}::text, ${d.qty}::int)`)
+          detail.map((d) => Prisma.sql`(${d.barangId}::text, ${d.qty}::int)`),
         )}) AS v(id, qty)
         WHERE b.id = v.id AND b.stok >= v.qty
       `;
 
-      if (terpotong !== detail.length) {
-        throw new ValidationError(
-          "Stok berubah saat transaksi diproses. Periksa ulang keranjang."
-        );
-      }
-
-      if (memberId) {
-        const poin = Math.floor(total / 1000);
-        if (poin > 0) {
-          await tx.member.update({
-            where: { id: memberId },
-            data: { poin: { increment: poin } },
-          });
+        if (terpotong !== detail.length) {
+          throw new ValidationError(
+            "Stok berubah saat transaksi diproses. Periksa ulang keranjang.",
+          );
         }
-      }
 
-      return penjualan;
-    }, TRANSAKSI_OPSI);
+        if (memberId) {
+          const poin = Math.floor(total / 1000);
+          if (poin > 0) {
+            await tx.member.update({
+              where: { id: memberId },
+              data: { poin: { increment: poin } },
+            });
+          }
+        }
+
+        return penjualan;
+      }, TRANSAKSI_OPSI);
+
+    // Nomor transaksi dibuat acak, jadi ada kemungkinan kecil bertabrakan
+    // dengan transaksi lain pada detik yang sama. Itu bukan kesalahan kasir
+    // dan tidak perlu sampai ke layarnya — cukup ulangi dengan nomor baru.
+    let result;
+    for (let percobaan = 1; ; percobaan++) {
+      try {
+        result = await jalankanTransaksi();
+        break;
+      } catch (error) {
+        if (!tabrakanPada(error, "nomorTransaksi") || percobaan >= 3)
+          throw error;
+      }
+    }
 
     return NextResponse.json(result);
   } catch (error) {
     // Dua percobaan dengan kunci yang sama bisa tiba nyaris bersamaan dan
     // lolos dari pemeriksaan di awal. Yang kalah di constraint unik tidak
     // boleh dilaporkan sebagai kegagalan — transaksinya memang sudah ada.
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2002" &&
-      (error.meta?.target as string[] | undefined)?.includes("idempotencyKey")
-    ) {
-      const sudahAda = idempotencyKey ? await ambilPenjualan(idempotencyKey) : null;
+    if (tabrakanPada(error, "idempotencyKey")) {
+      const sudahAda = idempotencyKey
+        ? await ambilPenjualan(idempotencyKey)
+        : null;
       if (sudahAda) return NextResponse.json(sudahAda);
     }
 
-    const { message, status } = toErrorResponse(error, "Gagal memproses transaksi");
+    const { message, status } = toErrorResponse(
+      error,
+      "Gagal memproses transaksi",
+    );
+    return NextResponse.json({ error: message }, { status });
+  }
+}
+
+/**
+ * Membatalkan penjualan.
+ *
+ * Penjualan tidak pernah dihapus: struk yang sudah dicetak tetap ada di dunia
+ * nyata, dan pertanyaan tentangnya akan muncul lagi kemudian. Pembatalan
+ * mengembalikan stok, menarik kembali poin member, dan meninggalkan jejak
+ * siapa membatalkan, kapan, dan kenapa.
+ */
+export async function PATCH(request: NextRequest) {
+  // Kasir yang salah input memanggil pengelola. Membatalkan penjualan
+  // mengubah uang dan stok sekaligus, jadi bukan wewenang kasir.
+  const auth = await requireAdminAuth(request);
+  if (auth.error) return auth.error;
+
+  try {
+    const body = await request.json();
+    const id = requireString(body?.id, "ID penjualan");
+    requireOneOf(body?.aksi, "Aksi", ["batal"] as const);
+    const alasan = requireString(body?.alasan, "Alasan pembatalan", {
+      min: 5,
+      max: 300,
+    });
+
+    const hasil = await prisma.$transaction(async (tx) => {
+      const penjualan = await tx.penjualan.findUnique({
+        where: { id },
+        include: { detail: true },
+      });
+
+      if (!penjualan) {
+        throw new ValidationError("Penjualan tidak ditemukan");
+      }
+      if (penjualan.status === STATUS_PENJUALAN.batal) {
+        throw new ValidationError("Penjualan ini sudah dibatalkan sebelumnya");
+      }
+
+      // Periode yang distribusinya sudah ditutup tidak boleh berubah diam-diam:
+      // bagi hasil bulan itu sudah dihitung, mungkin sudah dibayarkan, dan
+      // angkanya sudah dipertanggungjawabkan ke anggota.
+      const periode = periodeDari(penjualan.tanggal);
+      const distribusi = await tx.distribusiLaba.findUnique({
+        where: { periode },
+      });
+      if (distribusi) {
+        throw new ValidationError(
+          `Distribusi ${labelPeriode(periode)} sudah ditutup, jadi transaksi bulan itu tidak bisa diubah. ` +
+            `Buka kembali periodenya lebih dulu (hanya master), lalu tutup ulang setelah pembatalan.`,
+        );
+      }
+
+      // Stok dikembalikan dalam satu perintah, sejalan dengan cara
+      // pemotongannya saat penjualan dibuat.
+      if (penjualan.detail.length > 0) {
+        await tx.$executeRaw`
+          UPDATE "Barang" AS b
+          SET stok = b.stok + v.qty
+          FROM (VALUES ${Prisma.join(
+            penjualan.detail.map(
+              (d) => Prisma.sql`(${d.barangId}::text, ${d.qty}::int)`,
+            ),
+          )}) AS v(id, qty)
+          WHERE b.id = v.id
+        `;
+      }
+
+      // Poin member ditarik kembali sebanyak yang dulu diberikan, tidak sampai
+      // membuat saldo poin negatif.
+      if (penjualan.memberId) {
+        const poin = Math.floor(penjualan.total / 1000);
+        if (poin > 0) {
+          const member = await tx.member.findUnique({
+            where: { id: penjualan.memberId },
+            select: { poin: true },
+          });
+          if (member) {
+            await tx.member.update({
+              where: { id: penjualan.memberId },
+              data: { poin: Math.max(0, member.poin - poin) },
+            });
+          }
+        }
+      }
+
+      return tx.penjualan.update({
+        where: { id },
+        data: {
+          status: STATUS_PENJUALAN.batal,
+          alasanBatal: alasan,
+          dibatalkanPada: new Date(),
+          dibatalkanOlehId: auth.user.id,
+        },
+        include: {
+          ...SERTAKAN,
+          dibatalkanOleh: { select: { nama: true } },
+        },
+      });
+    }, TRANSAKSI_OPSI);
+
+    return NextResponse.json(hasil);
+  } catch (error) {
+    const { message, status } = toErrorResponse(
+      error,
+      "Gagal membatalkan penjualan",
+    );
     return NextResponse.json({ error: message }, { status });
   }
 }

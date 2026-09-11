@@ -13,6 +13,20 @@
  */
 export const KATEGORI_PEMBELIAN_BARANG = "Pembelian Barang";
 
+export const STATUS_PENJUALAN = {
+  selesai: "selesai",
+  batal: "batal",
+} as const;
+
+/**
+ * Filter Prisma untuk penjualan yang ikut dihitung.
+ *
+ * Penjualan yang dibatalkan tetap tersimpan sebagai jejak, tetapi tidak boleh
+ * muncul di laporan, laba, rekap kas, maupun distribusi bagi hasil. Konstanta
+ * ini dipakai di semua tempat itu supaya tidak ada satu pun yang terlewat.
+ */
+export const PENJUALAN_SAH = { status: STATUS_PENJUALAN.selesai } as const;
+
 /**
  * Server produksi berjalan pada UTC, sementara toko dan seluruh laporannya
  * memakai WIB. Tanpa penyesuaian ini, transaksi pukul 06.30 WIB tanggal 1

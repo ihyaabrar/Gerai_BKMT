@@ -17,13 +17,14 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  shifts         ShiftKasir[]
-  berita         Berita[]
-  penjualan      Penjualan[]
-  pengeluaran    Pengeluaran[]
-  penyesuaian    PenyesuaianStok[]
-  retur          Retur[]
-  distribusiLaba DistribusiLaba[]
+  shifts              ShiftKasir[]
+  berita              Berita[]
+  penjualan           Penjualan[]
+  penjualanDibatalkan Penjualan[]       @relation("PenjualanDibatalkan")
+  pengeluaran         Pengeluaran[]
+  penyesuaian         PenyesuaianStok[]
+  retur               Retur[]
+  distribusiLaba      DistribusiLaba[]
 }
 
 model Barang {
@@ -107,7 +108,17 @@ model Penjualan {
   shift          ShiftKasir? @relation(fields: [shiftId], references: [id])
   userId         String?
   user           User?       @relation(fields: [userId], references: [id])
-  createdAt      DateTime    @default(now())
+
+  /// "selesai" atau "batal". Penjualan tidak pernah dihapus — pembatalan
+  /// menyisakan jejaknya, karena struk yang sudah dicetak tetap ada di dunia
+  /// nyata dan pertanyaannya akan muncul lagi kemudian.
+  status           String    @default("selesai")
+  alasanBatal      String?
+  dibatalkanPada   DateTime?
+  dibatalkanOlehId String?
+  dibatalkanOleh   User?     @relation("PenjualanDibatalkan", fields: [dibatalkanOlehId], references: [id])
+
+  createdAt DateTime @default(now())
 
   detail DetailPenjualan[]
 
@@ -115,6 +126,7 @@ model Penjualan {
   @@index([shiftId])
   @@index([memberId])
   @@index([userId])
+  @@index([status, tanggal])
 }
 
 model DetailPenjualan {
@@ -248,7 +260,7 @@ model DistribusiLaba {
   totalPenjualan Float
   totalHpp       Float
   totalDiskon    Float
-  totalTransaksi Int    @default(0)
+  totalTransaksi Int   @default(0)
   labaKotor      Float
 
   persenNasabah   Float

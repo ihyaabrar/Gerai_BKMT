@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth-middleware";
 import { isAdminRole } from "@/lib/permissions";
 import {
   KATEGORI_PEMBELIAN_BARANG,
+  PENJUALAN_SAH,
   awalHariWIB,
   labaTransaksi,
   periodeDari,
@@ -61,12 +62,12 @@ export async function GET(request: NextRequest) {
       produkTerlaris,
     ] = await Promise.all([
       prisma.penjualan.aggregate({
-        where: { tanggal: { gte: today } },
+        where: { ...PENJUALAN_SAH, tanggal: { gte: today } },
         _sum: { total: true },
       }),
       // Satu query untuk 12 bulan, menggantikan 12 query berurutan di dalam loop.
       prisma.penjualan.findMany({
-        where: { tanggal: { gte: awalGrafik } },
+        where: { ...PENJUALAN_SAH, tanggal: { gte: awalGrafik } },
         select: {
           tanggal: true,
           total: true,
@@ -97,12 +98,16 @@ export async function GET(request: NextRequest) {
         orderBy: { stok: "asc" },
       }),
       prisma.penjualan.findMany({
+        where: PENJUALAN_SAH,
         take: 5,
         orderBy: { tanggal: "desc" },
         include: { member: true },
       }),
       prisma.detailPenjualan.groupBy({
         by: ["barangId"],
+        // Barang dari transaksi yang dibatalkan tidak pernah benar-benar
+        // terjual, jadi tidak boleh ikut menentukan "terlaris".
+        where: { penjualan: PENJUALAN_SAH },
         _sum: { qty: true },
         orderBy: { _sum: { qty: "desc" } },
         take: 5,
@@ -113,7 +118,7 @@ export async function GET(request: NextRequest) {
     const [aktPenjualan, aktPenyesuaian, aktRetur, aktPengeluaran, aktMember] =
       await Promise.all([
         prisma.penjualan.findMany({
-          where: { tanggal: { gte: today } },
+          where: { ...PENJUALAN_SAH, tanggal: { gte: today } },
           orderBy: { tanggal: "desc" },
           take: 6,
           select: { id: true, nomorTransaksi: true, total: true, tanggal: true },
@@ -180,11 +185,11 @@ export async function GET(request: NextRequest) {
     // Angka pembanding untuk tren
     const [penjualanKemarin, penjualanBulanLalu, produkBulanLalu] = await Promise.all([
       prisma.penjualan.aggregate({
-        where: { tanggal: { gte: kemarin, lt: today } },
+        where: { ...PENJUALAN_SAH, tanggal: { gte: kemarin, lt: today } },
         _sum: { total: true },
       }),
       prisma.penjualan.findMany({
-        where: { tanggal: { gte: awalBulanLalu, lt: firstDayOfMonth } },
+        where: { ...PENJUALAN_SAH, tanggal: { gte: awalBulanLalu, lt: firstDayOfMonth } },
         select: { total: true, diskon: true, detail: { select: { qty: true, hargaBeli: true } } },
       }),
       prisma.barang.count({

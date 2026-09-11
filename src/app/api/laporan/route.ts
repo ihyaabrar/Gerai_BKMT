@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAdminAuth } from "@/lib/auth-middleware";
 import {
   KATEGORI_PEMBELIAN_BARANG,
+  PENJUALAN_SAH,
   akhirHariWIB,
   awalHariWIB,
   hitungLaba,
@@ -19,7 +20,7 @@ const MAKS_HARI = 366;
 
 async function laporanPenjualan(start: Date, end: Date) {
   const penjualan = await prisma.penjualan.findMany({
-    where: { tanggal: { gte: start, lte: end } },
+    where: { ...PENJUALAN_SAH, tanggal: { gte: start, lte: end } },
     orderBy: { tanggal: "desc" },
     select: {
       id: true,

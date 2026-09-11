@@ -3,6 +3,7 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuth, requireRole } from "@/lib/auth-middleware";
 import {
+  PENJUALAN_SAH,
   bagiHasil,
   bagiRata,
   hitungLaba,
@@ -63,7 +64,7 @@ async function hitungPeriode(
 
   const [penjualan, pengaturan, nasabah] = await Promise.all([
     db.penjualan.findMany({
-      where: { tanggal: { gte: mulai, lte: selesai } },
+      where: { ...PENJUALAN_SAH, tanggal: { gte: mulai, lte: selesai } },
       select: {
         total: true,
         diskon: true,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-middleware";
+import { PENJUALAN_SAH } from "@/lib/keuangan";
 import {
   ValidationError,
   optionalString,
@@ -39,7 +40,7 @@ export async function GET(request: NextRequest) {
     // penjualan tunai, karena transfer dan QRIS tidak masuk ke laci.
     const totals = await prisma.penjualan.groupBy({
       by: ["shiftId", "metodeBayar"],
-      where: { shiftId: { in: shifts.map((s) => s.id) } },
+      where: { ...PENJUALAN_SAH, shiftId: { in: shifts.map((s) => s.id) } },
       _sum: { total: true },
       _count: { _all: true },
     });
@@ -128,7 +129,7 @@ export async function POST(request: NextRequest) {
       // tunai; transfer, QRIS, dan debit tidak pernah masuk ke sana.
       const perMetode = await tx.penjualan.groupBy({
         by: ["metodeBayar"],
-        where: { shiftId: aktif.id },
+        where: { ...PENJUALAN_SAH, shiftId: aktif.id },
         _sum: { total: true },
         _count: { _all: true },
       });
