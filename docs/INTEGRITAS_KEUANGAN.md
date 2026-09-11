@@ -111,6 +111,7 @@ nasabah — kebijakan itu harus diubah lebih dulu di
 | Menghapus barang | ❌ | ✅ | ✅ |
 | Melihat angka laba | ❌ | ✅ | ✅ |
 | Laporan keuangan & distribusi | ❌ | ✅ | ✅ |
+| Membatalkan penjualan | ❌ | ✅ | ✅ |
 | Menutup distribusi | ❌ | ✅ | ✅ |
 | Membuka kembali distribusi | ❌ | ❌ | ✅ |
 | Mengelola pengguna | ❌ | ❌ | ✅ |
@@ -122,9 +123,46 @@ boleh.
 Semua pencatatan yang mengubah uang atau stok — penjualan, pengeluaran,
 penyesuaian stok, retur — sekarang menyimpan **siapa yang membuatnya**.
 
+Menonaktifkan pengguna langsung mencabut aksesnya, tidak menunggu sesinya
+kedaluwarsa. Begitu juga penurunan role: admin yang diturunkan jadi kasir
+kehilangan akses pengelola pada klik berikutnya.
+
 ---
 
-## 6. Rekap kas shift
+## 6. Membatalkan penjualan
+
+**Menu: Keuangan → Penjualan → tombol ⃠ pada barisnya**
+
+Kasir salah input jumlah, atau pembeli membatalkan pesanan. Pengelola bisa
+membatalkan transaksinya. Yang terjadi:
+
+- Stok dikembalikan.
+- Poin member ditarik kembali sebanyak yang dulu diberikan.
+- Transaksinya **tidak dihapus**. Struk yang sudah dicetak tetap ada di dunia
+  nyata, jadi yang tersimpan adalah statusnya, alasannya, waktunya, dan siapa
+  yang membatalkan. Daftar penjualan tetap menampilkannya, dicoret.
+- Transaksi itu hilang dari semua perhitungan: laporan, laba, rekap kas shift,
+  dan distribusi bagi hasil.
+
+Alasan pembatalan **wajib diisi**. Itulah yang dibaca kalau pertanyaannya
+muncul lagi bulan depan.
+
+### Kalau periodenya sudah ditutup
+
+Sistem **menolak** membatalkan transaksi pada bulan yang distribusinya sudah
+ditutup — bagi hasil bulan itu sudah dihitung dan mungkin sudah dibayarkan.
+
+Urutan yang benar kalau memang harus diperbaiki:
+
+1. Master membuka kembali periode itu (Distribusi Laba → Buka Kembali).
+2. Batalkan transaksinya.
+3. Tutup ulang periodenya.
+4. **Beri tahu nasabah** kalau angkanya berubah setelah dibayarkan. Sistem bisa
+   menghitung ulang; kepercayaan tidak bisa.
+
+---
+
+## 7. Rekap kas shift
 
 Selisih kas dihitung **hanya dari penjualan tunai**:
 
@@ -140,7 +178,7 @@ uang — dan kasirnya yang dicurigai.
 
 ---
 
-## 7. Transaksi ganda
+## 8. Transaksi ganda
 
 Kasir bekerja dari HP atau tablet di jaringan yang tidak selalu stabil. Kalau
 koneksi terputus tepat setelah tombol Bayar ditekan, aplikasi tidak bisa tahu
@@ -152,7 +190,37 @@ adalah struk transaksi yang pertama, bukan transaksi baru.
 
 ---
 
-## 8. Sebelum dipakai untuk uang sungguhan
+## 9. Ekspor data
+
+**Menu: Sistem → Ekspor Data**
+
+Pilih bulannya, lalu unduh. Berkas JSON berisi data induk lengkap ditambah
+transaksi bulan itu, termasuk rekaman distribusi bagi hasil. Password pengguna
+tidak pernah disertakan.
+
+**Ini bukan pengaman utama data Anda.** Backup yang bergantung pada seseorang
+menekan tombol setiap minggu adalah backup yang tidak ada. Yang benar-benar
+melindungi adalah backup otomatis penyedia database — aktifkan itu sekali, dan
+tidak ada yang perlu diingat lagi.
+
+Ekspor "Seluruh data" akan ditolak kalau ukurannya melewati batas; pesannya
+akan memberi tahu untuk mengekspor per bulan saja.
+
+---
+
+## 10. Kalau ada yang error
+
+Setiap kegagalan yang tidak terduga menampilkan **kode enam karakter**,
+misalnya `Gagal memproses transaksi. Kode kesalahan: BX7K2P`.
+
+Minta kasir membacakan kodenya. Kode itu juga tercetak di log server, jadi
+itulah cara menemukan apa yang sebenarnya terjadi. Tanpa kode itu, pesan
+"gagal" tidak bisa dihubungkan ke apa pun — dan log runtime Vercel paket Hobby
+hanya bertahan satu jam.
+
+---
+
+## 11. Sebelum dipakai untuk uang sungguhan
 
 - [ ] `AUTH_SECRET` diisi minimal 32 karakter acak (aplikasi menolak membuat
       sesi tanpa ini di produksi)
@@ -167,16 +235,21 @@ adalah struk transaksi yang pertama, bukan transaksi baru.
       70% pengelola)
 - [ ] Daftar nasabah dan jumlah investasinya diperiksa sebelum periode pertama
       ditutup
+- [ ] Kalau memakai connection pooling (Neon pooled / Supabase port 6543),
+      tambahkan `directUrl` pada `prisma/schema.prisma` — tanpa itu
+      `prisma migrate deploy` akan gagal terhadap PgBouncer. Sengaja belum
+      ditambahkan karena bergantung pada cara database Anda dibuat.
 
 ---
 
-## 9. Menjalankan pengujian
+## 12. Menjalankan pengujian
 
 ```bash
-npm test                          # 18 uji perhitungan laba, periode WIB, pembagian
-bash scripts/smoke-test.sh        # 65 uji hak akses
+npm test                          # 34 uji perhitungan, periode WIB, sesi, gambar
+bash scripts/smoke-test.sh        # 68 uji hak akses & pencabutan sesi
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
+node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
 ```
 
 Tiga skrip terakhir butuh server berjalan (`npm run build && npm start`) dan
