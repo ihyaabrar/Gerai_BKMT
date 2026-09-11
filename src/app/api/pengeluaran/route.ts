@@ -34,7 +34,10 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(pengeluaran);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memuat pengeluaran");
+    const { message, status } = toErrorResponse(error, "Gagal memuat pengeluaran", {
+      endpoint: "/api/pengeluaran",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -61,7 +64,10 @@ export async function POST(request: NextRequest) {
     });
     return NextResponse.json(pengeluaran);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal menyimpan pengeluaran");
+    const { message, status } = toErrorResponse(error, "Gagal menyimpan pengeluaran", {
+      endpoint: "/api/pengeluaran",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -83,7 +89,10 @@ export async function DELETE(request: NextRequest) {
     await prisma.pengeluaran.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal menghapus pengeluaran");
+    const { message, status } = toErrorResponse(error, "Gagal menghapus pengeluaran", {
+      endpoint: "/api/pengeluaran",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }

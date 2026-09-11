@@ -29,7 +29,10 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(retur);
   } catch (error) {
-    const { message, status: code } = toErrorResponse(error, "Gagal memuat retur");
+    const { message, status: code } = toErrorResponse(error, "Gagal memuat retur", {
+      endpoint: "/api/retur",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status: code });
   }
 }
@@ -67,7 +70,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(retur);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal membuat retur");
+    const { message, status } = toErrorResponse(error, "Gagal membuat retur", {
+      endpoint: "/api/retur",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -114,7 +120,10 @@ export async function PATCH(request: NextRequest) {
 
     return NextResponse.json(retur);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memperbarui retur");
+    const { message, status } = toErrorResponse(error, "Gagal memperbarui retur", {
+      endpoint: "/api/retur",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }

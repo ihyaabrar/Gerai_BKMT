@@ -164,7 +164,10 @@ export async function GET(request: NextRequest) {
       ? laporanPenjualan(start, end)
       : laporanPengeluaran(start, end);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal membuat laporan");
+    const { message, status } = toErrorResponse(error, "Gagal membuat laporan", {
+      endpoint: "/api/laporan",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }

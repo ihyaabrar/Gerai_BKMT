@@ -23,7 +23,10 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(penyesuaian);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memuat penyesuaian");
+    const { message, status } = toErrorResponse(error, "Gagal memuat penyesuaian", {
+      endpoint: "/api/penyesuaian",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -69,7 +72,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(penyesuaian);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal menyimpan penyesuaian");
+    const { message, status } = toErrorResponse(error, "Gagal menyimpan penyesuaian", {
+      endpoint: "/api/penyesuaian",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -94,8 +94,26 @@ export function requireOneOf<T extends string>(
   return value as T;
 }
 
-/** Bungkus handler API supaya ValidationError otomatis jadi HTTP 400. */
-export function toErrorResponse(error: unknown, fallbackMessage: string) {
+/** Konteks tambahan untuk log; semuanya opsional. */
+export interface KonteksKesalahan {
+  endpoint?: string;
+  userId?: string;
+}
+
+/**
+ * Bungkus handler API supaya ValidationError otomatis jadi HTTP 400.
+ *
+ * Untuk kesalahan yang tidak terduga, dibuatkan kode pendek yang ikut
+ * ditampilkan ke pengguna DAN tercetak di log. Organisasi ini tidak punya
+ * staf IT: ketika kasir menelepon pengurus dan berkata "errornya BX7K2P",
+ * kode itulah satu-satunya cara menemukan baris log yang tepat. Sebelumnya
+ * pesan yang muncul selalu generik dan tidak bisa dihubungkan ke apa pun.
+ */
+export function toErrorResponse(
+  error: unknown,
+  fallbackMessage: string,
+  konteks?: KonteksKesalahan
+) {
   if (error instanceof ValidationError) {
     return { message: error.message, status: 400 as const };
   }
@@ -107,8 +125,29 @@ export function toErrorResponse(error: unknown, fallbackMessage: string) {
     return { message: "Format data tidak valid", status: 400 as const };
   }
 
-  console.error(fallbackMessage, error);
-  return { message: fallbackMessage, status: 500 as const };
+  const kode = Array.from({ length: 6 }, () =>
+    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789".charAt(Math.floor(Math.random() * 32))
+  ).join("");
+
+  // Satu baris JSON per kesalahan: bisa dicari, bisa disaring, dan tetap
+  // terbaca kalau nanti dikirim ke layanan pemantauan.
+  console.error(
+    JSON.stringify({
+      kode,
+      waktu: new Date().toISOString(),
+      pesan: fallbackMessage,
+      endpoint: konteks?.endpoint,
+      userId: konteks?.userId,
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+    })
+  );
+
+  return {
+    message: `${fallbackMessage}. Kode kesalahan: ${kode}`,
+    status: 500 as const,
+    kode,
+  };
 }
 
 /** Parse parameter paginasi dari query string. */

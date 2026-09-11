@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
 import { SESSION_COOKIE, verifySession, type Role } from "@/lib/session";
 import { isAdminRole } from "@/lib/permissions";
 
@@ -19,7 +20,22 @@ const unauthorized = () =>
 const forbidden = () =>
   NextResponse.json({ error: "Akses ditolak" }, { status: 403 });
 
-/** Ambil user dari cookie session yang sudah diverifikasi tanda tangannya. */
+/**
+ * Ambil user dari cookie session yang sudah diverifikasi tanda tangannya,
+ * lalu cocokkan dengan keadaan akun di database.
+ *
+ * Tanda tangan cookie saja tidak cukup. Cookie berlaku 12 jam, jadi tanpa
+ * pemeriksaan ini: menonaktifkan pengguna tidak melogout mereka, dan
+ * menurunkan role admin menjadi kasir tidak mencabut apa pun — keduanya baru
+ * berlaku setelah cookienya kedaluwarsa sendiri, mungkin keesokan harinya.
+ *
+ * Role diambil dari database, bukan dari cookie, supaya perubahan hak akses
+ * langsung berlaku pada request berikutnya.
+ *
+ * Ini menambah satu pembacaan primary key per request. Middleware Edge tetap
+ * memakai verifikasi tanda tangan saja, jadi biaya ini hanya pada route
+ * handler yang memang akan menyentuh database.
+ */
 export async function getSessionUser(
   request: NextRequest | Request
 ): Promise<SessionUser | null> {
@@ -31,11 +47,20 @@ export async function getSessionUser(
   const payload = await verifySession(token);
   if (!payload) return null;
 
+  const akun = await prisma.user.findUnique({
+    where: { id: payload.id },
+    select: { id: true, nama: true, username: true, role: true, aktif: true },
+  });
+
+  // Akun dihapus atau dinonaktifkan: cookienya masih sah secara kriptografis,
+  // tetapi orangnya sudah tidak berhak masuk.
+  if (!akun || !akun.aktif) return null;
+
   return {
-    id: payload.id,
-    nama: payload.nama,
-    username: payload.username,
-    role: payload.role,
+    id: akun.id,
+    nama: akun.nama,
+    username: akun.username,
+    role: akun.role as Role,
   };
 }
 

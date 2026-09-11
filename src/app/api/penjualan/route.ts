@@ -116,6 +116,7 @@ export async function GET(request: NextRequest) {
     const { message, status } = toErrorResponse(
       error,
       "Gagal memuat penjualan",
+      { endpoint: "/api/penjualan", userId: auth.user?.id },
     );
     return NextResponse.json({ error: message }, { status });
   }
@@ -337,6 +338,7 @@ export async function POST(request: NextRequest) {
     const { message, status } = toErrorResponse(
       error,
       "Gagal memproses transaksi",
+      { endpoint: "/api/penjualan", userId: auth.user?.id },
     );
     return NextResponse.json({ error: message }, { status });
   }
@@ -445,6 +447,7 @@ export async function PATCH(request: NextRequest) {
     const { message, status } = toErrorResponse(
       error,
       "Gagal membatalkan penjualan",
+      { endpoint: "/api/penjualan", userId: auth.user?.id },
     );
     return NextResponse.json({ error: message }, { status });
   }

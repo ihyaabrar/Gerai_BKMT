@@ -179,7 +179,10 @@ export async function GET(request: NextRequest) {
       distribusi: hitungan,
     });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memuat distribusi");
+    const { message, status } = toErrorResponse(error, "Gagal memuat distribusi", {
+      endpoint: "/api/distribusi",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -248,7 +251,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ status: "ditutup", distribusi: hasil });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal menutup distribusi");
+    const { message, status } = toErrorResponse(error, "Gagal menutup distribusi", {
+      endpoint: "/api/distribusi",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -273,7 +279,10 @@ export async function DELETE(request: NextRequest) {
     await prisma.distribusiLaba.delete({ where: { periode } });
     return NextResponse.json({ success: true });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal membuka kembali periode");
+    const { message, status } = toErrorResponse(error, "Gagal membuka kembali periode", {
+      endpoint: "/api/distribusi",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }

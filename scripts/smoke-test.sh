@@ -52,6 +52,20 @@ chk "400 kasir ubah harga beli lewat barang-masuk" 400 "$(code -b "$k_txt" -X PO
 chk "403 kasir /api/distribusi" 403 "$(code -b "$k_txt" $B/api/distribusi)"
 chk "307 kasir buka /app/keuangan/distribusi" 307 "$(code -b "$k_txt" $B/app/keuangan/distribusi)"
 chk "400 body JSON rusak" 400 "$(code -b "$a_txt" -X POST $B/api/pengeluaran -H 'Content-Type: application/json' -d 'bukan-json')"
+
+echo "[Pencabutan sesi]"
+# Cookie kasir masih sah secara kriptografis selama 12 jam. Menonaktifkan
+# akunnya harus langsung mencabut akses, bukan menunggu cookie kedaluwarsa.
+kasir_id="$(curl -s -b "$k_txt" $B/api/auth/me | grep -o '"id":"[^"]*"' | head -1 | cut -d'"' -f4)"
+if [ -n "$kasir_id" ]; then
+  curl -s -b "$a_txt" -X PATCH $B/api/user -H 'Content-Type: application/json'     -d "{\"id\":\"$kasir_id\",\"aktif\":false}" > /dev/null
+  chk "401 kasir nonaktif ditolak" 401 "$(code -b "$k_txt" $B/api/barang)"
+  chk "401 /api/auth/me ikut menolak" 401 "$(code -b "$k_txt" $B/api/auth/me)"
+  curl -s -b "$a_txt" -X PATCH $B/api/user -H 'Content-Type: application/json'     -d "{\"id\":\"$kasir_id\",\"aktif\":true}" > /dev/null
+  chk "200 kasir aktif kembali" 200 "$(code -b "$k_txt" $B/api/barang)"
+else
+  echo "  (id kasir tidak terbaca — lewati uji pencabutan sesi)"
+fi
 chk "307 kasir buka /admin" 307 "$(code -b "$k_txt" $B/admin)"
 chk "307 kasir buka /app/keuangan/laporan" 307 "$(code -b "$k_txt" $B/app/keuangan/laporan)"
 

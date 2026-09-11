@@ -94,6 +94,7 @@ export async function POST(request: NextRequest) {
               kategori: "Pembelian Barang",
               keterangan: `Pembelian barang baru: ${nama} (${stok} ${satuan}) @ ${formatRupiah(hargaBeli)}`,
               jumlah: totalPengeluaran,
+              userId: auth.user.id,
             },
           });
         }
@@ -145,6 +146,7 @@ export async function POST(request: NextRequest) {
           kategori: "Pembelian Barang",
           keterangan: `Pembelian ${existing.nama} (${qty} ${existing.satuan}) @ ${formatRupiah(hargaBeli)}`,
           jumlah: totalPengeluaran,
+          userId: auth.user.id,
         },
       });
 
@@ -153,7 +155,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(hasil);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal mencatat barang masuk");
+    const { message, status } = toErrorResponse(error, "Gagal mencatat barang masuk", {
+      endpoint: "/api/barang-masuk",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }

@@ -76,7 +76,10 @@ export async function GET(request: NextRequest) {
       pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memuat shift");
+    const { message, status } = toErrorResponse(error, "Gagal memuat shift", {
+      endpoint: "/api/shift",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -173,7 +176,10 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(hasil);
   } catch (error) {
-    const { message, status } = toErrorResponse(error, "Gagal memproses shift");
+    const { message, status } = toErrorResponse(error, "Gagal memproses shift", {
+      endpoint: "/api/shift",
+      userId: auth.user?.id,
+    });
     return NextResponse.json({ error: message }, { status });
   }
 }
