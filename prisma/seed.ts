@@ -3,7 +3,53 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+const BAWAAN_ADMIN = "admin123";
+const BAWAAN_KASIR = "kasir123";
+
+/**
+ * Menentukan password akun awal, dan menolak lebih dulu bila password bawaan
+ * akan masuk ke database yang bukan milik mesin pengembang.
+ *
+ * Yang menentukan bahaya di sini adalah DATABASE-nya, bukan NODE_ENV.
+ * Database produksi hampir selalu di-seed dari laptop pengurus, di mana
+ * NODE_ENV kosong — memeriksa NODE_ENV membuat pengaman ini tidak pernah
+ * menyala justru pada satu-satunya skenario yang seharusnya dilindunginya,
+ * dan "admin123" masuk ke database sungguhan.
+ *
+ * Dijalankan sebelum satu baris pun ditulis, supaya seed yang ditolak tidak
+ * meninggalkan data setengah jadi.
+ */
+function tentukanPassword() {
+  const admin = process.env.SEED_ADMIN_PASSWORD || BAWAAN_ADMIN;
+  const kasir = process.env.SEED_KASIR_PASSWORD || BAWAAN_KASIR;
+
+  const databaseUrl = process.env.DATABASE_URL ?? "";
+  const databaseLokal = /@(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)[:/]/.test(
+    databaseUrl
+  );
+  const memakaiBawaan = admin === BAWAAN_ADMIN || kasir === BAWAAN_KASIR;
+
+  if (memakaiBawaan && !databaseLokal) {
+    throw new Error(
+      "Database ini bukan database lokal, jadi password bawaan tidak boleh dipakai.\n" +
+        "Tentukan SEED_ADMIN_PASSWORD dan SEED_KASIR_PASSWORD lebih dulu, misalnya:\n" +
+        '  SEED_ADMIN_PASSWORD="..." SEED_KASIR_PASSWORD="..." npm run db:seed'
+    );
+  }
+
+  if (memakaiBawaan) {
+    console.warn(
+      "⚠️  Memakai password bawaan (admin123 / kasir123) karena database ini lokal."
+    );
+  }
+
+  return { admin, kasir };
+}
+
 async function main() {
+  // Diperiksa paling awal: lebih baik berhenti sebelum menulis apa pun.
+  const password = tentukanPassword();
+
   console.log('🌱 Seeding database...');
 
   // Pengaturan default
@@ -23,25 +69,8 @@ async function main() {
   });
   console.log('✅ Pengaturan created');
 
-  // Password bawaan hanya untuk pengembangan lokal. Di produksi, seed
-  // menolak berjalan tanpa password yang ditentukan sendiri — kalau tidak,
-  // seluruh dunia tahu cara masuk ke sistem yang memegang uang anggota.
-  const BAWAAN_ADMIN = "admin123";
-  const BAWAAN_KASIR = "kasir123";
-  const passwordAdmin = process.env.SEED_ADMIN_PASSWORD || BAWAAN_ADMIN;
-  const passwordKasir = process.env.SEED_KASIR_PASSWORD || BAWAAN_KASIR;
-
-  if (
-    process.env.NODE_ENV === "production" &&
-    (passwordAdmin === BAWAAN_ADMIN || passwordKasir === BAWAAN_KASIR)
-  ) {
-    throw new Error(
-      "Password bawaan tidak boleh dipakai di produksi. Set SEED_ADMIN_PASSWORD dan SEED_KASIR_PASSWORD lebih dulu."
-    );
-  }
-
-  const adminHash = await bcrypt.hash(passwordAdmin, 12);
-  const kasirHash = await bcrypt.hash(passwordKasir, 12);
+  const adminHash = await bcrypt.hash(password.admin, 12);
+  const kasirHash = await bcrypt.hash(password.kasir, 12);
 
   // `update` sengaja dikosongkan.
   //
