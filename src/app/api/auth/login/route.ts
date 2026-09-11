@@ -12,9 +12,22 @@ import {
 export const dynamic = "force-dynamic";
 
 /**
+ * Hash bcrypt sungguhan dari nilai yang tidak dipakai siapa pun, sebagai
+ * pembanding tiruan agar waktu respons login seragam. Harus hash yang valid:
+ * hash palsu ditolak bcrypt dalam nol milidetik dan justru tidak menyamakan
+ * apa pun. Nilainya konstanta publik, bukan rahasia.
+ */
+const HASH_TIRUAN = "$2b$12$2m5k3Sdvv0KlB2gt.bUGWOLJiQJ30XZFyAvGNundcI.rLAXKc0ihC";
+
+/**
  * Rate limit sederhana per-username di memori proses.
- * Bukan pengganti rate limit di edge/proxy, tapi cukup untuk
- * memperlambat brute force pada deployment satu instance.
+ *
+ * Di serverless ini sebagian besar ilusi: setiap instance punya Map sendiri,
+ * jadi batas efektifnya berlipat sebanyak instance yang aktif. Tetap
+ * dipertahankan karena bcrypt cost 12 (~500 ms per percobaan) sudah menjadi
+ * pengerem yang jauh lebih efektif, dan karena limiter yang TIDAK berbagi
+ * state justru tidak bisa dipakai orang lain untuk mengunci akun kasir yang
+ * sah selama 15 menit di tengah shift.
  */
 const attempts = new Map<string, { count: number; firstAt: number }>();
 const WINDOW_MS = 15 * 60 * 1000;
@@ -63,6 +76,10 @@ export async function POST(request: Request) {
     const user = await prisma.user.findUnique({ where: { username } });
 
     if (!user || !user.aktif) {
+      // Perbandingan tiruan supaya waktu respons untuk username yang tidak ada
+      // sama dengan yang ada. Tanpa ini, selisih ~250 ms dari bcrypt menjadi
+      // cara mudah untuk menebak username mana yang terdaftar.
+      await bcrypt.compare(password, HASH_TIRUAN);
       recordFailure(rateKey);
       return NextResponse.json(
         { error: "Username atau password salah" },
@@ -70,20 +87,32 @@ export async function POST(request: Request) {
       );
     }
 
-    // Password lama yang masih plain text di-upgrade ke bcrypt saat login berhasil.
-    let isValid: boolean;
-    if (user.password.startsWith("$2")) {
-      isValid = await bcrypt.compare(password, user.password);
-    } else {
-      isValid = user.password === password;
-      if (isValid) {
-        const hashed = await bcrypt.hash(password, 12);
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { password: hashed },
-        });
-      }
+    // Password yang tersimpan harus berupa hash bcrypt.
+    //
+    // Versi sebelumnya menyimpan jalur perbandingan plain-text untuk
+    // mengupgrade akun lama. Jalur itu berarti siapa pun yang bisa menulis ke
+    // tabel User — atau sebuah restore dari berkas lama — dapat memasang
+    // password yang langsung bisa dipakai tanpa pernah melewati bcrypt.
+    // Seluruh akun sudah bcrypt, jadi jalurnya dihapus.
+    if (!user.password.startsWith("$2")) {
+      console.error(
+        JSON.stringify({
+          pesan: "Password tersimpan bukan hash bcrypt",
+          username: user.username,
+          waktu: new Date().toISOString(),
+        })
+      );
+      recordFailure(rateKey);
+      return NextResponse.json(
+        {
+          error:
+            "Akun ini perlu disetel ulang passwordnya oleh master sebelum bisa dipakai.",
+        },
+        { status: 401 }
+      );
     }
+
+    const isValid = await bcrypt.compare(password, user.password);
 
     if (!isValid) {
       recordFailure(rateKey);

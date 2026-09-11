@@ -37,14 +37,36 @@ export class MissingAuthSecretError extends Error {
   }
 }
 
+let sudahMemperingatkan = false;
+
+/**
+ * Rahasia cadangan hanya boleh dipakai di mesin pengembang.
+ *
+ * Sebelumnya syaratnya cuma `NODE_ENV !== "production"`. Itu terlalu longgar:
+ * deployment staging, preview Vercel, atau `next dev` yang kebetulan terbuka
+ * di jaringan akan diam-diam memakai rahasia yang tertulis di repositori ini —
+ * dan siapa pun yang membacanya bisa membuat cookie sesi bertanda "master".
+ */
+function bolehPakaiCadangan(): boolean {
+  // Berjalan di Vercel berarti bukan mesin pengembang, apa pun NODE_ENV-nya.
+  if (process.env.VERCEL) return false;
+  return process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test";
+}
+
 function getSecret(): string {
   const secret = process.env.AUTH_SECRET;
 
   if (!secret || secret.length < 32) {
-    if (process.env.NODE_ENV === "production") {
-      // Sengaja gagal keras: tanpa rahasia yang benar, cookie sesi
-      // tidak bisa dipercaya sama sekali.
-      throw new MissingAuthSecretError();
+    // Sengaja gagal keras: tanpa rahasia yang benar, cookie sesi tidak bisa
+    // dipercaya sama sekali.
+    if (!bolehPakaiCadangan()) throw new MissingAuthSecretError();
+
+    if (!sudahMemperingatkan) {
+      sudahMemperingatkan = true;
+      console.warn(
+        "[auth] AUTH_SECRET belum diatur — memakai rahasia cadangan pengembangan. " +
+          "Jangan pernah dipakai di server yang bisa diakses orang lain."
+      );
     }
     return DEV_FALLBACK_SECRET;
   }

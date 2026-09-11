@@ -32,6 +32,13 @@ chk "401 /api/admin/agenda" 401 "$(code $B/api/admin/agenda)"
 chk "401 cookie sesi dipalsukan" 401 "$(code -H 'Cookie: session={\"id\":\"x\",\"role\":\"master\"}' $B/api/barang)"
 chk "401 tanda tangan diubah" 401 "$(code -H 'Cookie: session=eyJhIjoxfQ.aaaa' $B/api/barang)"
 
+# CVE-2025-29927: header x-middleware-subrequest melewati middleware pada
+# Next.js < 14.2.25. Sudah ditambal, dan setiap route handler tetap
+# memeriksa auth sendiri — dua lapis, keduanya diuji di sini.
+chk "401 bypass middleware header" 401 "$(code -H 'x-middleware-subrequest: middleware' $B/api/nasabah)"
+chk "401 bypass middleware rantai" 401 "$(code -H 'x-middleware-subrequest: middleware:middleware:middleware:middleware:middleware' $B/api/nasabah)"
+chk "307 bypass middleware pada halaman" 307 "$(code -H 'x-middleware-subrequest: middleware' $B/app/keuangan/laporan)"
+
 echo "[Publik tetap terbuka]"
 for ep in / /login /api/public/profil /api/public/berita /api/public/pengurus /api/public/gerai /api/public/galeri /api/public/agenda; do
   chk "200 $ep" 200 "$(code $B$ep)"
