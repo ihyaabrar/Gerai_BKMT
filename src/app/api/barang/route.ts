@@ -134,11 +134,39 @@ export async function PATCH(request: NextRequest) {
   try {
     const body = await request.json();
     const id = requireString(body?.id, "ID barang");
+
+    // Stok tidak diubah lewat sini: setiap perubahan stok harus meninggalkan
+    // jejak (Barang Masuk atau Penyesuaian, dengan alasan dan pelakunya).
+    // Mengetik angka stok baru di form edit menghapus jejak itu — dan barang
+    // yang "hilang" tidak pernah tercatat sebagai kerugian.
+    if (body?.stok !== undefined) {
+      throw new ValidationError(
+        "Stok tidak bisa diubah dari sini. Gunakan Barang Masuk untuk menambah, atau Penyesuaian untuk mengurangi."
+      );
+    }
+
     const data = parseBarang(body, { partial: true });
 
     const existing = await prisma.barang.findUnique({ where: { id } });
     if (!existing) {
       return NextResponse.json({ error: "Barang tidak ditemukan" }, { status: 404 });
+    }
+
+    // Tanpa pemeriksaan ini, kode atau barcode kembar jatuh sebagai galat
+    // database dan pengguna hanya melihat "Gagal memperbarui barang".
+    if (typeof data.kode === "string" && data.kode !== existing.kode) {
+      const kodeDipakai = await prisma.barang.findUnique({ where: { kode: data.kode } });
+      if (kodeDipakai) {
+        throw new ValidationError(`Kode barang "${data.kode}" sudah dipakai ${kodeDipakai.nama}`);
+      }
+    }
+    if (typeof data.barcode === "string" && data.barcode !== existing.barcode) {
+      const barcodeDipakai = await prisma.barang.findUnique({ where: { barcode: data.barcode } });
+      if (barcodeDipakai) {
+        throw new ValidationError(
+          `Barcode "${data.barcode}" sudah dipakai ${barcodeDipakai.nama}`
+        );
+      }
     }
 
     // Validasi silang harga saat hanya satu sisi yang dikirim.
