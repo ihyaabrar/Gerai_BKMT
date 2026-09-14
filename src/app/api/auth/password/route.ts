@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth-middleware";
+import {
+  SESSION_COOKIE,
+  batasSesiBaru,
+  sessionCookieOptions,
+  signSession,
+  type Role,
+} from "@/lib/session";
 import bcrypt from "bcryptjs";
 import { ValidationError, requireString, toErrorResponse } from "@/lib/validate";
 
@@ -61,10 +68,27 @@ export async function POST(request: NextRequest) {
 
     await prisma.user.update({
       where: { id: user.id },
-      data: { password: await bcrypt.hash(passwordBaru, 12) },
+      data: {
+        password: await bcrypt.hash(passwordBaru, 12),
+        // Semua perangkat lain yang masih login dengan password lama keluar.
+        sesiBerlakuSejak: batasSesiBaru(),
+      },
     });
 
-    return NextResponse.json({ success: true });
+    // Perangkat yang sedang dipakai mendapat sesi baru, supaya orang yang
+    // baru saja mengganti passwordnya tidak ikut dikeluarkan.
+    const response = NextResponse.json({ success: true });
+    response.cookies.set(
+      SESSION_COOKIE,
+      await signSession({
+        id: user.id,
+        nama: user.nama,
+        username: user.username,
+        role: user.role as Role,
+      }),
+      sessionCookieOptions
+    );
+    return response;
   } catch (error) {
     const { message, status } = toErrorResponse(error, "Gagal mengganti password");
     return NextResponse.json({ error: message }, { status });

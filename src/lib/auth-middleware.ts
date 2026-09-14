@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { SESSION_COOKIE, verifySession, type Role } from "@/lib/session";
+import { SESSION_COOKIE, verifySession, waktuTerbit, type Role } from "@/lib/session";
 import { isAdminRole } from "@/lib/permissions";
 
 export interface SessionUser {
@@ -49,12 +49,27 @@ export async function getSessionUser(
 
   const akun = await prisma.user.findUnique({
     where: { id: payload.id },
-    select: { id: true, nama: true, username: true, role: true, aktif: true },
+    select: {
+      id: true,
+      nama: true,
+      username: true,
+      role: true,
+      aktif: true,
+      sesiBerlakuSejak: true,
+    },
   });
 
   // Akun dihapus atau dinonaktifkan: cookienya masih sah secara kriptografis,
   // tetapi orangnya sudah tidak berhak masuk.
   if (!akun || !akun.aktif) return null;
+
+  // Password sudah diganti setelah sesi ini terbit. Tanpa ini, HP yang hilang
+  // atau browser di komputer umum tetap bisa masuk sampai 12 jam setelah
+  // pemiliknya mengganti password — justru saat penggantian itu dilakukan
+  // karena curiga ada yang memakai akunnya.
+  if (akun.sesiBerlakuSejak && waktuTerbit(payload) * 1000 < akun.sesiBerlakuSejak.getTime()) {
+    return null;
+  }
 
   return {
     id: akun.id,

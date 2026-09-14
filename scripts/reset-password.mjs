@@ -73,7 +73,11 @@ async function main() {
 
     await prisma.user.update({
       where: { username },
-      data: { password: await bcrypt.hash(password, 12) },
+      // Sesi lama di semua perangkat ikut dicabut (lihat User.sesiBerlakuSejak).
+      data: {
+        password: await bcrypt.hash(password, 12),
+        sesiBerlakuSejak: new Date(Math.floor(Date.now() / 1000) * 1000),
+      },
     });
 
     console.log(

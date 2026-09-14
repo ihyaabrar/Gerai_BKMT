@@ -14,6 +14,8 @@ model User {
   password  String
   role      String   @default("kasir")
   aktif     Boolean  @default(true)
+  /// Sesi yang diterbitkan sebelum waktu ini ditolak (diisi saat password diganti).
+  sesiBerlakuSejak DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
