@@ -7,6 +7,7 @@ import {
   akhirHariWIB,
   awalHariWIB,
   tanggalWIB,
+  hitungKerugianStok,
   hitungLaba,
   labaTransaksi,
   periodeDari,
@@ -45,6 +46,14 @@ async function laporanPenjualan(start: Date, end: Date) {
 
   const { totalPenjualan, totalHpp, totalDiskon, labaKotor } = hitungLaba(penjualan);
 
+  // Nilai barang rusak/hilang pada rentang yang sama — dasar yang sama dengan
+  // Distribusi Laba, supaya "laba yang dibagi" di kedua halaman tidak berbeda.
+  const penyesuaian = await prisma.penyesuaianStok.findMany({
+    where: { tanggal: { gte: start, lte: end } },
+    select: { jenis: true, qty: true, hargaBeli: true },
+  });
+  const kerugianStok = hitungKerugianStok(penyesuaian);
+
   const produkMap = new Map<string, { nama: string; qty: number; total: number }>();
   for (const p of penjualan) {
     for (const d of p.detail) {
@@ -81,6 +90,8 @@ async function laporanPenjualan(start: Date, end: Date) {
     // harga pokok yang dibekukan. Diskon sudah otomatis terpotong karena
     // yang dijumlahkan adalah `total`, bukan subtotal.
     totalLaba: labaKotor,
+    kerugianStok,
+    labaDibagi: labaKotor - kerugianStok,
     produkTerlaris,
     chartData,
   });

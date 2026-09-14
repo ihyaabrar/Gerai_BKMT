@@ -51,6 +51,8 @@ interface Distribusi {
   totalHpp: number;
   totalDiskon: number;
   labaKotor: number;
+  /** Nilai barang rusak/hilang. Rekaman lama tidak punya kolom ini (= 0). */
+  kerugianStok?: number;
   totalTransaksi?: number;
   persenNasabah: number;
   persenPengelola: number;
@@ -173,8 +175,8 @@ export default function DistribusiPage() {
       pesan: (
         <>
           Seluruh angka di halaman ini akan <strong>dibekukan</strong> sebagai
-          rekaman resmi periode {data.label}: laba{" "}
-          {formatRupiah(d.labaKotor)}, bagian nasabah{" "}
+          rekaman resmi periode {data.label}: laba dibagi{" "}
+          {formatRupiah(d.labaKotor - (d.kerugianStok ?? 0))}, bagian nasabah{" "}
           {formatRupiah(d.bagianNasabah)} untuk {d.detail.length} orang.
           <br />
           <br />
@@ -243,6 +245,8 @@ export default function DistribusiPage() {
         { Keterangan: "Harga Pokok Penjualan", Nilai: d.totalHpp },
         { Keterangan: "Diskon Member", Nilai: d.totalDiskon },
         { Keterangan: "Laba Kotor", Nilai: d.labaKotor },
+        { Keterangan: "Kerugian Stok (barang rusak/hilang)", Nilai: d.kerugianStok ?? 0 },
+        { Keterangan: "Laba Dibagi", Nilai: d.labaKotor - (d.kerugianStok ?? 0) },
         { Keterangan: `Bagian Nasabah (${d.persenNasabah}%)`, Nilai: d.bagianNasabah },
         { Keterangan: `Bagian Pengelola (${d.persenPengelola}%)`, Nilai: d.bagianPengelola },
         { Keterangan: "Total Investasi", Nilai: d.totalInvestasi },
@@ -467,9 +471,11 @@ export default function DistribusiPage() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
                 {
-                  label: "Laba Kotor",
-                  nilai: d.labaKotor,
-                  catatan: `${d.totalTransaksi ?? 0} transaksi`,
+                  label: "Laba Dibagi",
+                  nilai: d.labaKotor - (d.kerugianStok ?? 0),
+                  catatan: (d.kerugianStok ?? 0) > 0
+                    ? `${d.totalTransaksi ?? 0} transaksi · setelah barang rusak ${formatRupiah(d.kerugianStok ?? 0)}`
+                    : `${d.totalTransaksi ?? 0} transaksi`,
                   warna: "bg-gold-50 text-gold-600",
                   icon: Building,
                 },
@@ -546,15 +552,33 @@ export default function DistribusiPage() {
                       </dd>
                     </div>
                   ))}
+                  <div className="flex items-baseline justify-between gap-4 py-2.5">
+                    <dt className="font-semibold text-slate-900">Laba kotor</dt>
+                    <dd className="font-semibold tabular-nums text-slate-900">
+                      {formatRupiah(d.labaKotor)}
+                    </dd>
+                  </div>
+                  <div className="flex items-baseline justify-between gap-4 py-2.5">
+                    <div className="min-w-0">
+                      <dt className="text-slate-700">Barang rusak / hilang</dt>
+                      <p className="text-[11px] text-slate-400 mt-0.5">
+                        Penyesuaian stok keluar bulan ini, dinilai dengan harga beli
+                      </p>
+                    </div>
+                    <dd className={cn("font-semibold tabular-nums shrink-0", (d.kerugianStok ?? 0) > 0 ? "text-rose-600" : "text-slate-900")}>
+                      {/* Tanpa pengecekan ini nol tampil sebagai "-Rp 0". */}
+                      {(d.kerugianStok ?? 0) > 0 ? formatRupiah(-(d.kerugianStok ?? 0)) : formatRupiah(0)}
+                    </dd>
+                  </div>
                   <div className="flex items-baseline justify-between gap-4 py-3">
-                    <dt className="font-bold text-slate-900">Laba kotor</dt>
+                    <dt className="font-bold text-slate-900">Laba yang dibagi</dt>
                     <dd
                       className={cn(
                         "font-extrabold tabular-nums",
-                        d.labaKotor < 0 ? "text-rose-600" : "text-brand-700"
+                        d.labaKotor - (d.kerugianStok ?? 0) < 0 ? "text-rose-600" : "text-brand-700"
                       )}
                     >
-                      {formatRupiah(d.labaKotor)}
+                      {formatRupiah(d.labaKotor - (d.kerugianStok ?? 0))}
                     </dd>
                   </div>
                 </dl>

@@ -58,7 +58,10 @@ export async function POST(request: NextRequest) {
       const created = await tx.penyesuaianStok.create({
         // Penyesuaian stok mengubah nilai persediaan tanpa transaksi apa pun,
         // jadi justru di sinilah atribusi paling dibutuhkan.
-        data: { barangId, jenis, qty, alasan, userId: auth.user.id },
+        // Harga beli ikut dibekukan: nilai barang yang rusak/hilang dihitung
+        // dari harga saat itu dan mengurangi laba periode ini
+        // (lihat hitungKerugianStok).
+        data: { barangId, jenis, qty, alasan, hargaBeli: barang.hargaBeli, userId: auth.user.id },
         include: { barang: true },
       });
 

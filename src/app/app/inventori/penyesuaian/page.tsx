@@ -224,6 +224,12 @@ export default function PenyesuaianPage() {
                       placeholder="Rusak, hilang, stock opname, dll"
                       className="mt-1"
                     />
+                    {/* Dampaknya ke uang dijelaskan di tempat keputusan dibuat. */}
+                    <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
+                      {form.jenis === "keluar"
+                        ? "Nilai barang yang dikurangi (harga beli × jumlah) mengurangi laba bulan ini dan bagi hasil nasabah. Barang yang terjual dicatat lewat Kasir, bukan di sini."
+                        : "Untuk barang kiriman supplier, gunakan Barang Masuk. Penyesuaian tambah hanya mengoreksi kerugian bulan ini, tidak menambah laba."}
+                    </p>
                   </div>
 
                   {selectedBarang && form.qty && (

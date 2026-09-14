@@ -23,6 +23,7 @@ interface Nasabah {
 /** Pratinjau distribusi bulan berjalan dari /api/distribusi. */
 interface PratinjauBagiHasil {
   labaKotor: number;
+  labaDibagi?: number;
   persenNasabah: number;
   bagianNasabah: number;
   detail: { nasabahId: string; bagian: number }[];
@@ -157,7 +158,8 @@ export default function NasabahPage() {
       (n.telepon || "").includes(search)
   );
 
-  const totalLabaBulanIni = pratinjau?.labaKotor ?? 0;
+  // Laba yang benar-benar dibagi: sudah dikurangi barang rusak/hilang.
+  const totalLabaBulanIni = pratinjau?.labaDibagi ?? pratinjau?.labaKotor ?? 0;
   const bagianNasabahTotal = pratinjau?.bagianNasabah ?? 0;
   const bagianPer = new Map((pratinjau?.detail ?? []).map((d) => [d.nasabahId, d.bagian]));
 

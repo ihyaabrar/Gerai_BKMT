@@ -15,6 +15,8 @@ interface LaporanData {
   totalPenjualan: number;
   totalTransaksi: number;
   totalLaba: number;
+  kerugianStok?: number;
+  labaDibagi?: number;
   produkTerlaris: Array<{
     id: string;
     nama: string;
@@ -70,6 +72,8 @@ export default function LaporanPage() {
       const summaryData = [
         { Label: "Total Penjualan", Value: data.totalPenjualan },
         { Label: "Total Laba", Value: data.totalLaba },
+        { Label: "Kerugian Stok (barang rusak/hilang)", Value: data.kerugianStok ?? 0 },
+        { Label: "Laba Dibagi", Value: data.labaDibagi ?? data.totalLaba },
         { Label: "Total Transaksi", Value: data.totalTransaksi },
         {
           Label: "Rata-rata Transaksi",
@@ -233,6 +237,14 @@ export default function LaporanPage() {
                     : 0}
                   %
                 </p>
+                {(data.kerugianStok ?? 0) > 0 && (
+                  <p className="text-xs text-slate-500 mt-1">
+                    Barang rusak/hilang {formatRupiah(data.kerugianStok ?? 0)} → laba dibagi{" "}
+                    <span className="font-semibold text-slate-700">
+                      {formatRupiah(data.labaDibagi ?? data.totalLaba)}
+                    </span>
+                  </p>
+                )}
               </CardContent>
             </Card>
 
