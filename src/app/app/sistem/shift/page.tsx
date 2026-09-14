@@ -20,6 +20,8 @@ interface Shift {
   totalPenjualan: number;
   penjualanTunai: number;
   penjualanNonTunai: number;
+  /** Dari server: tersimpan saat shift ditutup, atau dihitung untuk shift lama. */
+  selisih: number | null;
   jumlahTransaksi: number;
   catatan: string | null;
   user: {
@@ -174,7 +176,9 @@ export default function ShiftPage() {
               <div>
                 <p className="text-sm opacity-90">Waktu Buka</p>
                 <p className="text-xl font-bold">
-                  {format(new Date(activeShift.jamBuka), "HH:mm")}
+                  {/* Tanggal ikut ditampilkan: tanpa itu, shift kemarin yang
+                      lupa ditutup terlihat seperti shift yang dibuka pagi ini. */}
+                  {format(new Date(activeShift.jamBuka), "dd/MM/yyyy HH:mm")}
                 </p>
               </div>
               <div>
@@ -222,12 +226,12 @@ export default function ShiftPage() {
                       new Date(s.jamBuka).getTime()) /
                       (1000 * 60)
                   );
-                  // Hanya penjualan tunai yang masuk laci. Versi sebelumnya
-                  // memakai seluruh penjualan, sehingga setiap shift dengan
-                  // pembayaran transfer/QRIS tampak kekurangan uang.
+                  // Angka dari server: dibekukan saat shift ditutup, sehingga
+                  // pembatalan transaksi di hari lain tidak mengubah selisih
+                  // yang sudah dicatat kasirnya.
                   const tunai = s.penjualanTunai ?? 0;
                   const nonTunai = s.penjualanNonTunai ?? 0;
-                  const selisih = (s.saldoAkhir || 0) - s.saldoAwal - tunai;
+                  const selisih = s.selisih ?? 0;
 
                   return (
                     <div key={s.id} className="border rounded-lg p-4">
@@ -251,7 +255,7 @@ export default function ShiftPage() {
                               </div>
                               <div>
                                 <p className="text-xs text-slate-500">
-                                  Penjualan Tunai ({s.jumlahTransaksi ?? 0} transaksi)
+                                  Penjualan Tunai · {s.jumlahTransaksi ?? 0} transaksi semua metode
                                 </p>
                                 <p className="font-semibold text-green-600">
                                   {formatRupiah(tunai)}

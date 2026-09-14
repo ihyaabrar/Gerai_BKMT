@@ -66,6 +66,7 @@ async function main() {
   });
   await prisma.penjualan.deleteMany({ where: { nomorTransaksi: { startsWith: "BATAL" } } });
   await prisma.distribusiLaba.deleteMany({ where: { periode: PERIODE_INI } });
+  await prisma.distribusiLabaArsip.deleteMany({ where: { periode: PERIODE_INI } });
 
   const barang = await prisma.barang.upsert({
     where: { kode: "UJI-BATAL" },
@@ -235,6 +236,7 @@ async function main() {
   const PERIODE_LALU = `${lalu.getFullYear()}-${String(lalu.getMonth() + 1).padStart(2, "0")}`;
 
   await prisma.distribusiLaba.deleteMany({ where: { periode: PERIODE_LALU } });
+  await prisma.distribusiLabaArsip.deleteMany({ where: { periode: PERIODE_LALU } });
   const penjualanLama = await prisma.penjualan.create({
     data: {
       nomorTransaksi: `BATAL-LAMA-${Date.now()}`,
@@ -274,7 +276,7 @@ async function main() {
   cek("statusnya tidak berubah", masihSah.status === "selesai", masihSah.status);
 
   // Setelah periode dibuka kembali, pembatalan diizinkan.
-  const buka = await api(`/api/distribusi?periode=${PERIODE_LALU}`, { method: "DELETE" });
+  const buka = await api(`/api/distribusi?periode=${PERIODE_LALU}&alasan=${encodeURIComponent("Uji otomatis: koreksi transaksi")}`, { method: "DELETE" });
   cek("master bisa membuka kembali periode", buka.status === 200, `status ${buka.status}`);
 
   const batalSetelahBuka = await api("/api/penjualan", {

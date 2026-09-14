@@ -47,7 +47,7 @@ export default function KasirPage() {
   const [metodeBayar, setMetodeBayar] = useState("Tunai");
   const [processing, setProcessing] = useState(false);
 
-  const { items, addItem, removeItem, updateQty, setMember, clearCart, getTotal, getSubtotal, ambilKunci, memberId, diskon } = useCartStore();
+  const { items, addItem, removeItem, updateQty, setMember, clearCart, getTotal, getSubtotal, ambilKunci, resetKunci, memberId, diskon } = useCartStore();
   const { user } = useAuthStore();
 
   useEffect(() => {
@@ -82,7 +82,7 @@ export default function KasirPage() {
     try {
       const res = await fetch("/api/pengaturan");
       const data = await res.json();
-      if (data.diskonMember) setDiskonMember(data.diskonMember);
+      if (typeof data.diskonMember === "number") setDiskonMember(data.diskonMember);
     } catch {
       // use default
     }
@@ -169,6 +169,17 @@ export default function KasirPage() {
       const data = await res.json();
 
       if (!res.ok) {
+        if (res.status === 409) {
+          // Kunci lama sudah terpakai untuk transaksi yang isinya berbeda.
+          // Buang kuncinya supaya percobaan berikutnya tidak tertahan lagi,
+          // dan biarkan pesannya tetap tampil sampai kasir membacanya.
+          resetKunci();
+          toast.error(data?.error || "Transaksi sebelumnya sudah tercatat", {
+            duration: Infinity,
+            closeButton: true,
+          });
+          return;
+        }
         toast.error(data?.error || "Gagal memproses pembayaran");
         return;
       }
@@ -495,7 +506,12 @@ export default function KasirPage() {
                   <Button
                     key={m}
                     variant={metodeBayar === m ? "default" : "outline"}
-                    onClick={() => setMetodeBayar(m)}
+                    onClick={() => {
+                      // Metode bayar ikut menentukan transaksi; kunci lama
+                      // tidak boleh dipakai untuk pembayaran yang berbeda.
+                      if (m !== metodeBayar) resetKunci();
+                      setMetodeBayar(m);
+                    }}
                   >
                     {m}
                   </Button>

@@ -20,11 +20,12 @@ model User {
   shifts              ShiftKasir[]
   berita              Berita[]
   penjualan           Penjualan[]
-  penjualanDibatalkan Penjualan[]       @relation("PenjualanDibatalkan")
+  penjualanDibatalkan Penjualan[]           @relation("PenjualanDibatalkan")
   pengeluaran         Pengeluaran[]
   penyesuaian         PenyesuaianStok[]
   retur               Retur[]
   distribusiLaba      DistribusiLaba[]
+  distribusiDibuka    DistribusiLabaArsip[]
 }
 
 model Barang {
@@ -164,17 +165,24 @@ model Pengeluaran {
 }
 
 model ShiftKasir {
-  id         String    @id @default(cuid())
-  userId     String
-  user       User      @relation(fields: [userId], references: [id])
-  tanggal    DateTime  @default(now())
-  jamBuka    DateTime  @default(now())
-  jamTutup   DateTime?
-  saldoAwal  Float
-  saldoAkhir Float?
-  catatan    String?
-  status     String    @default("buka")
-  createdAt  DateTime  @default(now())
+  id                String    @id @default(cuid())
+  userId            String
+  user              User      @relation(fields: [userId], references: [id])
+  tanggal           DateTime  @default(now())
+  jamBuka           DateTime  @default(now())
+  jamTutup          DateTime?
+  saldoAwal         Float
+  saldoAkhir        Float?
+  /// Angka rekap kas dibekukan saat shift ditutup. Menghitungnya ulang setiap
+  /// kali riwayat dibuka membuat pembatalan di hari lain mengubah selisih
+  /// shift yang sudah ditutup — dan kasir yang tidak bersalah dicurigai.
+  penjualanTunai    Float?
+  penjualanNonTunai Float?
+  saldoSeharusnya   Float?
+  selisih           Float?
+  catatan           String?
+  status            String    @default("buka")
+  createdAt         DateTime  @default(now())
 
   penjualan Penjualan[]
 
@@ -297,6 +305,27 @@ model DistribusiLabaNasabah {
 
   @@unique([distribusiId, nasabahId])
   @@index([nasabahId])
+}
+
+/// Salinan utuh rekaman distribusi yang dibuka kembali.
+///
+/// "Buka Kembali" sebelumnya menghapus rekaman beserta rincian per nasabah
+/// secara permanen. Bila bagian nasabah sudah dibayarkan, bukti pembayarannya
+/// ikut lenyap. Arsip ini menyimpan isi lengkapnya, siapa yang membuka, kapan,
+/// dan alasannya — dan daftar nasabahnya dipakai lagi saat periode ditutup
+/// ulang, supaya membuka kembali untuk mengoreksi transaksi tidak diam-diam
+/// mengubah siapa yang menerima bagian.
+model DistribusiLabaArsip {
+  id           String   @id @default(cuid())
+  periode      String
+  data         Json
+  alasan       String
+  dibukaOlehId String?
+  dibukaOleh   User?    @relation(fields: [dibukaOlehId], references: [id])
+  dibukaPada   DateTime @default(now())
+
+  @@index([periode, dibukaPada])
+  @@index([dibukaOlehId])
 }
 
 // ─── Public Profile Models ───────────────────────────────────────────────────

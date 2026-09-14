@@ -8,6 +8,7 @@ import {
   toErrorResponse,
 } from "@/lib/validate";
 import type { Prisma } from "@prisma/client";
+import { periodeYangHarusDitutup, pesanTerkunci } from "@/lib/penguncian";
 
 export const dynamic = "force-dynamic";
 
@@ -49,6 +50,10 @@ export async function POST(request: NextRequest) {
   if (auth.error) return auth.error;
 
   try {
+    const terkunci = await periodeYangHarusDitutup();
+    if (terkunci) {
+      return NextResponse.json({ error: pesanTerkunci(terkunci, "menambah nasabah") }, { status: 409 });
+    }
     const body = await request.json();
     const nama = requireString(body?.nama, "Nama nasabah", { max: 150 });
     const jumlahInvestasi = requireNumber(body?.jumlahInvestasi, "Jumlah investasi", { min: 1 });
@@ -76,6 +81,10 @@ export async function PATCH(request: NextRequest) {
   if (auth.error) return auth.error;
 
   try {
+    const terkunci = await periodeYangHarusDitutup();
+    if (terkunci) {
+      return NextResponse.json({ error: pesanTerkunci(terkunci, "mengubah data nasabah") }, { status: 409 });
+    }
     const body = await request.json();
     const id = requireString(body?.id, "ID nasabah");
     const nama = requireString(body?.nama, "Nama nasabah", { max: 150 });
@@ -109,6 +118,10 @@ export async function DELETE(request: NextRequest) {
   if (auth.error) return auth.error;
 
   try {
+    const terkunci = await periodeYangHarusDitutup();
+    if (terkunci) {
+      return NextResponse.json({ error: pesanTerkunci(terkunci, "menghapus nasabah") }, { status: 409 });
+    }
     const id = new URL(request.url).searchParams.get("id");
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
 

@@ -12,7 +12,12 @@ import {
   periodeValid,
   rentangPeriode,
 } from "@/lib/keuangan";
-import { ValidationError, optionalString, toErrorResponse } from "@/lib/validate";
+import {
+  ValidationError,
+  optionalString,
+  requireString,
+  toErrorResponse,
+} from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +46,8 @@ interface HitunganPeriode {
   bagianPengelola: number;
   totalInvestasi: number;
   rugi: boolean;
+  /** True bila daftar nasabah & persentase dipakai ulang dari rekaman yang dibuka kembali. */
+  rosterDariArsip: boolean;
   detail: {
     nasabahId: string;
     namaNasabah: string;
@@ -56,13 +63,34 @@ interface HitunganPeriode {
  * supaya angka yang dilihat pengurus dan angka yang disimpan tidak mungkin
  * berbeda.
  */
+/** Isi kolom `data` pada DistribusiLabaArsip — salinan rekaman yang dibuka kembali. */
+interface ArsipDistribusi {
+  persenNasabah: number;
+  persenPengelola: number;
+  detail: { nasabahId: string; namaNasabah: string; jumlahInvestasi: number }[];
+}
+
+async function riwayatBuka(periode: string) {
+  const arsip = await prisma.distribusiLabaArsip.findMany({
+    where: { periode },
+    orderBy: { dibukaPada: "desc" },
+    select: {
+      id: true,
+      alasan: true,
+      dibukaPada: true,
+      dibukaOleh: { select: { nama: true } },
+    },
+  });
+  return arsip;
+}
+
 async function hitungPeriode(
   db: Prisma.TransactionClient,
   periode: string
 ): Promise<HitunganPeriode> {
   const { mulai, selesai } = rentangPeriode(periode);
 
-  const [penjualan, pengaturan, nasabah] = await Promise.all([
+  const [penjualan, pengaturan, nasabahAktif, arsipTerakhir] = await Promise.all([
     db.penjualan.findMany({
       where: { ...PENJUALAN_SAH, tanggal: { gte: mulai, lte: selesai } },
       select: {
@@ -73,12 +101,40 @@ async function hitungPeriode(
     }),
     db.pengaturan.findFirst(),
     db.nasabah.findMany({ where: { aktif: true }, orderBy: { nama: "asc" } }),
+    db.distribusiLabaArsip.findFirst({
+      where: { periode },
+      orderBy: { dibukaPada: "desc" },
+    }),
   ]);
 
   const { totalPenjualan, totalHpp, totalDiskon, labaKotor } = hitungLaba(penjualan);
 
-  const persenNasabah = pengaturan?.persenNasabah ?? 30;
-  const persenPengelola = pengaturan?.persenPengelola ?? 70;
+  // Periode yang pernah ditutup lalu dibuka kembali memakai daftar nasabah dan
+  // persentase dari rekaman sebelumnya. Membuka kembali dimaksudkan untuk
+  // mengoreksi transaksi — bukan untuk mengganti siapa yang menerima bagian.
+  // Tanpa ini, nasabah yang mendaftar setelah penutupan pertama ikut masuk ke
+  // pembagian bulan yang sudah pernah dibayarkan.
+  const arsip = arsipTerakhir?.data as unknown as ArsipDistribusi | undefined;
+  const rosterDariArsip = Boolean(arsip?.detail?.length);
+
+  const persenNasabah = rosterDariArsip
+    ? arsip!.persenNasabah
+    : pengaturan?.persenNasabah ?? 30;
+  const persenPengelola = rosterDariArsip
+    ? arsip!.persenPengelola
+    : pengaturan?.persenPengelola ?? 70;
+
+  const nasabah = rosterDariArsip
+    ? arsip!.detail.map((d) => ({
+        id: d.nasabahId,
+        nama: d.namaNasabah,
+        jumlahInvestasi: d.jumlahInvestasi,
+      }))
+    : nasabahAktif.map((n) => ({
+        id: n.id,
+        nama: n.nama,
+        jumlahInvestasi: n.jumlahInvestasi,
+      }));
 
   const rugi = labaKotor <= 0;
   const bagi = bagiHasil(labaKotor, persenNasabah);
@@ -106,6 +162,7 @@ async function hitungPeriode(
     bagianPengelola,
     totalInvestasi,
     rugi,
+    rosterDariArsip,
     detail: nasabah.map((n, i) => ({
       nasabahId: n.id,
       namaNasabah: n.nama,
@@ -165,6 +222,7 @@ export async function GET(request: NextRequest) {
         status: "ditutup",
         label: labelPeriode(periode),
         distribusi: tersimpan,
+        riwayatBuka: await riwayatBuka(periode),
       });
     }
 
@@ -177,6 +235,7 @@ export async function GET(request: NextRequest) {
       // Periode yang belum berakhir masih bisa berubah sampai hari terakhir.
       bisaDitutup: selesai.getTime() < Date.now(),
       distribusi: hitungan,
+      riwayatBuka: await riwayatBuka(periode),
     });
   } catch (error) {
     const { message, status } = toErrorResponse(error, "Gagal memuat distribusi", {
@@ -214,6 +273,25 @@ export async function POST(request: NextRequest) {
       }
 
       const h = await hitungPeriode(tx, periode);
+
+      // Aplikasi hanya menonaktifkan nasabah, tidak pernah menghapusnya. Tetapi
+      // bila seseorang menghapus langsung dari database, penutupan akan gagal
+      // di foreign key tanpa penjelasan — lebih baik katakan apa yang hilang.
+      if (h.rosterDariArsip) {
+        const ada = await tx.nasabah.findMany({
+          where: { id: { in: h.detail.map((d) => d.nasabahId) } },
+          select: { id: true },
+        });
+        const idAda = new Set(ada.map((n) => n.id));
+        const hilang = h.detail.filter((d) => !idAda.has(d.nasabahId));
+        if (hilang.length > 0) {
+          throw new ValidationError(
+            `Periode ini memakai daftar nasabah dari penutupan sebelumnya, tetapi ` +
+              `data nasabah berikut sudah terhapus dari database: ` +
+              `${hilang.map((d) => d.namaNasabah).join(", ")}. Hubungi pengelola aplikasi.`
+          );
+        }
+      }
 
       return tx.distribusiLaba.create({
         data: {
@@ -260,23 +338,43 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  // Membuka kembali periode menghapus bukti pembagian yang sudah tercatat,
-  // jadi dibatasi ke master saja.
+  // Membuka kembali periode mengubah angka yang mungkin sudah dibayarkan ke
+  // nasabah, jadi dibatasi ke master saja.
   const auth = await requireRole(request, ["master"]);
   if (auth.error) return auth.error;
 
   try {
-    const periode = ambilPeriode(new URL(request.url).searchParams.get("periode"));
+    const url = new URL(request.url);
+    const periode = ambilPeriode(url.searchParams.get("periode"));
+    const alasan = requireString(url.searchParams.get("alasan"), "Alasan membuka kembali", {
+      min: 10,
+      max: 500,
+    });
 
-    const tersimpan = await prisma.distribusiLaba.findUnique({ where: { periode } });
-    if (!tersimpan) {
-      return NextResponse.json(
-        { error: `Distribusi ${labelPeriode(periode)} belum pernah ditutup` },
-        { status: 404 }
-      );
-    }
+    await prisma.$transaction(async (tx) => {
+      const tersimpan = await tx.distribusiLaba.findUnique({
+        where: { periode },
+        include: { detail: true },
+      });
+      if (!tersimpan) {
+        throw new ValidationError(`Distribusi ${labelPeriode(periode)} belum pernah ditutup`);
+      }
 
-    await prisma.distribusiLaba.delete({ where: { periode } });
+      // Rekaman tidak dihapus tanpa jejak: isinya utuh — termasuk bagian setiap
+      // nasabah yang mungkin sudah dibayarkan — disalin ke arsip lebih dulu,
+      // bersama siapa yang membuka, kapan, dan kenapa.
+      await tx.distribusiLabaArsip.create({
+        data: {
+          periode,
+          data: JSON.parse(JSON.stringify(tersimpan)),
+          alasan,
+          dibukaOlehId: auth.user.id,
+        },
+      });
+
+      await tx.distribusiLaba.delete({ where: { periode } });
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
     const { message, status } = toErrorResponse(error, "Gagal membuka kembali periode", {

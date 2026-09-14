@@ -9,7 +9,7 @@ dist
 .env.*.local
 
 # Build artifacts
-tsconfig.tsbuildinfo
+*.tsbuildinfo
 next-env.d.ts
 
 # Database & backup
