@@ -54,11 +54,17 @@ async function main() {
   await prisma.nasabah.deleteMany({ where: { nama: { startsWith: "Uji " } } });
 
   // Nasabah dengan modal 5jt / 3jt / 2jt.
+  // Distribusi memakai riwayat modal, jadi nasabah lain dikeluarkan dengan
+  // menghapus riwayatnya (hanya database uji).
   await prisma.nasabah.updateMany({ data: { aktif: false } });
+  await prisma.modalNasabah.deleteMany({});
   const nasabah = [];
   for (const [nama, modal] of [["Uji Aminah", 5_000_000], ["Uji Khadijah", 3_000_000], ["Uji Fatimah", 2_000_000]]) {
     nasabah.push(await prisma.nasabah.create({
-      data: { nama, jumlahInvestasi: modal, persentase: 0, aktif: true },
+      data: {
+        nama, jumlahInvestasi: modal, persentase: 0, aktif: true,
+        modal: { create: { berlakuMulai: "2000-01", jumlah: modal, aktif: true } },
+      },
     }));
   }
   const totalModal = 10_000_000;
@@ -134,8 +140,12 @@ async function main() {
   // ── Inilah ujinya: ubah dunia, lalu baca ulang rekaman. ──
   await prisma.barang.update({ where: { id: barang.id }, data: { hargaBeli: 9_000 } });
   await prisma.nasabah.update({ where: { id: nasabah[2].id }, data: { aktif: false } });
+  await prisma.modalNasabah.updateMany({ where: { nasabahId: nasabah[2].id }, data: { aktif: false } });
   await prisma.nasabah.create({
-    data: { nama: "Uji Maryam", jumlahInvestasi: 20_000_000, persentase: 0, aktif: true },
+    data: {
+      nama: "Uji Maryam", jumlahInvestasi: 20_000_000, persentase: 0, aktif: true,
+      modal: { create: { berlakuMulai: "2000-01", jumlah: 20_000_000, aktif: true } },
+    },
   });
 
   const sesudah = await api(`/api/distribusi?periode=${PERIODE}`);

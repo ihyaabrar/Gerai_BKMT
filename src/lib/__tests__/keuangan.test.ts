@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   awalHariWIB,
   akhirHariWIB,
+  periodeBerikutnya,
   periodeDari,
   periodeValid,
   stempelWIB,
@@ -64,6 +65,11 @@ describe("periode WIB", () => {
     expect(periodeValid("2026-9")).toBe(false);
     expect(periodeValid("")).toBe(false);
     expect(periodeValid(null)).toBe(false);
+  });
+
+  it("periode berikutnya melewati pergantian tahun", () => {
+    expect(periodeBerikutnya("2026-09")).toBe("2026-10");
+    expect(periodeBerikutnya("2026-12")).toBe("2027-01");
   });
 
   it("melabeli periode dalam bahasa Indonesia", () => {

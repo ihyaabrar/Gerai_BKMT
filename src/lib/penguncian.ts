@@ -2,14 +2,13 @@ import { prisma } from "@/lib/prisma";
 import { PENJUALAN_SAH, labelPeriode, periodeDari, rentangPeriode } from "@/lib/keuangan";
 
 /**
- * Distribusi bagi hasil dihitung dari daftar nasabah dan persentase yang
- * berlaku SAAT periode ditutup, bukan yang berlaku selama periode berjalan.
- * Rekaman per tanggal tidak ada, jadi hanya ada satu cara menjaga keadilannya:
- * jangan biarkan keduanya berubah di antara akhir bulan dan penutupan.
+ * Persentase bagi hasil (Pengaturan) dipakai apa adanya SAAT periode ditutup —
+ * tidak ada riwayat per bulan. Jadi persentase tidak boleh berubah di antara
+ * akhir bulan dan penutupannya.
  *
- * Tanpa penjaga ini, nasabah yang mendaftar 2 Oktober ikut menerima laba
- * September penuh — dan nasabah yang keluar 30 September menerima nol,
- * padahal modalnya bekerja sebulan penuh.
+ * Nasabah dan modalnya tidak lagi memakai penjaga ini: perubahannya dicatat
+ * per periode dan berlaku mulai bulan berikutnya (src/lib/modal-nasabah.ts),
+ * sehingga tidak bisa mengubah bulan yang belum ditutup.
  */
 
 /**

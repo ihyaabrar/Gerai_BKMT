@@ -71,6 +71,14 @@ export function periodeDari(waktu: Date): string {
   return `${wib.getUTCFullYear()}-${String(wib.getUTCMonth() + 1).padStart(2, "0")}`;
 }
 
+/** Periode sesudahnya: "2026-12" → "2027-01". */
+export function periodeBerikutnya(periode: string): string {
+  const [tahun, bulan] = periode.split("-").map(Number);
+  return bulan === 12
+    ? `${tahun + 1}-01`
+    : `${tahun}-${String(bulan + 1).padStart(2, "0")}`;
+}
+
 const NAMA_BULAN = [
   "Januari", "Februari", "Maret", "April", "Mei", "Juni",
   "Juli", "Agustus", "September", "Oktober", "November", "Desember",

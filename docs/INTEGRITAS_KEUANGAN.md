@@ -76,18 +76,35 @@ Kalau ada anggota bertanya *"kenapa bagian saya bulan Juli segini?"*, jawabannya
 ada di rekaman periode Juli — bukan hasil perhitungan ulang memakai daftar
 nasabah hari ini. Sebelum ada rekaman ini, sistem tidak punya jawaban.
 
-### Nasabah dan persentase terkunci sampai bulan lalu ditutup
+### Perubahan nasabah berlaku mulai bulan berikutnya
 
-Rekaman menyimpan daftar nasabah **saat periode ditutup**, bukan saat bulannya
-berjalan. Supaya keduanya tidak berbeda, selama distribusi bulan lalu belum
-ditutup sistem **menolak**:
+Keputusan pengurus (September 2026). Sistem menyimpan riwayat modal setiap
+nasabah per bulan:
 
-- menambah, mengubah, atau menonaktifkan nasabah,
-- mengubah persentase nasabah/pengelola.
+| Yang terjadi hari ini | Bulan ini | Mulai bulan depan |
+|---|---|---|
+| Nasabah baru bergabung | belum ikut dibagi | ikut dibagi |
+| Nasabah menambah / mengurangi modal | modal lama | modal baru |
+| Nasabah berhenti | **masih** mendapat bagian | tidak lagi |
 
-Tanpa kunci ini, nasabah yang mendaftar tanggal 2 Oktober ikut menerima laba
-September penuh. Pengecualian: bulan lalu yang tidak punya satu pun penjualan
-tidak mengunci apa-apa.
+Alasannya: modal yang masuk tanggal 20 belum bekerja sebulan penuh; modal yang
+keluar tanggal 20 sudah bekerja hampir sebulan. Halaman Nasabah menunjukkan
+perubahan yang menunggu, misalnya *"Mulai dihitung Oktober 2026"*.
+
+Dua pengecualian yang berlaku **langsung**, termasuk untuk bulan yang belum
+ditutup:
+
+- **Koreksi salah ketik** — di form Edit, pilih "Koreksi salah ketik" bila angka
+  modal sebelumnya memang keliru dimasukkan.
+- **Salah input / data contoh** — di tombol hapus. Orangnya dihapus dari semua
+  bulan yang belum ditutup. Hanya bisa bila ia belum pernah tercatat menerima
+  bagian; nasabah sungguhan yang keluar memakai "Berhenti".
+
+### Persentase terkunci sampai bulan lalu ditutup
+
+Persentase nasabah/pengelola di Pengaturan tidak punya riwayat per bulan, jadi
+selama distribusi bulan lalu belum ditutup sistem **menolak** mengubahnya.
+Bulan lalu yang tidak punya satu pun penjualan tidak mengunci apa-apa.
 
 ### Membuka kembali periode
 
@@ -120,7 +137,17 @@ Rp 300.000.
 
 ---
 
-## 4. Bulan rugi — keputusan yang perlu pengurus sepakati
+## 4. Dasar bagi hasil: laba kotor
+
+Keputusan pengurus (September 2026): bagi hasil nasabah dihitung dari **laba
+yang dibagi** (penjualan − harga pokok − barang rusak), **bukan** dari laba
+bersih setelah biaya operasional. Listrik, gaji, sewa, dan biaya lain ditanggung
+dari bagian pengelola. Dengan begitu nasabah bisa memeriksa angkanya tanpa perlu
+memeriksa setiap nota pengeluaran.
+
+---
+
+## 4a. Bulan rugi — keputusan yang perlu pengurus sepakati
 
 Kalau sebuah periode **tidak menghasilkan laba**, sistem saat ini:
 
@@ -353,16 +380,18 @@ Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 ## 13. Menjalankan pengujian
 
 ```bash
-npm test                          # 50 uji perhitungan, periode WIB, sesi, hak akses, kerugian stok
+npm test                          # 59 uji perhitungan, periode WIB, sesi, hak akses, modal nasabah
 bash scripts/smoke-test.sh        # 75 uji hak akses, pencabutan sesi, bypass middleware, header
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
 node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
-node scripts/uji-penguncian.mjs   # 35 uji kunci nasabah, arsip, shift beku
+node scripts/uji-penguncian.mjs   # 36 uji kunci persentase, arsip, shift beku
 node scripts/uji-barang.mjs       # 34 uji edit barang, harga rata-rata, kerugian stok
+node scripts/uji-sesi.mjs         # 19 uji pencabutan sesi
+node scripts/uji-nasabah.mjs      # 23 uji modal nasabah per bulan
 ```
 
-Totalnya 265 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+Totalnya 317 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
 56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
 Skrip `uji-*` butuh server berjalan (`npm run build && npm start`) dan
