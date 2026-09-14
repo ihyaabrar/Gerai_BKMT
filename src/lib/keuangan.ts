@@ -163,6 +163,49 @@ export function hitungLaba(penjualan: TransaksiPenjualan[]): RingkasanLaba {
   };
 }
 
+// ─── Retur pembeli ───────────────────────────────────────────────────────────
+
+/**
+ * Uang yang dikembalikan untuk `qty` barang dari sebuah baris penjualan.
+ *
+ * Diskon member memotong seluruh transaksi, jadi pembeli sebenarnya membayar
+ * `total / subtotal` dari harga setiap barang. Mengembalikan harga penuh
+ * berarti memberi pembeli lebih dari yang ia bayar.
+ */
+export function refundBaris(
+  hargaJual: number,
+  qty: number,
+  subtotalTransaksi: number,
+  totalTransaksi: number
+): number {
+  const rasio = subtotalTransaksi > 0 ? totalTransaksi / subtotalTransaksi : 1;
+  return Math.round(hargaJual * qty * rasio);
+}
+
+export interface BarisRetur {
+  totalRefund: number;
+  hppKembali: number;
+}
+
+/**
+ * Pengaruh retur terhadap laba: uang yang dikembalikan dikurangi harga pokok
+ * barang yang kembali ke rak. Barang rusak tidak mengembalikan harga pokoknya,
+ * jadi seluruh uang kembaliannya menjadi pengurang laba.
+ */
+export function hitungRetur(retur: BarisRetur[]): {
+  totalRetur: number;
+  hppRetur: number;
+  labaRetur: number;
+} {
+  let totalRetur = 0;
+  let hppRetur = 0;
+  for (const r of retur) {
+    totalRetur += r.totalRefund;
+    hppRetur += r.hppKembali;
+  }
+  return { totalRetur, hppRetur, labaRetur: totalRetur - hppRetur };
+}
+
 // ─── Persediaan ──────────────────────────────────────────────────────────────
 
 export interface BarisPenyesuaian {

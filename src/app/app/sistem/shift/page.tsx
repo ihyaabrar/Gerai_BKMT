@@ -20,6 +20,8 @@ interface Shift {
   totalPenjualan: number;
   penjualanTunai: number;
   penjualanNonTunai: number;
+  /** Uang retur pembeli yang dikembalikan tunai dari laci. */
+  refundTunai?: number;
   /** Dari server: tersimpan saat shift ditutup, atau dihitung untuk shift lama. */
   selisih: number | null;
   jumlahTransaksi: number;
@@ -231,6 +233,7 @@ export default function ShiftPage() {
                   // yang sudah dicatat kasirnya.
                   const tunai = s.penjualanTunai ?? 0;
                   const nonTunai = s.penjualanNonTunai ?? 0;
+                  const refundTunai = s.refundTunai ?? 0;
                   const selisih = s.selisih ?? 0;
 
                   return (
@@ -264,6 +267,11 @@ export default function ShiftPage() {
                                   <p className="text-[11px] text-slate-400 mt-0.5">
                                     + {formatRupiah(nonTunai)} non-tunai, tidak
                                     masuk laci
+                                  </p>
+                                )}
+                                {refundTunai > 0 && (
+                                  <p className="text-[11px] text-rose-500 mt-0.5">
+                                    − {formatRupiah(refundTunai)} dikembalikan untuk retur
                                   </p>
                                 )}
                               </div>

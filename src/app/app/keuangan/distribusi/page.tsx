@@ -50,6 +50,9 @@ interface Distribusi {
   totalPenjualan: number;
   totalHpp: number;
   totalDiskon: number;
+  /** Rekaman lama tidak punya kolom ini (= 0). */
+  totalRetur?: number;
+  hppRetur?: number;
   labaKotor: number;
   /** Nilai barang rusak/hilang. Rekaman lama tidak punya kolom ini (= 0). */
   kerugianStok?: number;
@@ -244,6 +247,8 @@ export default function DistribusiPage() {
         { Keterangan: "Total Penjualan", Nilai: d.totalPenjualan },
         { Keterangan: "Harga Pokok Penjualan", Nilai: d.totalHpp },
         { Keterangan: "Diskon Member", Nilai: d.totalDiskon },
+        { Keterangan: "Retur Pembeli (uang dikembalikan)", Nilai: d.totalRetur ?? 0 },
+        { Keterangan: "Harga Pokok Barang Retur yang Kembali ke Rak", Nilai: d.hppRetur ?? 0 },
         { Keterangan: "Laba Kotor", Nilai: d.labaKotor },
         { Keterangan: "Kerugian Stok (barang rusak/hilang)", Nilai: d.kerugianStok ?? 0 },
         { Keterangan: "Laba Dibagi", Nilai: d.labaKotor - (d.kerugianStok ?? 0) },
@@ -534,6 +539,13 @@ export default function DistribusiPage() {
                   {[
                     ["Penjualan diterima", d.totalPenjualan, "Sudah dipotong diskon member"],
                     ["Harga pokok penjualan", -d.totalHpp, "Harga beli saat transaksi terjadi"],
+                    ...((d.totalRetur ?? 0) > 0
+                      ? [[
+                          "Retur pembeli",
+                          -((d.totalRetur ?? 0) - (d.hppRetur ?? 0)),
+                          `Uang dikembalikan ${formatRupiah(d.totalRetur ?? 0)}, dikurangi harga pokok barang yang kembali ke rak`,
+                        ]]
+                      : []),
                   ].map(([label, nilai, catatan]) => (
                     <div key={label as string} className="flex items-baseline justify-between gap-4 py-2.5">
                       <div className="min-w-0">

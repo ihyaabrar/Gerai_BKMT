@@ -9,6 +9,7 @@ import {
   tanggalWIB,
   hitungKerugianStok,
   hitungLaba,
+  hitungRetur,
   labaTransaksi,
   periodeDari,
   rentangPeriode,
@@ -54,6 +55,13 @@ async function laporanPenjualan(start: Date, end: Date) {
   });
   const kerugianStok = hitungKerugianStok(penyesuaian);
 
+  const retur = await prisma.returPenjualan.findMany({
+    where: { tanggal: { gte: start, lte: end } },
+    select: { totalRefund: true, hppKembali: true },
+  });
+  const { totalRetur, labaRetur } = hitungRetur(retur);
+  const labaSetelahRetur = labaKotor - labaRetur;
+
   const produkMap = new Map<string, { nama: string; qty: number; total: number }>();
   for (const p of penjualan) {
     for (const d of p.detail) {
@@ -89,9 +97,11 @@ async function laporanPenjualan(start: Date, end: Date) {
     // "Laba" di seluruh aplikasi berarti satu hal: uang diterima dikurangi
     // harga pokok yang dibekukan. Diskon sudah otomatis terpotong karena
     // yang dijumlahkan adalah `total`, bukan subtotal.
-    totalLaba: labaKotor,
+    // Sudah dikurangi retur pembeli, sama seperti Distribusi Laba.
+    totalLaba: labaSetelahRetur,
+    totalRetur,
     kerugianStok,
-    labaDibagi: labaKotor - kerugianStok,
+    labaDibagi: labaSetelahRetur - kerugianStok,
     produkTerlaris,
     chartData,
   });

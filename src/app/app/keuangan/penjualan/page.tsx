@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatRupiah } from "@/lib/utils";
-import { Receipt, Search, Download, Ban } from "lucide-react";
+import { Receipt, Search, Download, Ban, Undo2 } from "lucide-react";
+import { ReturDialog } from "@/components/ReturDialog";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import * as XLSX from "xlsx";
@@ -30,6 +31,7 @@ interface Penjualan {
   member: {
     nama: string;
   } | null;
+  retur?: { nomor: string; totalRefund: number }[];
 }
 
 const ITEMS_PER_PAGE = 10;
@@ -41,6 +43,8 @@ export default function PenjualanPage() {
   const bolehBatalkan = user?.role === "master" || user?.role === "admin";
 
   const [targetBatal, setTargetBatal] = useState<Penjualan | null>(null);
+  const [targetRetur, setTargetRetur] = useState<string | null>(null);
+  const tutupRetur = useCallback(() => setTargetRetur(null), []);
   const [alasanBatal, setAlasanBatal] = useState("");
   const [membatalkan, setMembatalkan] = useState(false);
 
@@ -240,7 +244,7 @@ export default function PenjualanPage() {
                       <th className="text-right py-3 px-4">Diskon</th>
                       <th className="text-right py-3 px-4">Total</th>
                       <th className="text-center py-3 px-4">Metode</th>
-                      {bolehBatalkan && <th className="w-10" />}
+                      {bolehBatalkan && <th className="w-20" />}
                     </tr>
                   </thead>
                   <tbody>
@@ -266,6 +270,13 @@ export default function PenjualanPage() {
                                   oleh {p.dibatalkanOleh.nama}
                                 </span>
                               )}
+                            </div>
+                          )}
+                          {!batal && (p.retur?.length ?? 0) > 0 && (
+                            <div className="mt-1">
+                              <Badge variant="warning">
+                                Retur {formatRupiah(p.retur!.reduce((s, r) => s + r.totalRefund, 0))}
+                              </Badge>
                             </div>
                           )}
                           {batal && p.alasanBatal && (
@@ -309,8 +320,20 @@ export default function PenjualanPage() {
                           </span>
                         </td>
                         {bolehBatalkan && (
-                          <td className="py-3 pr-4">
+                          <td className="py-3 pr-4 whitespace-nowrap">
                             {!batal && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                aria-label={"Retur " + p.nomorTransaksi}
+                                title="Retur barang dari pembeli"
+                                className="text-amber-700 hover:bg-amber-50"
+                                onClick={() => setTargetRetur(p.id)}
+                              >
+                                <Undo2 className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {!batal && !(p.retur?.length) && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -345,6 +368,12 @@ export default function PenjualanPage() {
           )}
         </CardContent>
       </Card>
+
+      <ReturDialog
+        penjualanId={targetRetur}
+        onTutup={tutupRetur}
+        onBerhasil={() => setVersi((v) => v + 1)}
+      />
 
       <Dialog
         open={Boolean(targetBatal)}
