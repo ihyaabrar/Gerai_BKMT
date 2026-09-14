@@ -140,6 +140,7 @@ export async function GET(request: NextRequest) {
           member: true,
           detail: { include: { barang: true } },
           dibatalkanOleh: { select: { nama: true } },
+          retur: { select: { nomor: true, totalRefund: true } },
         },
         orderBy: { tanggal: "desc" },
         skip,
@@ -412,7 +413,7 @@ export async function PATCH(request: NextRequest) {
     const hasil = await prisma.$transaction(async (tx) => {
       const penjualan = await tx.penjualan.findUnique({
         where: { id },
-        include: { detail: true },
+        include: { detail: true, _count: { select: { retur: true } } },
       });
 
       if (!penjualan) {
@@ -420,6 +421,14 @@ export async function PATCH(request: NextRequest) {
       }
       if (penjualan.status === STATUS_PENJUALAN.batal) {
         throw new ValidationError("Penjualan ini sudah dibatalkan sebelumnya");
+      }
+      // Pembatalan mengembalikan SELURUH stok dan poin. Kalau sebagian barang
+      // sudah diretur, stok dan uang itu akan dikembalikan dua kali.
+      if (penjualan._count.retur > 0) {
+        throw new ValidationError(
+          "Sebagian barang dari transaksi ini sudah diretur, jadi transaksinya tidak bisa dibatalkan. " +
+            "Retur sisa barangnya bila perlu."
+        );
       }
 
       // Periode yang distribusinya sudah ditutup tidak boleh berubah diam-diam:

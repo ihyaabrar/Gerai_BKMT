@@ -45,6 +45,14 @@ export async function GET(request: NextRequest) {
       _count: { _all: true },
     });
 
+    // Retur pembeli yang uangnya dikembalikan tunai keluar dari laci shift itu.
+    const refund = await prisma.returPenjualan.groupBy({
+      by: ["shiftId"],
+      where: { metodeRefund: "Tunai", shiftId: { in: shifts.map((s) => s.id) } },
+      _sum: { totalRefund: true },
+    });
+    const refundMap = new Map(refund.map((r) => [r.shiftId, r._sum.totalRefund ?? 0]));
+
     const totalMap = new Map<
       string,
       { total: number; tunai: number; nonTunai: number; jumlah: number }
@@ -71,9 +79,10 @@ export async function GET(request: NextRequest) {
         // ini ada, dihitung dari transaksi seperti sebelumnya.
         const penjualanTunai = beku ? s.penjualanTunai ?? 0 : t?.tunai ?? 0;
         const penjualanNonTunai = beku ? s.penjualanNonTunai ?? 0 : t?.nonTunai ?? 0;
+        const refundTunai = beku ? s.refundTunai ?? 0 : refundMap.get(s.id) ?? 0;
         const saldoSeharusnya = beku
-          ? s.saldoSeharusnya ?? s.saldoAwal + penjualanTunai
-          : s.saldoAwal + penjualanTunai;
+          ? s.saldoSeharusnya ?? s.saldoAwal + penjualanTunai - refundTunai
+          : s.saldoAwal + penjualanTunai - refundTunai;
         const selisih =
           s.jamTutup === null
             ? null
@@ -86,6 +95,7 @@ export async function GET(request: NextRequest) {
           totalPenjualan: penjualanTunai + penjualanNonTunai,
           penjualanTunai,
           penjualanNonTunai,
+          refundTunai,
           saldoSeharusnya,
           selisih,
           angkaBeku: beku,
@@ -166,8 +176,15 @@ export async function POST(request: NextRequest) {
       const totalPenjualan = penjualanTunai + penjualanNonTunai;
       const jumlahTransaksi = perMetode.reduce((sum, m) => sum + m._count._all, 0);
 
+      // Uang retur pembeli yang dikembalikan tunai keluar dari laci yang sama.
+      const refund = await tx.returPenjualan.aggregate({
+        where: { shiftId: aktif.id, metodeRefund: "Tunai" },
+        _sum: { totalRefund: true },
+      });
+      const refundTunai = refund._sum.totalRefund ?? 0;
+
       // Hanya uang tunai yang masuk laci. Transfer, QRIS, dan debit tidak.
-      const saldoSeharusnya = aktif.saldoAwal + penjualanTunai;
+      const saldoSeharusnya = aktif.saldoAwal + penjualanTunai - refundTunai;
       const selisih = saldoAkhir - saldoSeharusnya;
 
       // Angka rekap dibekukan bersama penutupan shift. Pembatalan transaksi
@@ -182,6 +199,7 @@ export async function POST(request: NextRequest) {
           status: "tutup",
           penjualanTunai,
           penjualanNonTunai,
+          refundTunai,
           saldoSeharusnya,
           selisih,
         },
@@ -193,6 +211,7 @@ export async function POST(request: NextRequest) {
         totalPenjualan,
         penjualanTunai,
         penjualanNonTunai,
+        refundTunai,
         rincianMetode: perMetode.map((m) => ({
           metode: m.metodeBayar,
           total: m._sum.total ?? 0,

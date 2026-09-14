@@ -9,6 +9,7 @@ import {
   bagiRata,
   hitungKerugianStok,
   hitungLaba,
+  hitungRetur,
   labelPeriode,
   periodeDari,
   periodeValid,
@@ -40,6 +41,10 @@ interface HitunganPeriode {
   totalPenjualan: number;
   totalHpp: number;
   totalDiskon: number;
+  /** Uang retur pembeli periode ini, dan harga pokok barang yang kembali ke rak. */
+  totalRetur: number;
+  hppRetur: number;
+  /** Penjualan − harga pokok − (retur − harga pokok retur). */
   labaKotor: number;
   /** Nilai barang rusak/hilang periode ini (penyesuaian stok). */
   kerugianStok: number;
@@ -96,7 +101,7 @@ async function hitungPeriode(
 ): Promise<HitunganPeriode> {
   const { mulai, selesai } = rentangPeriode(periode);
 
-  const [penjualan, penyesuaian, pengaturan, nasabahPeriode, arsipTerakhir] = await Promise.all([
+  const [penjualan, penyesuaian, retur, pengaturan, nasabahPeriode, arsipTerakhir] = await Promise.all([
     db.penjualan.findMany({
       where: { ...PENJUALAN_SAH, tanggal: { gte: mulai, lte: selesai } },
       select: {
@@ -109,6 +114,11 @@ async function hitungPeriode(
       where: { tanggal: { gte: mulai, lte: selesai } },
       select: { jenis: true, qty: true, hargaBeli: true },
     }),
+    // Retur dihitung pada bulan retur terjadi, bukan bulan penjualannya.
+    db.returPenjualan.findMany({
+      where: { tanggal: { gte: mulai, lte: selesai } },
+      select: { totalRefund: true, hppKembali: true },
+    }),
     db.pengaturan.findFirst(),
     // Modal yang berlaku pada periode ini, bukan daftar nasabah aktif hari ini.
     rosterPeriode(db, periode),
@@ -118,7 +128,10 @@ async function hitungPeriode(
     }),
   ]);
 
-  const { totalPenjualan, totalHpp, totalDiskon, labaKotor } = hitungLaba(penjualan);
+  const ringkasan = hitungLaba(penjualan);
+  const { totalPenjualan, totalHpp, totalDiskon } = ringkasan;
+  const { totalRetur, hppRetur, labaRetur } = hitungRetur(retur);
+  const labaKotor = ringkasan.labaKotor - labaRetur;
 
   // Barang rusak, hilang, atau kedaluwarsa sudah dibeli dengan uang gerai.
   // Nilainya dikurangkan sebelum laba dibagi (keputusan pengurus, Sept 2026).
@@ -166,6 +179,8 @@ async function hitungPeriode(
     totalPenjualan,
     totalHpp,
     totalDiskon,
+    totalRetur,
+    hppRetur,
     labaKotor,
     kerugianStok,
     labaDibagi,
@@ -316,6 +331,8 @@ export async function POST(request: NextRequest) {
           totalHpp: h.totalHpp,
           totalDiskon: h.totalDiskon,
           totalTransaksi: h.totalTransaksi,
+          totalRetur: h.totalRetur,
+          hppRetur: h.hppRetur,
           labaKotor: h.labaKotor,
           kerugianStok: h.kerugianStok,
           persenNasabah: h.persenNasabah,

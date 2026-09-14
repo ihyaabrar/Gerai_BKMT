@@ -36,6 +36,7 @@ export const KASIR_BLOCKED_APIS = [
   "/api/laporan",
   "/api/nasabah",
   "/api/distribusi",
+  "/api/retur-penjualan",
 ] as const;
 
 export function isAdminRole(role: string | undefined | null): boolean {

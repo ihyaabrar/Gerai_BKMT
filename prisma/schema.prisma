@@ -8,16 +8,16 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  nama      String
-  username  String   @unique
-  password  String
-  role      String   @default("kasir")
-  aktif     Boolean  @default(true)
+  id               String    @id @default(cuid())
+  nama             String
+  username         String    @unique
+  password         String
+  role             String    @default("kasir")
+  aktif            Boolean   @default(true)
   /// Sesi yang diterbitkan sebelum waktu ini ditolak (diisi saat password diganti).
   sesiBerlakuSejak DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
 
   shifts              ShiftKasir[]
   berita              Berita[]
@@ -28,6 +28,7 @@ model User {
   retur               Retur[]
   distribusiLaba      DistribusiLaba[]
   distribusiDibuka    DistribusiLabaArsip[]
+  returPenjualan      ReturPenjualan[]
 }
 
 model Barang {
@@ -49,6 +50,7 @@ model Barang {
   detailPenjualan DetailPenjualan[]
   penyesuaian     PenyesuaianStok[]
   retur           Retur[]
+  returPenjualan  DetailReturPenjualan[]
 
   @@index([aktif, nama])
 }
@@ -145,6 +147,7 @@ model Penjualan {
   createdAt DateTime @default(now())
 
   detail DetailPenjualan[]
+  retur  ReturPenjualan[]
 
   @@index([tanggal])
   @@index([shiftId])
@@ -168,7 +171,61 @@ model DetailPenjualan {
   subtotal    Float
   createdAt   DateTime  @default(now())
 
+  retur DetailReturPenjualan[]
+
   @@index([penjualanId])
+  @@index([barangId])
+}
+
+/// Pembeli mengembalikan sebagian atau seluruh barang dari penjualan yang sah.
+///
+/// Penjualannya sendiri tidak diubah: struknya tetap seperti yang dicetak.
+/// Retur dihitung pada bulan retur terjadi, sehingga bulan penjualan yang
+/// distribusinya sudah ditutup tidak perlu dibuka kembali.
+model ReturPenjualan {
+  id           String      @id @default(cuid())
+  nomor        String      @unique
+  penjualanId  String
+  penjualan    Penjualan   @relation(fields: [penjualanId], references: [id])
+  tanggal      DateTime    @default(now())
+  alasan       String
+  /// Uang yang dikembalikan ke pembeli, sudah memperhitungkan diskon transaksi.
+  totalRefund  Float
+  /// Harga pokok barang yang kembali ke rak. Barang rusak tidak termasuk —
+  /// nilainya tetap menjadi biaya.
+  hppKembali   Float
+  /// Mengikuti metode bayar penjualan. Hanya "Tunai" yang keluar dari laci.
+  metodeRefund String
+  shiftId      String?
+  shift        ShiftKasir? @relation(fields: [shiftId], references: [id])
+  userId       String?
+  user         User?       @relation(fields: [userId], references: [id])
+  createdAt    DateTime    @default(now())
+
+  detail DetailReturPenjualan[]
+
+  @@index([tanggal])
+  @@index([penjualanId])
+  @@index([shiftId])
+}
+
+model DetailReturPenjualan {
+  id                String          @id @default(cuid())
+  returId           String
+  retur             ReturPenjualan  @relation(fields: [returId], references: [id], onDelete: Cascade)
+  detailPenjualanId String
+  detailPenjualan   DetailPenjualan @relation(fields: [detailPenjualanId], references: [id])
+  barangId          String
+  barang            Barang          @relation(fields: [barangId], references: [id])
+  qty               Int
+  refund            Float
+  /// Harga pokok dari baris penjualan aslinya.
+  hargaBeli         Float
+  /// false = barang rusak, tidak kembali ke stok.
+  kembaliKeStok     Boolean
+
+  @@index([returId])
+  @@index([detailPenjualanId])
   @@index([barangId])
 }
 
@@ -203,11 +260,14 @@ model ShiftKasir {
   penjualanNonTunai Float?
   saldoSeharusnya   Float?
   selisih           Float?
+  /// Uang retur pembeli yang dibayar tunai dari laci selama shift (dibekukan saat tutup).
+  refundTunai       Float?
   catatan           String?
   status            String    @default("buka")
   createdAt         DateTime  @default(now())
 
   penjualan Penjualan[]
+  retur     ReturPenjualan[]
 
   @@index([userId])
   @@index([jamTutup])
@@ -294,6 +354,10 @@ model DistribusiLaba {
   totalHpp       Float
   totalDiskon    Float
   totalTransaksi Int   @default(0)
+  /// Uang retur pembeli periode ini dan harga pokok barang yang kembali ke rak.
+  /// labaKotor sudah dikurangi (totalRetur - hppRetur).
+  totalRetur     Float @default(0)
+  hppRetur       Float @default(0)
   labaKotor      Float
   /// Nilai barang rusak/hilang periode ini. Bagi hasil = labaKotor - kerugianStok.
   kerugianStok   Float @default(0)

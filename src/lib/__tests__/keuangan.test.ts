@@ -14,6 +14,8 @@ import {
   bagiRata,
   bagiHasil,
   hitungKerugianStok,
+  hitungRetur,
+  refundBaris,
   hargaBeliRataRata,
 } from "../keuangan";
 
@@ -209,5 +211,25 @@ describe("harga beli rata-rata", () => {
 
   it("pembelian dengan harga sama tidak mengubah harga", () => {
     expect(hargaBeliRataRata(7, 4_000, 3, 4_000)).toBe(4_000);
+  });
+});
+
+describe("retur pembeli", () => {
+  it("uang kembali mengikuti diskon transaksi", () => {
+    // Subtotal 100.000, diskon 5% → total 95.000. Retur 2 x Rp10.000.
+    expect(refundBaris(10_000, 2, 100_000, 95_000)).toBe(19_000);
+  });
+
+  it("tanpa diskon, uang kembali = harga x jumlah", () => {
+    expect(refundBaris(12_500, 3, 50_000, 50_000)).toBe(37_500);
+  });
+
+  it("barang kembali ke rak hanya mengurangi margin", () => {
+    // Refund 19.000, harga pokok 2 x 6.000 kembali ke rak → laba turun 7.000.
+    expect(hitungRetur([{ totalRefund: 19_000, hppKembali: 12_000 }]).labaRetur).toBe(7_000);
+  });
+
+  it("barang rusak mengurangi seluruh uang kembaliannya", () => {
+    expect(hitungRetur([{ totalRefund: 19_000, hppKembali: 0 }]).labaRetur).toBe(19_000);
   });
 });

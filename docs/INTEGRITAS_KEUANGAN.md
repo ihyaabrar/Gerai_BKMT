@@ -11,7 +11,7 @@ hanya untuk yang mengerti kode.
 Satu definisi saja, dipakai di seluruh aplikasi:
 
 ```
-Laba kotor   = Uang yang diterima − Harga pokok barang yang terjual
+Laba kotor   = Uang yang diterima − Harga pokok barang yang terjual − Retur pembeli
 Laba dibagi  = Laba kotor − Nilai barang rusak/hilang      ← dasar bagi hasil nasabah
 Laba bersih  = Laba dibagi − Biaya operasional
 ```
@@ -222,6 +222,28 @@ Urutan yang benar kalau memang harus diperbaiki:
 4. **Beri tahu nasabah** kalau angkanya berubah setelah dibayarkan. Sistem bisa
    menghitung ulang; kepercayaan tidak bisa.
 
+### Retur pembeli
+
+**Menu: Keuangan → Penjualan → tombol ↶ pada barisnya** (admin & master)
+
+Pembeli mengembalikan sebagian barang — misalnya beli 5, kembalikan 2 karena
+kemasannya bocor. Berbeda dengan pembatalan, transaksinya tetap sah; yang
+dicatat adalah returnya.
+
+- **Uang kembali mengikuti diskon.** Transaksi dengan diskon member 5% hanya
+  mengembalikan 95% harga barang, karena memang itu yang dibayar. Total seluruh
+  retur satu transaksi tidak pernah melebihi yang dibayar pembeli.
+- **Barang utuh** kembali ke stok. Laba berkurang sebesar uang kembali dikurangi
+  harga pokoknya (margin yang batal didapat).
+- **Barang rusak** (centang di dialog) tidak kembali ke stok. Laba berkurang
+  sebesar seluruh uang kembaliannya, karena barangnya ikut hilang.
+- **Poin member** ditarik sebanding uang yang dikembalikan.
+- **Dihitung pada bulan retur terjadi**, bukan bulan penjualannya. Retur
+  tanggal 3 Oktober atas belanja 28 September mengurangi laba Oktober; distribusi
+  September yang sudah ditutup tidak berubah dan tidak perlu dibuka kembali.
+- Transaksi yang sudah pernah diretur **tidak bisa dibatalkan** (stok dan uang
+  akan kembali dua kali) — retur sisa barangnya saja.
+
 ---
 
 ## 7. Rekap kas shift
@@ -229,9 +251,12 @@ Urutan yang benar kalau memang harus diperbaiki:
 Selisih kas dihitung **hanya dari penjualan tunai**:
 
 ```
-Saldo seharusnya = Saldo awal + Penjualan tunai
+Saldo seharusnya = Saldo awal + Penjualan tunai − Uang retur tunai
 Selisih = Saldo akhir (dihitung manual) − Saldo seharusnya
 ```
+
+Uang retur pembeli yang dikembalikan tunai diambil dari laci shift yang sedang
+buka saat retur dicatat.
 
 Pembayaran transfer, QRIS, dan debit ditampilkan terpisah karena uangnya tidak
 pernah masuk ke laci. Sebelum perbaikan ini, semua pembayaran dihitung sebagai
@@ -380,7 +405,7 @@ Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 ## 13. Menjalankan pengujian
 
 ```bash
-npm test                          # 59 uji perhitungan, periode WIB, sesi, hak akses, modal nasabah
+npm test                          # 63 uji perhitungan, periode WIB, sesi, hak akses, modal, retur
 bash scripts/smoke-test.sh        # 75 uji hak akses, pencabutan sesi, bypass middleware, header
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
@@ -389,9 +414,10 @@ node scripts/uji-penguncian.mjs   # 36 uji kunci persentase, arsip, shift beku
 node scripts/uji-barang.mjs       # 34 uji edit barang, harga rata-rata, kerugian stok
 node scripts/uji-sesi.mjs         # 19 uji pencabutan sesi
 node scripts/uji-nasabah.mjs      # 23 uji modal nasabah per bulan
+node scripts/uji-retur.mjs        # 27 uji retur pembeli
 ```
 
-Totalnya 317 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+Totalnya 348 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
 56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
 Skrip `uji-*` butuh server berjalan (`npm run build && npm start`) dan
