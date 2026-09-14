@@ -12,6 +12,7 @@ import {
   toErrorResponse,
 } from "@/lib/validate";
 import { formatRupiah } from "@/lib/utils";
+import { hargaBeliRataRata } from "@/lib/keuangan";
 
 export const dynamic = "force-dynamic";
 
@@ -116,17 +117,33 @@ export async function POST(request: NextRequest) {
         );
       }
 
+      // Baris barang dikunci sampai transaksi selesai: harga rata-rata dihitung
+      // dari stok saat ini, dan penjualan yang masuk bersamaan tidak boleh
+      // mengubah stok itu di tengah perhitungan.
+      await tx.$queryRaw`SELECT "id" FROM "Barang" WHERE "id" = ${barangId} FOR UPDATE`;
+
       const existing = await tx.barang.findUnique({ where: { id: barangId } });
       if (!existing) {
         throw new ValidationError("Barang tidak ditemukan");
       }
 
-      const hargaBeli =
+      // Harga per unit pembelian INI — yang benar-benar dibayar ke supplier.
+      const hargaPembelian =
         updateHargaBeli && hargaBeliBaru !== null ? hargaBeliBaru : existing.hargaBeli;
 
-      if (existing.hargaJual < hargaBeli) {
+      // Harga beli barang menjadi rata-rata stok lama dan stok yang baru masuk,
+      // bukan ditimpa harga terakhir. Lihat hargaBeliRataRata().
+      const hargaBeliBaruRata = hargaBeliRataRata(
+        existing.stok,
+        existing.hargaBeli,
+        qty,
+        hargaPembelian
+      );
+
+      if (existing.hargaJual < hargaBeliBaruRata) {
         throw new ValidationError(
-          "Harga beli baru melebihi harga jual. Perbarui harga jual terlebih dahulu."
+          `Harga beli rata-rata setelah pembelian ini (${formatRupiah(hargaBeliBaruRata)}) ` +
+            `melebihi harga jual (${formatRupiah(existing.hargaJual)}). Perbarui harga jual terlebih dahulu.`
         );
       }
 
@@ -135,22 +152,28 @@ export async function POST(request: NextRequest) {
         where: { id: barangId },
         data: {
           stok: { increment: qty },
-          ...(updateHargaBeli && hargaBeliBaru !== null ? { hargaBeli: hargaBeliBaru } : {}),
+          ...(hargaBeliBaruRata !== existing.hargaBeli ? { hargaBeli: hargaBeliBaruRata } : {}),
         },
       });
 
-      const totalPengeluaran = hargaBeli * qty;
+      const totalPengeluaran = hargaPembelian * qty;
       const pengeluaran = await tx.pengeluaran.create({
         data: {
           tanggal: new Date(),
           kategori: "Pembelian Barang",
-          keterangan: `Pembelian ${existing.nama} (${qty} ${existing.satuan}) @ ${formatRupiah(hargaBeli)}`,
+          keterangan: `Pembelian ${existing.nama} (${qty} ${existing.satuan}) @ ${formatRupiah(hargaPembelian)}`,
           jumlah: totalPengeluaran,
           userId: auth.user.id,
         },
       });
 
-      return { barang, pengeluaran, totalPengeluaran };
+      return {
+        barang,
+        pengeluaran,
+        totalPengeluaran,
+        hargaBeliLama: existing.hargaBeli,
+        hargaBeliRataRata: hargaBeliBaruRata,
+      };
     });
 
     return NextResponse.json(hasil);

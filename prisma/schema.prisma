@@ -197,6 +197,8 @@ model PenyesuaianStok {
   barang    Barang   @relation(fields: [barangId], references: [id])
   jenis     String
   qty       Int
+  /// Harga beli (rata-rata) saat dicatat — dasar nilai kerugian stok.
+  hargaBeli Float?
   alasan    String
   userId    String?
   user      User?    @relation(fields: [userId], references: [id])
@@ -270,6 +272,8 @@ model DistribusiLaba {
   totalDiskon    Float
   totalTransaksi Int   @default(0)
   labaKotor      Float
+  /// Nilai barang rusak/hilang periode ini. Bagi hasil = labaKotor - kerugianStok.
+  kerugianStok   Float @default(0)
 
   persenNasabah   Float
   persenPengelola Float

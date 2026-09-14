@@ -12,6 +12,8 @@ import {
   labaTransaksi,
   bagiRata,
   bagiHasil,
+  hitungKerugianStok,
+  hargaBeliRataRata,
 } from "../keuangan";
 
 const baris = (qty: number, hargaBeli: number) => ({ qty, hargaBeli });
@@ -157,5 +159,49 @@ describe("bagiHasil", () => {
 
     expect(bagian).toEqual([150_000, 90_000, 60_000]);
     expect(bagian.reduce((a, b) => a + b, 0)).toBe(bagianNasabah);
+  });
+});
+
+describe("kerugian stok", () => {
+  it("nilai barang rusak = harga beli x jumlah", () => {
+    expect(hitungKerugianStok([{ jenis: "keluar", qty: 3, hargaBeli: 4_500 }])).toBe(13_500);
+  });
+
+  it("penyesuaian masuk mengoreksi kerugian bulan yang sama", () => {
+    expect(
+      hitungKerugianStok([
+        { jenis: "keluar", qty: 5, hargaBeli: 4_000 },
+        { jenis: "masuk", qty: 2, hargaBeli: 4_000 },
+      ])
+    ).toBe(12_000);
+  });
+
+  it("penyesuaian masuk tidak pernah menambah laba", () => {
+    expect(hitungKerugianStok([{ jenis: "masuk", qty: 100, hargaBeli: 4_000 }])).toBe(0);
+  });
+
+  it("baris tanpa harga beli dianggap nol", () => {
+    expect(hitungKerugianStok([{ jenis: "keluar", qty: 3, hargaBeli: null }])).toBe(0);
+  });
+});
+
+describe("harga beli rata-rata", () => {
+  it("rata-rata tertimbang menurut jumlah", () => {
+    expect(hargaBeliRataRata(10, 4_000, 10, 5_000)).toBe(4_500);
+    expect(hargaBeliRataRata(30, 4_000, 10, 8_000)).toBe(5_000);
+  });
+
+  it("dibulatkan ke rupiah", () => {
+    // (2 x 1.000 + 1 x 2.000) / 3 = 1.333,33
+    expect(hargaBeliRataRata(2, 1_000, 1, 2_000)).toBe(1_333);
+  });
+
+  it("stok kosong memakai harga pembelian baru", () => {
+    expect(hargaBeliRataRata(0, 4_000, 10, 5_000)).toBe(5_000);
+    expect(hargaBeliRataRata(-3, 4_000, 10, 5_000)).toBe(5_000);
+  });
+
+  it("pembelian dengan harga sama tidak mengubah harga", () => {
+    expect(hargaBeliRataRata(7, 4_000, 3, 4_000)).toBe(4_000);
   });
 });

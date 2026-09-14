@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { generateBarcode, formatRupiah } from "@/lib/utils";
+import { hargaBeliRataRata } from "@/lib/keuangan";
 import { PackagePlus, Package, Search, Plus, RefreshCw, DollarSign } from "lucide-react";
 import { toast } from "sonner";
 import { ImageUpload } from "@/components/ui/ImageUpload";
@@ -127,7 +128,10 @@ export default function BarangMasukPage() {
 
       toast.success(
         `Stok ${selectedBarang.nama} bertambah ${qty} ${selectedBarang.satuan}. ` +
-          `Pengeluaran ${formatRupiah(data.totalPengeluaran)} tercatat.`
+          `Pengeluaran ${formatRupiah(data.totalPengeluaran)} tercatat.` +
+          (data.hargaBeliRataRata !== data.hargaBeliLama
+            ? ` Harga beli rata-rata sekarang ${formatRupiah(data.hargaBeliRataRata)}.`
+            : "")
       );
       setSelectedBarang(null);
       setJumlahMasuk("");
@@ -356,7 +360,7 @@ export default function BarangMasukPage() {
                         className="w-4 h-4 text-brand-600 rounded focus:ring-blue-500"
                       />
                       <label htmlFor="updateHargaBeli" className="text-sm font-medium text-slate-700 cursor-pointer">
-                        Update Harga Beli
+                        Harga beli pembelian ini berbeda
                       </label>
                     </div>
                   ) : (
@@ -369,7 +373,7 @@ export default function BarangMasukPage() {
                   {/* Input Harga Beli Baru */}
                   {updateHargaBeli && (
                     <div>
-                      <label className="text-sm font-medium text-slate-700" htmlFor="harga-beli-baru">Harga Beli Baru</label>
+                      <label className="text-sm font-medium text-slate-700" htmlFor="harga-beli-baru">Harga Beli per {selectedBarang.satuan} (pembelian ini)</label>
                       <Input id="harga-beli-baru"
                         type="number"
                         value={hargaBeliBaru}
@@ -391,6 +395,27 @@ export default function BarangMasukPage() {
                         </p>
                       </div>
                       
+                      {updateHargaBeli && hargaBeliBaru && (
+                        <div className="p-3 bg-sky-50 rounded-lg border border-sky-200">
+                          <p className="text-sm text-slate-600 mb-1">Harga Beli Rata-rata Baru:</p>
+                          <p className="text-xl font-bold text-sky-700">
+                            {formatRupiah(
+                              hargaBeliRataRata(
+                                selectedBarang.stok,
+                                selectedBarang.hargaBeli,
+                                parseInt(jumlahMasuk),
+                                parseFloat(hargaBeliBaru)
+                              )
+                            )}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+                            {selectedBarang.stok} {selectedBarang.satuan} lama @ {formatRupiah(selectedBarang.hargaBeli)} +{" "}
+                            {parseInt(jumlahMasuk)} baru @ {formatRupiah(parseFloat(hargaBeliBaru))}. Dipakai untuk
+                            menghitung laba penjualan berikutnya.
+                          </p>
+                        </div>
+                      )}
+
                       <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
                         <div className="flex items-center gap-2 mb-1">
                           <DollarSign className="h-4 w-4 text-amber-600" />

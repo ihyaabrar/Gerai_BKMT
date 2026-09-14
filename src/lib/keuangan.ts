@@ -155,6 +155,60 @@ export function hitungLaba(penjualan: TransaksiPenjualan[]): RingkasanLaba {
   };
 }
 
+// ─── Persediaan ──────────────────────────────────────────────────────────────
+
+export interface BarisPenyesuaian {
+  jenis: string;
+  qty: number;
+  /** Harga beli (rata-rata) barang saat penyesuaian dicatat. */
+  hargaBeli: number | null;
+}
+
+/**
+ * Nilai barang yang hilang dari rak tanpa terjual dalam satu periode — rusak,
+ * kedaluwarsa, hilang — dalam rupiah bulat.
+ *
+ * Barang itu sudah dibeli dengan uang gerai. Kalau nilainya tidak dikurangkan,
+ * laba yang dibagi ke nasabah lebih besar dari uang yang sebenarnya ada.
+ *
+ * Penyesuaian "masuk" (mis. salah hitung, barangnya ternyata ada) mengurangi
+ * kerugian periode yang sama, tetapi hasilnya tidak pernah di bawah nol:
+ * penyesuaian stok tidak boleh MENAMBAH laba. Tanpa batas itu, stok yang
+ * ditambahkan lewat Penyesuaian alih-alih Barang Masuk akan tercatat sebagai
+ * keuntungan.
+ */
+export function hitungKerugianStok(penyesuaian: BarisPenyesuaian[]): number {
+  let keluar = 0;
+  let masuk = 0;
+  for (const p of penyesuaian) {
+    const nilai = (p.hargaBeli ?? 0) * p.qty;
+    if (p.jenis === "keluar") keluar += nilai;
+    else if (p.jenis === "masuk") masuk += nilai;
+  }
+  return Math.max(0, Math.round(keluar - masuk));
+}
+
+/**
+ * Harga beli rata-rata tertimbang setelah barang masuk, dalam rupiah bulat.
+ *
+ * Contoh: 10 pcs @ Rp4.000 di rak, masuk 10 pcs @ Rp5.000 → Rp4.500.
+ * Menimpa dengan harga terakhir (cara lama) membuat 10 pcs lama ikut dihitung
+ * seharga Rp5.000 dan laba bulan itu terlihat lebih kecil dari kenyataan —
+ * atau lebih besar, kalau harganya turun.
+ *
+ * Stok kosong atau minus (data lama) tidak punya nilai yang bisa dirata-rata,
+ * jadi harga pembelian baru dipakai apa adanya.
+ */
+export function hargaBeliRataRata(
+  stokLama: number,
+  hargaLama: number,
+  qtyMasuk: number,
+  hargaMasuk: number
+): number {
+  if (stokLama <= 0) return Math.round(hargaMasuk);
+  return Math.round((stokLama * hargaLama + qtyMasuk * hargaMasuk) / (stokLama + qtyMasuk));
+}
+
 // ─── Pembagian ───────────────────────────────────────────────────────────────
 
 /**

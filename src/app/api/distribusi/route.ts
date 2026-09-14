@@ -6,6 +6,7 @@ import {
   PENJUALAN_SAH,
   bagiHasil,
   bagiRata,
+  hitungKerugianStok,
   hitungLaba,
   labelPeriode,
   periodeDari,
@@ -39,6 +40,10 @@ interface HitunganPeriode {
   totalHpp: number;
   totalDiskon: number;
   labaKotor: number;
+  /** Nilai barang rusak/hilang periode ini (penyesuaian stok). */
+  kerugianStok: number;
+  /** Laba yang benar-benar dibagi: labaKotor - kerugianStok. */
+  labaDibagi: number;
   totalTransaksi: number;
   persenNasabah: number;
   persenPengelola: number;
@@ -57,12 +62,6 @@ interface HitunganPeriode {
   }[];
 }
 
-/**
- * Menghitung distribusi satu periode dari data mentah. Dipakai untuk
- * pratinjau (sebelum ditutup) dan untuk membuat rekaman (saat ditutup),
- * supaya angka yang dilihat pengurus dan angka yang disimpan tidak mungkin
- * berbeda.
- */
 /** Isi kolom `data` pada DistribusiLabaArsip — salinan rekaman yang dibuka kembali. */
 interface ArsipDistribusi {
   persenNasabah: number;
@@ -84,13 +83,19 @@ async function riwayatBuka(periode: string) {
   return arsip;
 }
 
+/**
+ * Menghitung distribusi satu periode dari data mentah. Dipakai untuk
+ * pratinjau (sebelum ditutup) dan untuk membuat rekaman (saat ditutup),
+ * supaya angka yang dilihat pengurus dan angka yang disimpan tidak mungkin
+ * berbeda.
+ */
 async function hitungPeriode(
   db: Prisma.TransactionClient,
   periode: string
 ): Promise<HitunganPeriode> {
   const { mulai, selesai } = rentangPeriode(periode);
 
-  const [penjualan, pengaturan, nasabahAktif, arsipTerakhir] = await Promise.all([
+  const [penjualan, penyesuaian, pengaturan, nasabahAktif, arsipTerakhir] = await Promise.all([
     db.penjualan.findMany({
       where: { ...PENJUALAN_SAH, tanggal: { gte: mulai, lte: selesai } },
       select: {
@@ -98,6 +103,10 @@ async function hitungPeriode(
         diskon: true,
         detail: { select: { qty: true, hargaBeli: true } },
       },
+    }),
+    db.penyesuaianStok.findMany({
+      where: { tanggal: { gte: mulai, lte: selesai } },
+      select: { jenis: true, qty: true, hargaBeli: true },
     }),
     db.pengaturan.findFirst(),
     db.nasabah.findMany({ where: { aktif: true }, orderBy: { nama: "asc" } }),
@@ -108,6 +117,11 @@ async function hitungPeriode(
   ]);
 
   const { totalPenjualan, totalHpp, totalDiskon, labaKotor } = hitungLaba(penjualan);
+
+  // Barang rusak, hilang, atau kedaluwarsa sudah dibeli dengan uang gerai.
+  // Nilainya dikurangkan sebelum laba dibagi (keputusan pengurus, Sept 2026).
+  const kerugianStok = hitungKerugianStok(penyesuaian);
+  const labaDibagi = labaKotor - kerugianStok;
 
   // Periode yang pernah ditutup lalu dibuka kembali memakai daftar nasabah dan
   // persentase dari rekaman sebelumnya. Membuka kembali dimaksudkan untuk
@@ -136,10 +150,10 @@ async function hitungPeriode(
         jumlahInvestasi: n.jumlahInvestasi,
       }));
 
-  const rugi = labaKotor <= 0;
-  const bagi = bagiHasil(labaKotor, persenNasabah);
+  const rugi = labaDibagi <= 0;
+  const bagi = bagiHasil(labaDibagi, persenNasabah);
   const bagianNasabah = rugi ? BAGIAN_PERIODE_RUGI : bagi.bagianNasabah;
-  const bagianPengelola = rugi ? Math.round(labaKotor) : bagi.bagianPengelola;
+  const bagianPengelola = rugi ? Math.round(labaDibagi) : bagi.bagianPengelola;
 
   const totalInvestasi = nasabah.reduce((sum, n) => sum + n.jumlahInvestasi, 0);
   const bagian = bagiRata(
@@ -155,6 +169,8 @@ async function hitungPeriode(
     totalHpp,
     totalDiskon,
     labaKotor,
+    kerugianStok,
+    labaDibagi,
     totalTransaksi: penjualan.length,
     persenNasabah,
     persenPengelola,
@@ -303,6 +319,7 @@ export async function POST(request: NextRequest) {
           totalDiskon: h.totalDiskon,
           totalTransaksi: h.totalTransaksi,
           labaKotor: h.labaKotor,
+          kerugianStok: h.kerugianStok,
           persenNasabah: h.persenNasabah,
           persenPengelola: h.persenPengelola,
           bagianNasabah: h.bagianNasabah,

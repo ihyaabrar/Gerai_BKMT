@@ -11,8 +11,9 @@ hanya untuk yang mengerti kode.
 Satu definisi saja, dipakai di seluruh aplikasi:
 
 ```
-Laba kotor = Uang yang diterima − Harga pokok barang yang terjual
-Laba bersih = Laba kotor − Biaya operasional
+Laba kotor   = Uang yang diterima − Harga pokok barang yang terjual
+Laba dibagi  = Laba kotor − Nilai barang rusak/hilang      ← dasar bagi hasil nasabah
+Laba bersih  = Laba dibagi − Biaya operasional
 ```
 
 Yang perlu dipahami:
@@ -23,6 +24,18 @@ Yang perlu dipahami:
 - **"Harga pokok" adalah harga beli saat barang itu terjual**, bukan harga beli
   hari ini. Kalau harga beli gula naik bulan depan, laba bulan ini tidak ikut
   berubah.
+- **Harga beli barang adalah rata-rata**, bukan harga pembelian terakhir.
+  Contoh: di rak ada 10 pcs @ Rp4.000, lalu masuk 10 pcs @ Rp5.000 → harga beli
+  menjadi Rp4.500. Dulu harga lama ditimpa Rp5.000, sehingga 10 pcs lama ikut
+  dihitung terlalu mahal dan laba bulan itu terlihat lebih kecil. Pengeluaran
+  tetap dicatat dengan harga yang benar-benar dibayar (10 × Rp5.000).
+- **Barang rusak, hilang, atau kedaluwarsa mengurangi laba yang dibagi.**
+  Dicatat lewat Inventori → Penyesuaian → Kurangi Stok, dinilai dengan harga
+  beli saat dicatat. Barang itu sudah dibeli dengan uang gerai; kalau nilainya
+  tidak dikurangkan, bagi hasil nasabah lebih besar dari uang yang sebenarnya
+  ada. Penyesuaian "Tambah Stok" hanya mengoreksi kerugian bulan yang sama dan
+  **tidak pernah menambah laba** — barang kiriman supplier dicatat lewat Barang
+  Masuk.
 - **"Biaya operasional" tidak termasuk kategori "Pembelian Barang".** Pembelian
   barang dagangan sudah terhitung sebagai harga pokok pada setiap penjualan;
   menguranginya lagi berarti menghitung modal barang dua kali.
@@ -327,17 +340,18 @@ Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 ## 13. Menjalankan pengujian
 
 ```bash
-npm test                          # 37 uji perhitungan, periode WIB, sesi, gambar
-bash scripts/smoke-test.sh        # 71 uji hak akses, pencabutan sesi, bypass middleware
+npm test                          # 50 uji perhitungan, periode WIB, sesi, hak akses, kerugian stok
+bash scripts/smoke-test.sh        # 75 uji hak akses, pencabutan sesi, bypass middleware, header
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
 node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
 node scripts/uji-penguncian.mjs   # 35 uji kunci nasabah, arsip, shift beku
+node scripts/uji-barang.mjs       # 34 uji edit barang, harga rata-rata, kerugian stok
 ```
 
-Totalnya 214 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+Totalnya 265 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
 56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
-Tiga skrip terakhir butuh server berjalan (`npm run build && npm start`) dan
+Skrip `uji-*` butuh server berjalan (`npm run build && npm start`) dan
 **menulis ke database** — jalankan hanya terhadap database uji, tidak pernah
 terhadap produksi.

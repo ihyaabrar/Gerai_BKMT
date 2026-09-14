@@ -6,6 +6,7 @@ import {
   KATEGORI_PEMBELIAN_BARANG,
   PENJUALAN_SAH,
   awalHariWIB,
+  hitungKerugianStok,
   labaTransaksi,
   periodeDari,
   rentangPeriode,
@@ -198,7 +199,24 @@ export async function GET(request: NextRequest) {
     ]);
 
     const penjualanBulanIni = penjualan12Bulan.filter((p) => p.tanggal >= firstDayOfMonth);
-    const labaKotor = penjualanBulanIni.reduce((sum, p) => sum + labaTransaksi(p), 0);
+
+    // Barang rusak/hilang ikut mengurangi laba, sama seperti di Distribusi
+    // Laba — angka "Laba Bulan Ini" harus sama dengan yang nanti dibagi.
+    const penyesuaianDuaBulan = bolehLihatLaba
+      ? await prisma.penyesuaianStok.findMany({
+          where: { tanggal: { gte: awalBulanLalu } },
+          select: { tanggal: true, jenis: true, qty: true, hargaBeli: true },
+        })
+      : [];
+    const kerugianBulanIni = hitungKerugianStok(
+      penyesuaianDuaBulan.filter((p) => p.tanggal >= firstDayOfMonth)
+    );
+    const kerugianBulanLalu = hitungKerugianStok(
+      penyesuaianDuaBulan.filter((p) => p.tanggal < firstDayOfMonth)
+    );
+
+    const labaKotor =
+      penjualanBulanIni.reduce((sum, p) => sum + labaTransaksi(p), 0) - kerugianBulanIni;
 
     const totalPengeluaranOps = pengeluaranBulanIni._sum.jumlah || 0;
 
@@ -234,7 +252,8 @@ export async function GET(request: NextRequest) {
       where: { id: { in: produkTerlaris.map((p) => p.barangId) } },
     });
 
-    const labaBulanLalu = penjualanBulanLalu.reduce((sum, p) => sum + labaTransaksi(p), 0);
+    const labaBulanLalu =
+      penjualanBulanLalu.reduce((sum, p) => sum + labaTransaksi(p), 0) - kerugianBulanLalu;
 
     return NextResponse.json({
       penjualanHariIni: penjualanHariIni._sum.total || 0,
@@ -252,6 +271,7 @@ export async function GET(request: NextRequest) {
       ...(bolehLihatLaba
         ? {
             labaKotor,
+            kerugianStok: kerugianBulanIni,
             labaBersih: labaKotor - totalPengeluaranOps,
             totalPengeluaranOps,
           }
