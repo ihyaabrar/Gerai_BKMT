@@ -44,7 +44,7 @@ PD BKMT Kubu Raya adalah organisasi kemasyarakatan Islam dengan sekitar **20 cab
 - Pencarian cepat & pemindai barcode
 - Diskon member otomatis
 - **Aman dari transaksi ganda** saat koneksi putus
-- Struk cetak & cetak ulang
+- Cetak struk langsung dari kasir
 - Shift buka/tutup dengan rekap kas
 
 </td>
@@ -217,7 +217,7 @@ node scripts/reset-password.mjs
 DATABASE_URL="<url-produksi>" SEED_ADMIN_PASSWORD="..." SEED_KASIR_PASSWORD="..." npm run db:seed
 ```
 
-6. **Aktifkan backup otomatis** di penyedia database — ini pengaman data yang sebenarnya
+6. **Pahami batas backup** — Neon paket gratis hanya bisa memulihkan database **6 jam ke belakang**. Kesalahan yang baru ketahuan besok tidak bisa dipulihkan dari sana: unduh **Ekspor Data** tiap akhir pekan, atau pakai paket berbayar yang menyimpan riwayat lebih lama
 
 > 💡 Neon paket gratis menidurkan database saat menganggur. Transaksi pertama setelah toko sepi butuh **±3 detik** untuk membangunkannya. Itu bukan kerusakan.
 

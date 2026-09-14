@@ -6,9 +6,6 @@ import { useAuthStore } from "@/store/auth";
 import { isPublicPath, canAccessPath } from "@/lib/permissions";
 import { Loader2 } from "lucide-react";
 
-/** Selang verifikasi sesi ke server saat aplikasi sedang dibuka. */
-const SELANG_VERIFIKASI_MS = 5 * 60 * 1000;
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -20,8 +17,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   publikRef.current = publik;
 
   /**
-   * Verifikasi sesi: sekali saat aplikasi dibuka, lalu berkala dan setiap kali
-   * tab kembali aktif.
+   * Verifikasi sesi: sekali saat aplikasi dibuka dan setiap kali tab kembali
+   * aktif — tidak berkala.
+   *
+   * Verifikasi berkala setiap 5 menit pernah dipasang di sini. Setiap
+   * verifikasi membaca database, dan Neon paket gratis baru menidurkan database
+   * setelah 5 menit tanpa request: tab kasir yang dibiarkan terbuka semalaman
+   * membuat database tidak pernah tidur dan menghabiskan kuota bulanan dalam
+   * beberapa minggu — setelah itu database dimatikan sampai bulan berikutnya.
+   * Sesi yang dicabut tetap ditolak oleh server pada request berikutnya.
    *
    * Sebelumnya verifikasi dijalankan pada SETIAP perpindahan halaman. Kasir
    * berpindah halaman puluhan kali sehari, dan setiap verifikasi yang gagal
@@ -36,20 +40,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     verifikasi();
 
-    const timer = setInterval(verifikasi, SELANG_VERIFIKASI_MS);
     const saatTerlihat = () => {
       if (document.visibilityState === "visible") verifikasi();
     };
     document.addEventListener("visibilitychange", saatTerlihat);
 
     return () => {
-      clearInterval(timer);
       document.removeEventListener("visibilitychange", saatTerlihat);
     };
   }, [refresh]);
 
   // Masuk ke area terproteksi dari halaman publik (mis. setelah login) tetap
-  // diverifikasi sekali, tanpa menunggu selang berikutnya.
+  // diverifikasi sekali.
   useEffect(() => {
     if (publikSebelumnya && !publik) refresh();
   }, [publik, publikSebelumnya, refresh]);

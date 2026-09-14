@@ -41,7 +41,13 @@ export default function LaporanPage() {
       const res = await fetch(
         `/api/laporan?type=penjualan&startDate=${form.startDate}&endDate=${form.endDate}`
       );
-      const result = await res.json();
+      const result = await res.json().catch(() => null);
+      if (!res.ok || !result) {
+        // Tanpa ini, respons galat disimpan sebagai laporan dan halaman
+        // menampilkan "Rp NaN" atau berhenti karena data yang tidak lengkap.
+        toast.error(result?.error || "Gagal generate laporan");
+        return;
+      }
       setData(result);
       toast.success("Laporan berhasil di-generate!");
     } catch (error) {

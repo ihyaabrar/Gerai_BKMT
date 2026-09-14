@@ -156,18 +156,17 @@ export default function EksporPage() {
           </span>
           <div className="min-w-0">
             <p className="font-bold text-slate-900">
-              Pengaman utama data bukan tombol ini
+              Seberapa jauh data bisa dipulihkan
             </p>
             <p className="text-sm text-slate-500 mt-1 leading-relaxed max-w-3xl">
-              Backup yang bergantung pada seseorang menekan tombol setiap minggu
-              adalah backup yang tidak ada. Yang benar-benar melindungi data
-              adalah <strong>backup otomatis dari penyedia database</strong>{" "}
-              (point-in-time restore di Neon, daily backup di Supabase) — aktifkan
-              itu, dan tidak ada yang perlu diingat lagi.
+              Database Neon paket gratis hanya bisa dipulihkan{" "}
+              <strong>6 jam ke belakang</strong>. Kesalahan yang baru ketahuan
+              keesokan harinya tidak bisa dipulihkan dari sana.
               <br />
               <br />
-              Berkas di halaman ini untuk arsip bulanan, pemeriksaan angka, dan
-              pemindahan data. Password pengguna sengaja tidak disertakan.
+              Selama masih paket gratis, berkas dari halaman ini adalah satu-satunya
+              salinan yang lebih tua. Unduh <strong>setiap minggu</strong> dan simpan
+              di luar komputer kasir. Password pengguna sengaja tidak disertakan.
             </p>
           </div>
         </CardContent>

@@ -6,6 +6,7 @@ import {
   PENJUALAN_SAH,
   akhirHariWIB,
   awalHariWIB,
+  tanggalWIB,
   hitungLaba,
   labaTransaksi,
   periodeDari,
@@ -61,7 +62,7 @@ async function laporanPenjualan(start: Date, end: Date) {
   // Pengelompokan harian mengikuti kalender WIB, bukan zona waktu server.
   const hariMap = new Map<string, { total: number; laba: number }>();
   for (const p of penjualan) {
-    const kunci = awalHariWIB(p.tanggal).toISOString().slice(0, 10);
+    const kunci = tanggalWIB(p.tanggal);
     const entry = hariMap.get(kunci) ?? { total: 0, laba: 0 };
     entry.total += p.total;
     entry.laba += labaTransaksi(p);

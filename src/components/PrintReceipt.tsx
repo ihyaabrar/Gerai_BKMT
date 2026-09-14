@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "./ui/button";
 import { Printer } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
@@ -27,8 +27,49 @@ interface ReceiptData {
   kasir: string;
 }
 
+interface IdentitasToko {
+  nama: string;
+  alamat: string;
+  telepon: string;
+}
+
+/**
+ * Isian contoh dari seed lama. Database produksi yang di-seed sebelum
+ * perbaikan ini masih menyimpannya; struk tidak boleh mencetak alamat dan
+ * nomor telepon rekaan kepada pembeli.
+ */
+const ISIAN_CONTOH = new Set(["Jl. Contoh No. 123", "081234567890"]);
+
+const bersihkan = (nilai: unknown): string => {
+  const teks = typeof nilai === "string" ? nilai.trim() : "";
+  return ISIAN_CONTOH.has(teks) ? "" : teks;
+};
+
 export function PrintReceipt({ data }: { data: ReceiptData }) {
   const printRef = useRef<HTMLDivElement>(null);
+
+  // Kepala struk diambil dari Sistem → Pengaturan. Sebelumnya alamat, telepon,
+  // dan situs web ditulis mati di sini — dan situs itu bukan milik gerai.
+  const [toko, setToko] = useState<IdentitasToko>({ nama: "Gerai BKMT", alamat: "", telepon: "" });
+  useEffect(() => {
+    let batal = false;
+    fetch("/api/pengaturan")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((p) => {
+        if (batal || !p) return;
+        setToko({
+          nama: bersihkan(p.namaToko) || "Gerai BKMT",
+          alamat: bersihkan(p.alamatToko),
+          telepon: bersihkan(p.teleponToko),
+        });
+      })
+      .catch(() => {
+        // Struk tetap bisa dicetak dengan nama bawaan.
+      });
+    return () => {
+      batal = true;
+    };
+  }, []);
 
   const handlePrint = () => {
     const printContent = printRef.current;
@@ -139,9 +180,9 @@ export function PrintReceipt({ data }: { data: ReceiptData }) {
 
       <div ref={printRef} className="bg-white p-6 border rounded-lg max-w-sm mx-auto font-mono text-sm">
         <div className="header text-center border-b border-dashed border-gray-400 pb-3 mb-3">
-          <h1 className="text-lg font-bold">GERAI BKMT</h1>
-          <p className="text-xs">Jl. Contoh No. 123</p>
-          <p className="text-xs">Telp: 081234567890</p>
+          <h1 className="text-lg font-bold">{toko.nama.toUpperCase()}</h1>
+          {toko.alamat && <p className="text-xs">{toko.alamat}</p>}
+          {toko.telepon && <p className="text-xs">Telp: {toko.telepon}</p>}
         </div>
 
         <div className="info text-xs mb-3">
@@ -213,7 +254,6 @@ export function PrintReceipt({ data }: { data: ReceiptData }) {
         <div className="footer text-center mt-4 pt-3 border-t border-dashed border-gray-400 text-xs">
           <p>Terima Kasih</p>
           <p>Selamat Berbelanja Kembali</p>
-          <p className="mt-2">www.geraibkmt.com</p>
         </div>
       </div>
     </div>
