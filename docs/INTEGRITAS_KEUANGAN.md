@@ -198,10 +198,14 @@ Pilih bulannya, lalu unduh. Berkas JSON berisi data induk lengkap ditambah
 transaksi bulan itu, termasuk rekaman distribusi bagi hasil. Password pengguna
 tidak pernah disertakan.
 
-**Ini bukan pengaman utama data Anda.** Backup yang bergantung pada seseorang
-menekan tombol setiap minggu adalah backup yang tidak ada. Yang benar-benar
-melindungi adalah backup otomatis penyedia database — aktifkan itu sekali, dan
-tidak ada yang perlu diingat lagi.
+**Seberapa jauh database bisa dipulihkan tergantung paket penyedianya.** Neon
+paket gratis hanya menyimpan riwayat **6 jam**: kalau data terhapus pagi hari
+dan baru ketahuan sore, masih bisa dipulihkan; kalau baru ketahuan besok, tidak.
+Paket berbayar menyimpan riwayat lebih lama.
+
+Selama masih memakai paket gratis, berkas ekspor inilah satu-satunya salinan
+yang lebih tua dari 6 jam. Tentukan satu orang dan satu hari (misalnya setiap
+Sabtu) untuk mengunduhnya, dan simpan di luar komputer kasir.
 
 Ekspor "Seluruh data" akan ditolak kalau ukurannya melewati batas; pesannya
 akan memberi tahu untuk mengekspor per bulan saja.
@@ -247,8 +251,8 @@ hanya bertahan satu jam.
 - [ ] Database dibuat di region **Singapura** agar cocok dengan
       `vercel.json` (`"regions": ["sin1"]`). Beda region menambah sekitar
       200 ms pada setiap kali aplikasi menghubungi database.
-- [ ] Backup otomatis provider diaktifkan (point-in-time restore). Tombol
-      backup di aplikasi adalah pelengkap, bukan andalan.
+- [ ] Batas pemulihan database diketahui (Neon gratis: 6 jam). Selama masih
+      paket gratis, ada jadwal tetap mengunduh Ekspor Data.
 - [ ] Rasio bagi hasil di Pengaturan diperiksa (bawaan 30% nasabah /
       70% pengelola)
 - [ ] Daftar nasabah dan jumlah investasinya diperiksa sebelum periode pertama

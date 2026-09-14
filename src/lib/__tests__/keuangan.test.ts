@@ -4,6 +4,8 @@ import {
   akhirHariWIB,
   periodeDari,
   periodeValid,
+  stempelWIB,
+  tanggalWIB,
   rentangPeriode,
   labelPeriode,
   hitungLaba,
@@ -38,6 +40,20 @@ describe("periode WIB", () => {
     const t = new Date("2026-09-10T02:15:00.000Z"); // 09:15 WIB
     expect(awalHariWIB(t).toISOString()).toBe("2026-09-09T17:00:00.000Z");
     expect(akhirHariWIB(t).toISOString()).toBe("2026-09-10T16:59:59.999Z");
+  });
+
+  it("tanggal WIB tidak mundur satu hari", () => {
+    // 2026-09-10 09:15 WIB — dulu grafik laporan menaruhnya di tanggal 9.
+    expect(tanggalWIB(new Date("2026-09-10T02:15:00.000Z"))).toBe("2026-09-10");
+    // 06.30 WIB tanggal 1 masih tanggal 1, bukan 31 bulan lalu.
+    expect(tanggalWIB(new Date("2026-08-31T23:30:00.000Z"))).toBe("2026-09-01");
+    // 23.59 WIB tetap hari yang sama.
+    expect(tanggalWIB(new Date("2026-09-10T16:59:59.999Z"))).toBe("2026-09-10");
+  });
+
+  it("stempel nomor transaksi memakai jam WIB", () => {
+    // 2026-08-31T23:30:05Z = 1 September 2026 06:30:05 WIB
+    expect(stempelWIB(new Date("2026-08-31T23:30:05.000Z"))).toBe("20260901063005");
   });
 
   it("memvalidasi format periode", () => {

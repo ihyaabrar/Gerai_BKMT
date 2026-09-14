@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuth, requireAuth } from "@/lib/auth-middleware";
-import { STATUS_PENJUALAN, labelPeriode, periodeDari } from "@/lib/keuangan";
+import { STATUS_PENJUALAN, labelPeriode, periodeDari, stempelWIB } from "@/lib/keuangan";
 import {
   ValidationError,
   optionalString,
@@ -47,8 +47,6 @@ function ambilPenjualan(idempotencyKey: string) {
  * base36 memberi 1,7 juta kemungkinan per detik.
  */
 function buatNomorTransaksi(prefix: string | undefined): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, "0");
   const acak = Math.floor(Math.random() * 36 ** 4)
     .toString(36)
     .toUpperCase()
@@ -56,8 +54,9 @@ function buatNomorTransaksi(prefix: string | undefined): string {
 
   return (
     `${prefix || "TRX"}` +
-    `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
-    `${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}` +
+    // Jam WIB, bukan jam server (UTC): transaksi 06.30 pagi tidak lagi
+    // bernomor tanggal kemarin pukul 23.30.
+    stempelWIB(new Date()) +
     acak
   );
 }

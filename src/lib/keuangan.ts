@@ -46,6 +46,25 @@ export function akhirHariWIB(waktu: Date): Date {
   return new Date(awalHariWIB(waktu).getTime() + SEHARI_MS - 1);
 }
 
+/**
+ * Tanggal kalender WIB "YYYY-MM-DD" dari sebuah waktu.
+ *
+ * Jangan memakai `awalHariWIB(x).toISOString().slice(0, 10)` untuk ini: awal
+ * hari WIB adalah pukul 17.00 UTC hari SEBELUMNYA, sehingga hasilnya selalu
+ * mundur satu hari.
+ */
+export function tanggalWIB(waktu: Date): string {
+  return new Date(waktu.getTime() + WIB_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** Tanggal dan jam WIB "YYYYMMDDHHmmss", untuk nomor yang dibaca manusia. */
+export function stempelWIB(waktu: Date): string {
+  return new Date(waktu.getTime() + WIB_OFFSET_MS)
+    .toISOString()
+    .slice(0, 19)
+    .replace(/\D/g, "");
+}
+
 /** Periode ditulis "YYYY-MM" menurut kalender WIB, mis. "2026-09". */
 export function periodeDari(waktu: Date): string {
   const wib = new Date(waktu.getTime() + WIB_OFFSET_MS);

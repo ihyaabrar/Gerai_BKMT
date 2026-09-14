@@ -18,6 +18,13 @@ export const KASIR_BLOCKED_PATHS = [
 ] as const;
 
 /**
+ * Halaman yang hanya untuk master. API di baliknya (/api/user) sudah dibatasi
+ * ke master; tanpa daftar ini admin melihat menu Pengguna yang selalu gagal
+ * dimuat.
+ */
+export const MASTER_ONLY_PATHS = ["/app/sistem/pengguna"] as const;
+
+/**
  * Endpoint API yang TIDAK boleh diakses kasir sama sekali.
  * Endpoint yang hanya sebagian dibatasi (mis. /api/pengaturan boleh dibaca
  * tapi tidak boleh diubah kasir) diatur per-method di route handler-nya.
@@ -37,6 +44,9 @@ export function isAdminRole(role: string | undefined | null): boolean {
 
 export function canAccessPath(role: Role | string | undefined, path: string): boolean {
   if (!role) return false;
+  if (role !== "master" && MASTER_ONLY_PATHS.some((p) => path.startsWith(p))) {
+    return false;
+  }
   if (isAdminRole(role)) return true;
   if (role !== "kasir") return false;
   return !KASIR_BLOCKED_PATHS.some((blocked) => path.startsWith(blocked));

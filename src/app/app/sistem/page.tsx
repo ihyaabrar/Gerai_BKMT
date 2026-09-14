@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
   Settings, Clock, DatabaseBackup, ArrowRight, Store, Tags,
-  Percent, ShieldCheck, CircleDot, Users,
+  Percent, ShieldCheck, CircleDot, Users, KeyRound,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
@@ -79,6 +79,7 @@ export default function SistemPage() {
       icon: Users,
       warna: "bg-violet-50 text-violet-600",
       adminSaja: true,
+      masterSaja: true,
     },
     {
       href: "/app/sistem/backup",
@@ -87,6 +88,13 @@ export default function SistemPage() {
       icon: DatabaseBackup,
       warna: "bg-sky-50 text-sky-600",
       adminSaja: true,
+    },
+    {
+      href: "/app/akun",
+      label: "Akun Saya",
+      desc: "Lihat akun dan ganti password",
+      icon: KeyRound,
+      warna: "bg-emerald-50 text-emerald-600",
     },
   ];
 
@@ -101,7 +109,7 @@ export default function SistemPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {pintasan
-          .filter((p) => isAdmin || !p.adminSaja)
+          .filter((p) => (isAdmin || !p.adminSaja) && (!p.masterSaja || user?.role === "master"))
           .map((p) => (
             <Link
               key={p.href}

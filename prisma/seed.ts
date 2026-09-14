@@ -59,8 +59,9 @@ async function main() {
     create: {
       id: 'default',
       namaToko: "Gerai BKMT",
-      alamatToko: "Jl. Contoh No. 123",
-      teleponToko: "081234567890",
+      // Dikosongkan: diisi pengurus di Sistem → Pengaturan, dan tercetak di struk.
+      alamatToko: "",
+      teleponToko: "",
       prefixTransaksi: "TRX",
       diskonMember: 5,
       persenNasabah: 30,

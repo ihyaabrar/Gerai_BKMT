@@ -20,10 +20,18 @@ interface Nasabah {
   aktif: boolean;
 }
 
+/** Pratinjau distribusi bulan berjalan dari /api/distribusi. */
+interface PratinjauBagiHasil {
+  labaKotor: number;
+  persenNasabah: number;
+  bagianNasabah: number;
+  detail: { nasabahId: string; bagian: number }[];
+}
+
 export default function NasabahPage() {
   const { konfirmasi, dialog } = useConfirm();
   const [nasabahList, setNasabahList] = useState<Nasabah[]>([]);
-  const [totalLabaBulanIni, setTotalLabaBulanIni] = useState(0);
+  const [pratinjau, setPratinjau] = useState<PratinjauBagiHasil | null>(null);
   const [search, setSearch] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [editId, setEditId] = useState<string | null>(null);
@@ -46,17 +54,18 @@ export default function NasabahPage() {
     }
   };
 
+  // Angka diambil dari perhitungan distribusi yang sama dengan halaman
+  // Distribusi Laba. Sebelumnya halaman ini mengalikan laba dengan 0,3 yang
+  // ditulis mati — salah begitu persentase di Pengaturan diubah, dan tidak
+  // ikut aturan bulan rugi maupun pembulatan rupiah.
   const fetchLaba = async () => {
     try {
-      const now = new Date();
-      const start = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
-      const end = now.toISOString();
-      const res = await fetch(`/api/laporan?type=penjualan&startDate=${start}&endDate=${end}`);
+      const res = await fetch("/api/distribusi");
       if (!res.ok) return;
       const data = await res.json();
-      setTotalLabaBulanIni(data.totalLaba || 0);
+      if (data?.distribusi) setPratinjau(data.distribusi);
     } catch {
-      // ignore
+      // Kartu ringkasan tetap tampil dengan angka nol.
     }
   };
 
@@ -143,7 +152,9 @@ export default function NasabahPage() {
       (n.telepon || "").includes(search)
   );
 
-  const bagianNasabahTotal = totalLabaBulanIni * 0.3;
+  const totalLabaBulanIni = pratinjau?.labaKotor ?? 0;
+  const bagianNasabahTotal = pratinjau?.bagianNasabah ?? 0;
+  const bagianPer = new Map((pratinjau?.detail ?? []).map((d) => [d.nasabahId, d.bagian]));
 
   return (
     <div className="space-y-6">
@@ -177,7 +188,7 @@ export default function NasabahPage() {
         </Card>
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-slate-500">Bagian Nasabah (30%)</CardTitle>
+            <CardTitle className="text-sm text-slate-500">Bagian Nasabah ({pratinjau?.persenNasabah ?? "–"}%)</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold text-brand-600">{formatRupiah(bagianNasabahTotal)}</p>
@@ -225,7 +236,7 @@ export default function NasabahPage() {
                 <tbody>
                   {filtered.map((n) => {
                     const porsi = totalInvestasi > 0 ? (n.jumlahInvestasi / totalInvestasi) * 100 : 0;
-                    const bagiHasil = bagianNasabahTotal * (porsi / 100);
+                    const bagiHasil = bagianPer.get(n.id) ?? 0;
                     return (
                       <tr key={n.id} className="border-b hover:bg-surface-muted">
                         <td className="py-3 px-4">
