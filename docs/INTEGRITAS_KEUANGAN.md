@@ -63,9 +63,31 @@ Kalau ada anggota bertanya *"kenapa bagian saya bulan Juli segini?"*, jawabannya
 ada di rekaman periode Juli — bukan hasil perhitungan ulang memakai daftar
 nasabah hari ini. Sebelum ada rekaman ini, sistem tidak punya jawaban.
 
+### Nasabah dan persentase terkunci sampai bulan lalu ditutup
+
+Rekaman menyimpan daftar nasabah **saat periode ditutup**, bukan saat bulannya
+berjalan. Supaya keduanya tidak berbeda, selama distribusi bulan lalu belum
+ditutup sistem **menolak**:
+
+- menambah, mengubah, atau menonaktifkan nasabah,
+- mengubah persentase nasabah/pengelola.
+
+Tanpa kunci ini, nasabah yang mendaftar tanggal 2 Oktober ikut menerima laba
+September penuh. Pengecualian: bulan lalu yang tidak punya satu pun penjualan
+tidak mengunci apa-apa.
+
 ### Membuka kembali periode
 
-Hanya **master** yang bisa. Rekamannya dihapus dan periode harus ditutup ulang.
+Hanya **master** yang bisa, dan **wajib menulis alasan** (minimal 10 huruf).
+
+Rekamannya tidak hilang: isinya utuh — termasuk bagian setiap nasabah yang
+mungkin sudah dibayarkan — disalin ke arsip bersama siapa yang membuka, kapan,
+dan kenapa. Riwayat ini tampil di halaman Distribusi Laba.
+
+Saat ditutup ulang, sistem memakai **daftar nasabah dan persentase dari
+penutupan pertama**, bukan daftar hari ini. Membuka kembali gunanya mengoreksi
+transaksi, bukan mengganti siapa yang menerima bagian.
+
 Gunakan hanya kalau memang ada kesalahan data yang sudah diperbaiki — bukan
 untuk "menghitung ulang biar lebih bagus".
 
@@ -176,6 +198,16 @@ pernah masuk ke laci. Sebelum perbaikan ini, semua pembayaran dihitung sebagai
 uang laci, sehingga setiap shift dengan pembayaran non-tunai tampak kekurangan
 uang — dan kasirnya yang dicurigai.
 
+**Angka ini dibekukan saat shift ditutup.** Kalau sebuah transaksi dibatalkan
+keesokan harinya, shift yang sudah ditutup tetap menunjukkan selisih yang
+dilihat dan ditandatangani kasirnya malam itu — bukan tiba-tiba "kelebihan"
+uang. (Shift yang ditutup sebelum September 2026 belum punya angka beku dan
+masih dihitung ulang dari transaksinya.)
+
+Rekap kas "Penjualan Tunai" pada saat shift ditutup juga menampilkan jumlah
+transaksi semua metode, supaya kasir tidak bingung kenapa angkanya lebih kecil
+dari total penjualan.
+
 ---
 
 ## 8. Transaksi ganda
@@ -187,6 +219,14 @@ apakah transaksinya sudah masuk atau belum.
 Sekarang aman: **tekan Bayar lagi.** Setiap keranjang membawa penanda unik, dan
 server mengenali percobaan kedua sebagai transaksi yang sama. Struk yang keluar
 adalah struk transaksi yang pertama, bukan transaksi baru.
+
+Penanda itu **diganti begitu isi keranjang berubah** — barang, jumlah, member,
+atau metode bayar. Kalau server tetap menerima penanda lama dengan isi yang
+berbeda, ia menolak dengan pesan yang menyebut nomor transaksi yang sudah
+tercatat, alih-alih diam-diam mengembalikan struk lama seolah-olah transaksi
+baru berhasil. Kasir lalu memeriksa Riwayat Penjualan sebelum melanjutkan.
+Keranjang juga dikosongkan saat keluar akun, supaya kasir berikutnya tidak
+mewarisi keranjang orang lain.
 
 ---
 
@@ -287,14 +327,15 @@ Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 ## 13. Menjalankan pengujian
 
 ```bash
-npm test                          # 34 uji perhitungan, periode WIB, sesi, gambar
+npm test                          # 37 uji perhitungan, periode WIB, sesi, gambar
 bash scripts/smoke-test.sh        # 71 uji hak akses, pencabutan sesi, bypass middleware
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
 node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
+node scripts/uji-penguncian.mjs   # 35 uji kunci nasabah, arsip, shift beku
 ```
 
-Totalnya 176 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+Totalnya 214 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
 56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
 Tiga skrip terakhir butuh server berjalan (`npm run build && npm start`) dan

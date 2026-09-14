@@ -36,6 +36,47 @@ function ambilPenjualan(idempotencyKey: string) {
   });
 }
 
+interface PermintaanJual {
+  barang: Map<string, number>;
+  memberId: string | null;
+  metodeBayar: string;
+}
+
+type PenjualanTersimpan = NonNullable<Awaited<ReturnType<typeof ambilPenjualan>>>;
+
+/**
+ * Kunci yang sama hanya boleh berarti transaksi yang sama.
+ *
+ * Kasir bisa mengubah keranjang setelah koneksi putus. Kalau server tetap
+ * mengembalikan transaksi lama begitu saja, layar menulis "berhasil" untuk
+ * isi yang berbeda: barang tambahan keluar tanpa tercatat dan stoknya tidak
+ * terpotong. Klien sudah membuang kunci saat keranjang berubah; pemeriksaan
+ * ini penjaga terakhir kalau ada jalur yang terlewat.
+ */
+function jawabKunciTerpakai(sudahAda: PenjualanTersimpan, minta: PermintaanJual) {
+  const tersimpan = new Map(sudahAda.detail.map((d) => [d.barangId, d.qty]));
+  const barangSama =
+    tersimpan.size === minta.barang.size &&
+    [...minta.barang].every(([id, qty]) => tersimpan.get(id) === qty);
+  const samaPersis =
+    barangSama &&
+    (sudahAda.memberId ?? null) === minta.memberId &&
+    sudahAda.metodeBayar === minta.metodeBayar;
+
+  if (samaPersis) return NextResponse.json(sudahAda);
+
+  return NextResponse.json(
+    {
+      error:
+        `Transaksi sebelumnya sudah tercatat (${sudahAda.nomorTransaksi}, ` +
+        `Rp ${sudahAda.total.toLocaleString("id-ID")}), tetapi isinya berbeda dengan keranjang sekarang. ` +
+        "Periksa Riwayat Penjualan sebelum melanjutkan, lalu muat ulang halaman kasir.",
+      nomorTransaksi: sudahAda.nomorTransaksi,
+    },
+    { status: 409 }
+  );
+}
+
 /**
  * Nomor transaksi: awalan, tanggal-jam yang bisa dibaca manusia, lalu empat
  * karakter acak.
@@ -127,6 +168,7 @@ export async function POST(request: NextRequest) {
 
   // Disimpan di luar try supaya blok catch bisa mengenali tabrakan kunci.
   let idempotencyKey: string | null = null;
+  let permintaan: PermintaanJual | null = null;
 
   try {
     const body = await request.json();
@@ -159,6 +201,7 @@ export async function POST(request: NextRequest) {
     idempotencyKey = optionalString(body?.idempotencyKey, "Kunci transaksi", {
       max: 64,
     });
+    permintaan = { barang: requested, memberId, metodeBayar };
 
     // Kasir yang koneksinya terputus tidak bisa membedakan "transaksi gagal"
     // dari "transaksi berhasil tapi responsnya hilang di jalan", jadi ia akan
@@ -166,7 +209,7 @@ export async function POST(request: NextRequest) {
     // sama dikembalikan alih-alih dibuat dua kali.
     if (idempotencyKey) {
       const sudahAda = await ambilPenjualan(idempotencyKey);
-      if (sudahAda) return NextResponse.json(sudahAda);
+      if (sudahAda) return jawabKunciTerpakai(sudahAda, permintaan);
     }
 
     // Dua pembacaan ini tidak butuh isolasi transaksi, jadi dikeluarkan.
@@ -331,7 +374,7 @@ export async function POST(request: NextRequest) {
       const sudahAda = idempotencyKey
         ? await ambilPenjualan(idempotencyKey)
         : null;
-      if (sudahAda) return NextResponse.json(sudahAda);
+      if (sudahAda && permintaan) return jawabKunciTerpakai(sudahAda, permintaan);
     }
 
     const { message, status } = toErrorResponse(

@@ -6,6 +6,13 @@ const prisma = new PrismaClient();
 const BAWAAN_ADMIN = "admin123";
 const BAWAAN_KASIR = "kasir123";
 
+/** Database di mesin sendiri? Menentukan apa yang boleh dibuat seed. */
+function databaseLokal(): boolean {
+  return /@(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)[:/]/.test(
+    process.env.DATABASE_URL ?? ""
+  );
+}
+
 /**
  * Menentukan password akun awal, dan menolak lebih dulu bila password bawaan
  * akan masuk ke database yang bukan milik mesin pengembang.
@@ -23,13 +30,10 @@ function tentukanPassword() {
   const admin = process.env.SEED_ADMIN_PASSWORD || BAWAAN_ADMIN;
   const kasir = process.env.SEED_KASIR_PASSWORD || BAWAAN_KASIR;
 
-  const databaseUrl = process.env.DATABASE_URL ?? "";
-  const databaseLokal = /@(localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)[:/]/.test(
-    databaseUrl
-  );
+  const lokal = databaseLokal();
   const memakaiBawaan = admin === BAWAAN_ADMIN || kasir === BAWAAN_KASIR;
 
-  if (memakaiBawaan && !databaseLokal) {
+  if (memakaiBawaan && !lokal) {
     throw new Error(
       "Database ini bukan database lokal, jadi password bawaan tidak boleh dipakai.\n" +
         "Tentukan SEED_ADMIN_PASSWORD dan SEED_KASIR_PASSWORD lebih dulu, misalnya:\n" +
@@ -126,6 +130,18 @@ async function main() {
   }
   console.log('✅ Kategori Pengeluaran created');
 
+  // ─── Data contoh: HANYA untuk database lokal ─────────────────────────────
+  //
+  // Barang, member, nasabah, supplier, pengurus, dan berita di bawah ini
+  // fiktif. Di database sungguhan mereka berbahaya, bukan sekadar mengganggu:
+  // tiga nasabah contoh bermodal total Rp20 juta ikut dihitung saat distribusi
+  // ditutup dan menyedot bagian nasabah yang sebenarnya, sementara berita
+  // contoh langsung tampil di website publik. Seed yang pertama kali dijalankan
+  // ke produksi pernah memasukkan semuanya.
+  if (!databaseLokal()) {
+    console.log('ℹ️  Database bukan lokal — data contoh (barang, member, nasabah, supplier, pengurus, berita) dilewati.');
+  } else {
+
   // Barang contoh
   const barangData = [
     { kode: "BRG001", barcode: "1234567890001", nama: "Kopi Susu", kategori: "Minuman", hargaBeli: 8000, hargaJual: 12000, stok: 50, stokMinimum: 10, satuan: "cup" },
@@ -177,6 +193,8 @@ async function main() {
   }
   console.log('✅ Supplier created');
 
+  }
+
   // ─── Public Profile Seed Data ─────────────────────────────────────────────
 
   // Profil Organisasi
@@ -213,8 +231,8 @@ async function main() {
     console.log('✅ InformasiGerai created');
   }
 
-  // Pengurus contoh (PD BKMT)
-  const existingPengurus = await prisma.pengurus.findFirst();
+  // Pengurus contoh (PD BKMT) — nama jabatan saja, bukan orang sungguhan
+  const existingPengurus = databaseLokal() ? await prisma.pengurus.findFirst() : true;
   if (!existingPengurus) {
     await prisma.pengurus.createMany({
       data: [
@@ -227,8 +245,8 @@ async function main() {
     console.log('✅ Pengurus contoh created');
   }
 
-  // Berita contoh
-  const existingBerita = await prisma.berita.findFirst();
+  // Berita contoh — pengurus menulis sendiri pengumuman peluncurannya
+  const existingBerita = databaseLokal() ? await prisma.berita.findFirst() : true;
   if (!existingBerita) {
     const adminUser = await prisma.user.findFirst({ where: { role: "master" } });
     await prisma.berita.create({

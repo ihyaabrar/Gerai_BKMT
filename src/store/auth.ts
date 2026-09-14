@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { canAccessPath } from "@/lib/permissions";
+import { useCartStore } from "@/store/cart";
 
 export interface AuthUser {
   id: string;
@@ -37,6 +38,9 @@ export const useAuthStore = create<AuthState>()(
         } catch {
           // tetap bersihkan state lokal walau request gagal
         }
+        // Keranjang (beserta kunci transaksinya) tersimpan di perangkat. Tanpa
+        // ini, kasir berikutnya di HP yang sama mewarisi keranjang orang lain.
+        useCartStore.getState().clearCart();
         set({ user: null, isAuthenticated: false, status: "unauthenticated" });
       },
 

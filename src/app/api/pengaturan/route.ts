@@ -8,6 +8,7 @@ import {
   requireString,
   toErrorResponse,
 } from "@/lib/validate";
+import { periodeYangHarusDitutup, pesanTerkunci } from "@/lib/penguncian";
 
 export const dynamic = "force-dynamic";
 
@@ -49,16 +50,34 @@ export async function POST(request: NextRequest) {
       }),
     };
 
-    // Bagi hasil harus genap 100% supaya laporan distribusi tidak timpang.
+    // Bagi hasil harus tepat 100%. Pembulatan sebelumnya meloloskan 30,4 + 70,
+    // sehingga label menulis "Pengelola 70%" padahal yang diterima 69,6%.
     const totalBagiHasil =
       (data.persenNasabah as number) + (data.persenPengelola as number);
-    if (Math.round(totalBagiHasil) !== 100) {
+    if (Math.abs(totalBagiHasil - 100) > 1e-9) {
       throw new ValidationError(
         `Persentase nasabah + pengelola harus 100% (saat ini ${totalBagiHasil}%)`
       );
     }
 
     const existing = await prisma.pengaturan.findFirst();
+
+    // Persentase bagi hasil tidak boleh berubah di antara akhir bulan dan
+    // penutupan distribusinya — persentase baru akan berlaku surut.
+    const persenBerubah =
+      !existing ||
+      existing.persenNasabah !== data.persenNasabah ||
+      existing.persenPengelola !== data.persenPengelola;
+    if (persenBerubah) {
+      const terkunci = await periodeYangHarusDitutup();
+      if (terkunci) {
+        return NextResponse.json(
+          { error: pesanTerkunci(terkunci, "mengubah persentase bagi hasil") },
+          { status: 409 }
+        );
+      }
+    }
+
     const pengaturan = existing
       ? await prisma.pengaturan.update({ where: { id: existing.id }, data: data as any })
       : await prisma.pengaturan.create({ data: data as any });

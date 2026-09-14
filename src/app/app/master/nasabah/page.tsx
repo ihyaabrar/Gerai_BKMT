@@ -136,7 +136,12 @@ export default function NasabahPage() {
       aksi: async () => {
         try {
           const res = await fetch(`/api/nasabah?id=${id}`, { method: "DELETE" });
-          if (!res.ok) throw new Error();
+          if (!res.ok) {
+            // Mis. periode lalu belum ditutup: pesannya menjelaskan langkahnya.
+            const data = await res.json().catch(() => null);
+            toast.error(data?.error || "Gagal menghapus nasabah");
+            return;
+          }
           toast.success("Nasabah berhasil dihapus");
           fetchNasabah();
         } catch {

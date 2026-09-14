@@ -16,7 +16,13 @@ interface CartItem {
  * Kunci idempotensi dibuat sekali per keranjang dan ikut dikirim ke server.
  * Kalau respons hilang di jalan dan kasir menekan Bayar lagi, server mengenali
  * kunci yang sama dan mengembalikan transaksi yang sudah ada — bukan membuat
- * transaksi kedua. Kuncinya baru diganti setelah keranjang dikosongkan.
+ * transaksi kedua.
+ *
+ * Kunci hanya berlaku untuk ISI keranjang yang sama persis. Begitu barang,
+ * jumlah, member, atau metode bayar berubah, kuncinya dibuang. Tanpa itu,
+ * skenario ini terjadi: sinyal putus setelah Bayar, pembeli menambah barang,
+ * kasir menekan Bayar lagi — dan server mengembalikan transaksi LAMA tanpa
+ * barang tambahan, sementara layar menulis "berhasil".
  */
 function kunciBaru(): string {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -36,6 +42,8 @@ interface CartStore {
   setMember: (memberId: string | null, diskon: number) => void;
   /** Kunci untuk keranjang saat ini; dibuat saat pertama kali dibutuhkan. */
   ambilKunci: () => string;
+  /** Dipanggil saat hal di luar keranjang yang ikut menentukan transaksi berubah (metode bayar). */
+  resetKunci: () => void;
   clearCart: () => void;
   getTotal: () => number;
   getSubtotal: () => number;
@@ -64,6 +72,7 @@ export const useCartStore = create<CartStore>()(
                 ? { ...i, qty: i.qty + 1, subtotal: (i.qty + 1) * i.hargaJual }
                 : i
             ),
+            idempotencyKey: null,
           });
           toast.success(`${item.nama} +1`);
         } else {
@@ -71,13 +80,16 @@ export const useCartStore = create<CartStore>()(
             toast.error("Stok habis!");
             return;
           }
-          set({ items: [...items, { ...item, qty: 1, subtotal: item.hargaJual }] });
+          set({
+            items: [...items, { ...item, qty: 1, subtotal: item.hargaJual }],
+            idempotencyKey: null,
+          });
           toast.success(`${item.nama} ditambahkan`);
         }
       },
 
       removeItem: (id) => {
-        set({ items: get().items.filter(i => i.id !== id) });
+        set({ items: get().items.filter(i => i.id !== id), idempotencyKey: null });
       },
 
       updateQty: (id, qty) => {
@@ -94,10 +106,17 @@ export const useCartStore = create<CartStore>()(
           items: get().items.map(i =>
             i.id === id ? { ...i, qty, subtotal: qty * i.hargaJual } : i
           ),
+          idempotencyKey: null,
         });
       },
 
-      setMember: (memberId, diskon) => set({ memberId, diskon }),
+      setMember: (memberId, diskon) => {
+        const sekarang = get();
+        if (sekarang.memberId === memberId && sekarang.diskon === diskon) return;
+        set({ memberId, diskon, idempotencyKey: null });
+      },
+
+      resetKunci: () => set({ idempotencyKey: null }),
 
       ambilKunci: () => {
         const tersedia = get().idempotencyKey;
@@ -115,8 +134,9 @@ export const useCartStore = create<CartStore>()(
 
       getTotal: () => {
         const subtotal = get().getSubtotal();
-        const diskon = get().diskon;
-        return subtotal - (subtotal * diskon / 100);
+        // Dibulatkan persis seperti di server, supaya total di layar tidak
+        // berkoma ("Rp 11.727,75") dan selalu sama dengan angka di struk.
+        return subtotal - Math.round((subtotal * get().diskon) / 100);
       },
     }),
     {

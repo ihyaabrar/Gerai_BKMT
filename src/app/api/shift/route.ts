@@ -64,11 +64,31 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       data: shifts.map((s) => {
         const t = totalMap.get(s.id);
+        const beku = s.jamTutup !== null && s.selisih !== null;
+
+        // Shift yang ditutup setelah angka rekap dibekukan memakai angka
+        // tersimpan. Shift yang masih buka, atau yang ditutup sebelum kolom
+        // ini ada, dihitung dari transaksi seperti sebelumnya.
+        const penjualanTunai = beku ? s.penjualanTunai ?? 0 : t?.tunai ?? 0;
+        const penjualanNonTunai = beku ? s.penjualanNonTunai ?? 0 : t?.nonTunai ?? 0;
+        const saldoSeharusnya = beku
+          ? s.saldoSeharusnya ?? s.saldoAwal + penjualanTunai
+          : s.saldoAwal + penjualanTunai;
+        const selisih =
+          s.jamTutup === null
+            ? null
+            : beku
+              ? s.selisih
+              : (s.saldoAkhir ?? 0) - saldoSeharusnya;
+
         return {
           ...s,
-          totalPenjualan: t?.total ?? 0,
-          penjualanTunai: t?.tunai ?? 0,
-          penjualanNonTunai: t?.nonTunai ?? 0,
+          totalPenjualan: penjualanTunai + penjualanNonTunai,
+          penjualanTunai,
+          penjualanNonTunai,
+          saldoSeharusnya,
+          selisih,
+          angkaBeku: beku,
           jumlahTransaksi: t?.jumlah ?? 0,
         };
       }),
@@ -146,17 +166,27 @@ export async function POST(request: NextRequest) {
       const totalPenjualan = penjualanTunai + penjualanNonTunai;
       const jumlahTransaksi = perMetode.reduce((sum, m) => sum + m._count._all, 0);
 
+      // Hanya uang tunai yang masuk laci. Transfer, QRIS, dan debit tidak.
+      const saldoSeharusnya = aktif.saldoAwal + penjualanTunai;
+      const selisih = saldoAkhir - saldoSeharusnya;
+
+      // Angka rekap dibekukan bersama penutupan shift. Pembatalan transaksi
+      // di hari lain tidak boleh lagi mengubah selisih shift yang sudah
+      // ditutup dan ditandatangani kasirnya.
       const shift = await tx.shiftKasir.update({
         where: { id: aktif.id },
-        data: { jamTutup: new Date(), saldoAkhir, catatan, status: "tutup" },
+        data: {
+          jamTutup: new Date(),
+          saldoAkhir,
+          catatan,
+          status: "tutup",
+          penjualanTunai,
+          penjualanNonTunai,
+          saldoSeharusnya,
+          selisih,
+        },
         include: { user: { select: { id: true, nama: true, username: true } } },
       });
-
-      // Versi sebelumnya memakai seluruh penjualan di sini, termasuk yang
-      // dibayar transfer/QRIS. Setiap shift dengan pembayaran non-tunai
-      // otomatis menampilkan selisih kas negatif palsu — dan orang pertama
-      // yang dicurigai adalah kasirnya sendiri.
-      const saldoSeharusnya = shift.saldoAwal + penjualanTunai;
 
       return {
         ...shift,
@@ -169,8 +199,6 @@ export async function POST(request: NextRequest) {
           jumlah: m._count._all,
         })),
         jumlahTransaksi,
-        saldoSeharusnya,
-        selisih: saldoAkhir - saldoSeharusnya,
       };
     });
 

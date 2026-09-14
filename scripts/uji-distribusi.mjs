@@ -46,6 +46,7 @@ async function main() {
 
   // Bersihkan sisa uji sebelumnya.
   await prisma.distribusiLaba.deleteMany({ where: { periode: PERIODE } });
+  await prisma.distribusiLabaArsip.deleteMany({ where: { periode: PERIODE } });
   await prisma.detailPenjualan.deleteMany({
     where: { penjualan: { nomorTransaksi: { startsWith: "UJI" } } },
   });

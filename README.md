@@ -231,11 +231,12 @@ bash scripts/smoke-test.sh        # 71  hak akses, pencabutan sesi, bypass middl
 node scripts/uji-distribusi.mjs   # 22  rekaman bagi hasil kebal perubahan
 node scripts/uji-idempotensi.mjs  # 17  transaksi ganda & stok negatif
 node scripts/uji-pembatalan.mjs   # 32  pembatalan penjualan
+node scripts/uji-penguncian.mjs   # 35  kunci nasabah, arsip buka-kembali, shift beku
                                   # ───
-                                  # 179 pemeriksaan
+                                  # 214 pemeriksaan
 ```
 
-Tiga skrip terakhir butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.
+Empat skrip terakhir butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.
 
 Uji yang paling penting: setelah sebuah periode ditutup, harga beli dinaikkan dan daftar nasabah diubah — lalu periode itu dibaca ulang. **Seluruh angkanya tidak boleh bergeser satu rupiah pun.**
 

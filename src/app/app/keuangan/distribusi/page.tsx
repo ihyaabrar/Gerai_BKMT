@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,8 @@ import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn, formatRupiah } from "@/lib/utils";
+import { bagiRata } from "@/lib/keuangan";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuthStore } from "@/store/auth";
 import {
   AlertTriangle,
@@ -56,10 +58,18 @@ interface Distribusi {
   bagianPengelola: number;
   totalInvestasi: number;
   rugi?: boolean;
+  rosterDariArsip?: boolean;
   catatan?: string | null;
   createdAt?: string;
   dibuatOleh?: { nama: string } | null;
   detail: BarisNasabah[];
+}
+
+interface RiwayatBuka {
+  id: string;
+  alasan: string;
+  dibukaPada: string;
+  dibukaOleh: { nama: string } | null;
 }
 
 interface Respons {
@@ -67,6 +77,18 @@ interface Respons {
   label: string;
   bisaDitutup?: boolean;
   distribusi: Distribusi;
+  riwayatBuka?: RiwayatBuka[];
+}
+
+/**
+ * Alokasi bagian pengelola dibagi dengan largest-remainder, sama seperti
+ * bagian nasabah. Pembulatan per baris membuat jumlah kelima pos meleset
+ * Rp1–2 dari bagian pengelola — selisih kecil yang pasti ditanyakan bendahara.
+ * Pada bulan rugi tidak ada yang dialokasikan.
+ */
+function hitungAlokasi(bagianPengelola: number): number[] {
+  if (bagianPengelola <= 0) return ALOKASI_PENGELOLA.map(() => 0);
+  return bagiRata(bagianPengelola, ALOKASI_PENGELOLA.map((a) => a.persen));
 }
 
 const NAMA_BULAN = [
@@ -90,7 +112,13 @@ export default function DistribusiPage() {
   const { konfirmasi, dialog } = useConfirm();
 
   const periodeOpsi = useMemo(daftarPeriode, []);
-  const [periode, setPeriode] = useState(periodeOpsi[0].nilai);
+  // Bulan lalu jadi pilihan awal: bulan berjalan tidak mungkin ditutup, dan
+  // yang biasanya perlu diurus di awal bulan adalah pembagian bulan lalu.
+  const [periode, setPeriode] = useState(periodeOpsi[1].nilai);
+  const permintaanTerakhir = useRef(0);
+  const [bukaDialog, setBukaDialog] = useState(false);
+  const [alasanBuka, setAlasanBuka] = useState("");
+  const [membuka, setMembuka] = useState(false);
   const [data, setData] = useState<Respons | null>(null);
   const [loading, setLoading] = useState(true);
   const [menyimpan, setMenyimpan] = useState(false);
@@ -104,10 +132,16 @@ export default function DistribusiPage() {
   }, []);
 
   const ambil = useCallback(async (p: string) => {
+    // Pemilih periode bisa diganti cepat sementara database masih bangun.
+    // Hanya jawaban untuk permintaan TERAKHIR yang boleh tampil — kalau tidak,
+    // layar bisa menampilkan angka Agustus sementara pemilih menunjuk Juli,
+    // dan tombol "Tutup" menutup bulan yang berbeda dari yang terlihat.
+    const nomor = ++permintaanTerakhir.current;
     setLoading(true);
     try {
       const res = await fetch(`/api/distribusi?periode=${p}`);
       const json = await res.json();
+      if (nomor !== permintaanTerakhir.current) return;
       if (!res.ok) {
         toast.error(json?.error || "Gagal memuat distribusi");
         setData(null);
@@ -115,10 +149,11 @@ export default function DistribusiPage() {
       }
       setData(json);
     } catch {
+      if (nomor !== permintaanTerakhir.current) return;
       toast.error("Gagal memuat distribusi");
       setData(null);
     } finally {
-      setLoading(false);
+      if (nomor === permintaanTerakhir.current) setLoading(false);
     }
   }, []);
 
@@ -156,7 +191,9 @@ export default function DistribusiPage() {
           const res = await fetch("/api/distribusi", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ periode }),
+            // Periode diambil dari data yang sedang tampil, bukan dari
+            // pemilih, supaya yang ditutup selalu yang dilihat di dialog.
+            body: JSON.stringify({ periode: d.periode }),
           });
           const json = await res.json();
           if (!res.ok) {
@@ -164,7 +201,7 @@ export default function DistribusiPage() {
             return;
           }
           toast.success(`Distribusi ${data.label} tersimpan`);
-          await Promise.all([ambilDaftar(), ambil(periode)]);
+          await Promise.all([ambilDaftar(), ambil(d.periode)]);
         } finally {
           setMenyimpan(false);
         }
@@ -172,31 +209,27 @@ export default function DistribusiPage() {
     });
   };
 
-  const bukaKembali = () => {
-    if (!data) return;
-    konfirmasi({
-      judul: `Buka kembali ${data.label}?`,
-      pesan: (
-        <>
-          Rekaman distribusi {data.label} akan <strong>dihapus</strong>. Bukti
-          pembagian yang sudah tercatat ikut hilang, dan periode ini harus
-          ditutup ulang dengan angka yang berlaku saat itu.
-        </>
-      ),
-      labelKonfirmasi: "Buka Kembali",
-      aksi: async () => {
-        const res = await fetch(`/api/distribusi?periode=${periode}`, {
-          method: "DELETE",
-        });
-        if (!res.ok) {
-          const json = await res.json().catch(() => null);
-          toast.error(json?.error || "Gagal membuka kembali periode");
-          return;
-        }
-        toast.success("Periode dibuka kembali");
-        await Promise.all([ambilDaftar(), ambil(periode)]);
-      },
-    });
+  const bukaKembali = async () => {
+    if (!data || membuka) return;
+    const target = data.distribusi.periode;
+    setMembuka(true);
+    try {
+      const res = await fetch(
+        `/api/distribusi?periode=${target}&alasan=${encodeURIComponent(alasanBuka.trim())}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        const json = await res.json().catch(() => null);
+        toast.error(json?.error || "Gagal membuka kembali periode");
+        return;
+      }
+      toast.success("Periode dibuka kembali — rekaman lama tersimpan di arsip");
+      setBukaDialog(false);
+      setAlasanBuka("");
+      await Promise.all([ambilDaftar(), ambil(target)]);
+    } finally {
+      setMembuka(false);
+    }
   };
 
   const exportExcel = () => {
@@ -222,10 +255,11 @@ export default function DistribusiPage() {
         "Bagi Hasil": n.bagian,
       }));
 
-      const alokasi = ALOKASI_PENGELOLA.map((a) => ({
+      const nilaiAlokasi = hitungAlokasi(d.bagianPengelola);
+      const alokasi = ALOKASI_PENGELOLA.map((a, i) => ({
         Kategori: a.nama,
         Persentase: `${a.persen}%`,
-        Jumlah: Math.round((d.bagianPengelola * a.persen) / 100),
+        Jumlah: nilaiAlokasi[i],
       }));
 
       const wb = XLSX.utils.book_new();
@@ -339,8 +373,10 @@ export default function DistribusiPage() {
                       ) : (
                         <>
                           Angka ini <strong>dihitung ulang setiap dibuka</strong> dan
-                          masih bisa berubah — ikut berubah bila harga beli barang
-                          atau daftar nasabah diubah. Tutup periode untuk
+                          masih bisa berubah bila ada transaksi dibatalkan, atau
+                          bila daftar nasabah maupun persentase bagi hasil
+                          diubah. Karena itu perubahan nasabah dan persentase
+                          dikunci sampai bulan lalu ditutup. Tutup periode untuk
                           membekukannya sebagai rekaman resmi.
                         </>
                       )}
@@ -351,7 +387,7 @@ export default function DistribusiPage() {
                 <div className="flex gap-2 no-print shrink-0">
                   {sudahDitutup
                     ? isMaster && (
-                        <Button variant="outline" size="sm" onClick={bukaKembali}>
+                        <Button variant="outline" size="sm" onClick={() => setBukaDialog(true)}>
                           Buka Kembali
                         </Button>
                       )
@@ -363,6 +399,47 @@ export default function DistribusiPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {!sudahDitutup && d.rosterDariArsip && (
+              <div className="rounded-card border border-sky-200 bg-sky-50/60 px-4 py-3 flex gap-3">
+                <AlertTriangle className="h-4 w-4 text-sky-600 shrink-0 mt-0.5" />
+                <p className="text-sm text-sky-900 leading-relaxed">
+                  Periode ini pernah ditutup lalu dibuka kembali. Daftar nasabah,
+                  modal, dan persentasenya <strong>dipakai ulang dari rekaman
+                  sebelumnya</strong> — hanya angka laba yang dihitung ulang.
+                </p>
+              </div>
+            )}
+
+            {(data.riwayatBuka?.length ?? 0) > 0 && (
+              <Card>
+                <CardContent className="p-5 pt-5">
+                  <p className="text-sm font-semibold text-slate-900">
+                    Riwayat dibuka kembali
+                  </p>
+                  <ul className="mt-2 space-y-2">
+                    {data.riwayatBuka!.map((r) => (
+                      <li key={r.id} className="text-sm text-slate-600 leading-relaxed">
+                        <span className="font-medium text-slate-800">
+                          {new Date(r.dibukaPada).toLocaleString("id-ID", {
+                            day: "numeric",
+                            month: "long",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        {r.dibukaOleh?.nama ? ` oleh ${r.dibukaOleh.nama}` : ""} — {r.alasan}
+                      </li>
+                    ))}
+                  </ul>
+                  <p className="text-[11px] text-slate-400 mt-2">
+                    Isi lengkap rekaman sebelum dibuka tersimpan di arsip dan ikut
+                    dalam ekspor data.
+                  </p>
+                </CardContent>
+              </Card>
+            )}
 
             {!sudahDitutup && data.bisaDitutup === false && (
               <div className="rounded-card border border-gold-200 bg-gold-50/60 px-4 py-3 flex gap-3">
@@ -559,15 +636,20 @@ export default function DistribusiPage() {
                 <CardTitle>Alokasi Bagian Pengelola</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
+                {d.bagianPengelola <= 0 && (
+                  <p className="text-sm text-slate-500 mb-2">
+                    Periode ini tidak menghasilkan laba, jadi tidak ada yang dialokasikan.
+                  </p>
+                )}
                 <dl className="divide-y divide-border text-sm">
-                  {ALOKASI_PENGELOLA.map((a) => (
+                  {ALOKASI_PENGELOLA.map((a, i) => (
                     <div key={a.nama} className="flex items-center justify-between gap-4 py-2.5">
                       <dt className="text-slate-700">
                         {a.nama}
                         <span className="text-slate-400 ml-2 text-xs">{a.persen}%</span>
                       </dt>
                       <dd className="font-semibold tabular-nums text-slate-900 shrink-0">
-                        {formatRupiah(Math.round((d.bagianPengelola * a.persen) / 100))}
+                        {formatRupiah(hitungAlokasi(d.bagianPengelola)[i])}
                       </dd>
                     </div>
                   ))}
@@ -579,6 +661,68 @@ export default function DistribusiPage() {
       </div>
 
       {dialog}
+
+      <Dialog
+        open={bukaDialog}
+        onOpenChange={(buka) => {
+          if (!buka && !membuka) {
+            setBukaDialog(false);
+            setAlasanBuka("");
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Buka kembali {data?.label}?</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Rekaman resmi periode ini akan dilepas supaya transaksinya bisa
+              dikoreksi. Isinya — termasuk bagian setiap nasabah yang mungkin
+              sudah dibayarkan — <strong>disimpan utuh di arsip</strong>, bersama
+              nama Anda dan alasan di bawah.
+            </p>
+            <p className="text-sm text-slate-500 leading-relaxed">
+              Saat ditutup ulang, daftar nasabah dan persentasenya tetap memakai
+              yang lama. Kalau angka yang sudah dibayarkan berubah,{" "}
+              <strong>beri tahu nasabah</strong>.
+            </p>
+            <div>
+              <label htmlFor="alasan-buka" className="block text-sm font-medium text-slate-700">
+                Alasan <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                id="alasan-buka"
+                rows={3}
+                value={alasanBuka}
+                onChange={(e) => setAlasanBuka(e.target.value)}
+                placeholder="Contoh: transaksi 28 September salah input, perlu dibatalkan"
+                className="mt-1.5 flex w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
+              />
+              <p className="text-[11px] text-slate-400 mt-1">Minimal 10 karakter.</p>
+            </div>
+            <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
+              <Button
+                variant="outline"
+                disabled={membuka}
+                onClick={() => {
+                  setBukaDialog(false);
+                  setAlasanBuka("");
+                }}
+              >
+                Batal
+              </Button>
+              <Button
+                className="bg-rose-600 hover:bg-rose-700 text-white"
+                disabled={membuka || alasanBuka.trim().length < 10}
+                onClick={bukaKembali}
+              >
+                {membuka ? "Membuka..." : "Buka Kembali"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
