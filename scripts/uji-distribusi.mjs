@@ -11,7 +11,9 @@
  * lalu: node scripts/uji-distribusi.mjs
  */
 import { PrismaClient } from "@prisma/client";
+import { pastikanDatabaseLokal } from "./_hanya-lokal.mjs";
 
+pastikanDatabaseLokal();
 const prisma = new PrismaClient();
 const BASE = "http://localhost:3000";
 
