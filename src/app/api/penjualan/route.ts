@@ -140,6 +140,7 @@ export async function GET(request: NextRequest) {
           member: true,
           detail: { include: { barang: true } },
           dibatalkanOleh: { select: { nama: true } },
+          user: { select: { nama: true } },
           retur: { select: { nomor: true, totalRefund: true } },
         },
         orderBy: { tanggal: "desc" },

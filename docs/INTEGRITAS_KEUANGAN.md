@@ -178,6 +178,10 @@ nasabah — kebijakan itu harus diubah lebih dulu di
 | Membuka kembali distribusi | ❌ | ❌ | ✅ |
 | Mengelola pengguna | ❌ | ❌ | ✅ |
 
+Barang yang **masih punya stok tidak bisa dihapus**. Kurangi dulu stoknya lewat
+Penyesuaian (rusak, hilang, atau dikembalikan ke supplier) supaya kepergian
+barang itu tercatat, lalu hapus.
+
 Alasan kasir tidak boleh menyentuh harga: harga beli menentukan laba, dan laba
 menentukan bagi hasil nasabah. Menambah stok tidak punya efek itu, jadi tetap
 boleh.
@@ -257,6 +261,10 @@ Selisih = Saldo akhir (dihitung manual) − Saldo seharusnya
 
 Uang retur pembeli yang dikembalikan tunai diambil dari laci shift yang sedang
 buka saat retur dicatat.
+
+Halaman Kasir menampilkan peringatan bila **belum ada shift yang dibuka**.
+Penjualan tetap bisa dicatat — gerai tidak boleh berhenti melayani — tetapi
+uang tunainya tidak masuk rekap laci siapa pun sampai shift dibuka.
 
 Pembayaran transfer, QRIS, dan debit ditampilkan terpisah karena uangnya tidak
 pernah masuk ke laci. Sebelum perbaikan ini, semua pembayaran dihitung sebagai
@@ -405,19 +413,19 @@ Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 ## 13. Menjalankan pengujian
 
 ```bash
-npm test                          # 63 uji perhitungan, periode WIB, sesi, hak akses, modal, retur
+npm test                          # 66 uji perhitungan, periode WIB, sesi, hak akses, modal, retur, struk
 bash scripts/smoke-test.sh        # 75 uji hak akses, pencabutan sesi, bypass middleware, header
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
 node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
 node scripts/uji-penguncian.mjs   # 36 uji kunci persentase, arsip, shift beku
-node scripts/uji-barang.mjs       # 34 uji edit barang, harga rata-rata, kerugian stok
+node scripts/uji-barang.mjs       # 37 uji edit & hapus barang, harga rata-rata, kerugian stok
 node scripts/uji-sesi.mjs         # 19 uji pencabutan sesi
 node scripts/uji-nasabah.mjs      # 23 uji modal nasabah per bulan
 node scripts/uji-retur.mjs        # 27 uji retur pembeli
 ```
 
-Totalnya 348 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+Totalnya 354 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
 56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
 Skrip `uji-*` butuh server berjalan (`npm run build && npm start`) dan

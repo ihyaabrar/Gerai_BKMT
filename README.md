@@ -44,7 +44,7 @@ PD BKMT Kubu Raya adalah organisasi kemasyarakatan Islam dengan sekitar **20 cab
 - Pencarian cepat & pemindai barcode
 - Diskon member otomatis
 - **Aman dari transaksi ganda** saat koneksi putus
-- Cetak struk langsung dari kasir
+- Cetak struk, dan cetak ulang dari riwayat penjualan
 - Shift buka/tutup dengan rekap kas
 
 </td>
@@ -227,18 +227,18 @@ DATABASE_URL="<url-produksi>" SEED_ADMIN_PASSWORD="..." SEED_KASIR_PASSWORD="...
 ## 🧪 Pengujian
 
 ```bash
-npm test                          # 63  perhitungan laba, periode WIB, sesi, modal, retur
+npm test                          # 66  perhitungan laba, periode WIB, sesi, modal, retur, struk
 bash scripts/smoke-test.sh        # 75  hak akses, pencabutan sesi, header keamanan
 node scripts/uji-distribusi.mjs   # 22  rekaman bagi hasil kebal perubahan
 node scripts/uji-idempotensi.mjs  # 17  transaksi ganda & stok negatif
 node scripts/uji-pembatalan.mjs   # 32  pembatalan penjualan
 node scripts/uji-penguncian.mjs   # 36  kunci persentase, arsip buka-kembali, shift beku
-node scripts/uji-barang.mjs       # 34  edit barang, harga rata-rata, barang rusak
+node scripts/uji-barang.mjs       # 37  edit barang, hapus barang, harga rata-rata, barang rusak
 node scripts/uji-sesi.mjs         # 19  ganti password mengeluarkan perangkat lain
 node scripts/uji-nasabah.mjs      # 23  modal nasabah berlaku bulan berikutnya
 node scripts/uji-retur.mjs        # 27  retur pembeli, uang kembali, kas shift
                                   # ───
-                                  # 348 pemeriksaan
+                                  # 354 pemeriksaan
 ```
 
 Skrip `uji-*` butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.

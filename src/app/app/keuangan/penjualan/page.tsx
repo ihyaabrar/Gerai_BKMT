@@ -4,7 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatRupiah } from "@/lib/utils";
-import { Receipt, Search, Download, Ban, Undo2 } from "lucide-react";
+import { Receipt, Search, Download, Ban, Undo2, Printer } from "lucide-react";
+import { PrintReceipt } from "@/components/PrintReceipt";
+import { strukDariPenjualan, type PenjualanUntukStruk } from "@/lib/struk";
 import { ReturDialog } from "@/components/ReturDialog";
 import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
@@ -16,7 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/store/auth";
 
-interface Penjualan {
+interface Penjualan extends PenjualanUntukStruk {
   id: string;
   nomorTransaksi: string;
   tanggal: string;
@@ -44,6 +46,7 @@ export default function PenjualanPage() {
 
   const [targetBatal, setTargetBatal] = useState<Penjualan | null>(null);
   const [targetRetur, setTargetRetur] = useState<string | null>(null);
+  const [targetStruk, setTargetStruk] = useState<Penjualan | null>(null);
   const tutupRetur = useCallback(() => setTargetRetur(null), []);
   const [alasanBatal, setAlasanBatal] = useState("");
   const [membatalkan, setMembatalkan] = useState(false);
@@ -244,7 +247,7 @@ export default function PenjualanPage() {
                       <th className="text-right py-3 px-4">Diskon</th>
                       <th className="text-right py-3 px-4">Total</th>
                       <th className="text-center py-3 px-4">Metode</th>
-                      {bolehBatalkan && <th className="w-20" />}
+                      <th className={bolehBatalkan ? "w-28" : "w-12"} />
                     </tr>
                   </thead>
                   <tbody>
@@ -319,9 +322,20 @@ export default function PenjualanPage() {
                             {p.metodeBayar}
                           </span>
                         </td>
-                        {bolehBatalkan && (
-                          <td className="py-3 pr-4 whitespace-nowrap">
+                        <td className="py-3 pr-4 whitespace-nowrap">
                             {!batal && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                aria-label={"Cetak ulang struk " + p.nomorTransaksi}
+                                title="Cetak ulang struk"
+                                className="text-slate-600 hover:bg-surface-muted"
+                                onClick={() => setTargetStruk(p)}
+                              >
+                                <Printer className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {bolehBatalkan && !batal && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -333,7 +347,7 @@ export default function PenjualanPage() {
                                 <Undo2 className="h-4 w-4" />
                               </Button>
                             )}
-                            {!batal && !(p.retur?.length) && (
+                            {bolehBatalkan && !batal && !(p.retur?.length) && (
                               <Button
                                 variant="ghost"
                                 size="sm"
@@ -348,8 +362,7 @@ export default function PenjualanPage() {
                                 <Ban className="h-4 w-4" />
                               </Button>
                             )}
-                          </td>
-                        )}
+                        </td>
                       </tr>
                       );
                     })}
@@ -368,6 +381,24 @@ export default function PenjualanPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={targetStruk !== null} onOpenChange={(buka) => !buka && setTargetStruk(null)}>
+        <DialogContent className="sm:max-w-md" onClose={() => setTargetStruk(null)}>
+          <DialogHeader>
+            <DialogTitle>Cetak Ulang Struk</DialogTitle>
+          </DialogHeader>
+          {targetStruk && (
+            <>
+              {(targetStruk.retur?.length ?? 0) > 0 && (
+                <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md p-2.5 mb-3">
+                  Transaksi ini sudah pernah diretur. Struk menampilkan pembelian aslinya.
+                </p>
+              )}
+              <PrintReceipt data={strukDariPenjualan(targetStruk, { salinan: true })} />
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <ReturDialog
         penjualanId={targetRetur}

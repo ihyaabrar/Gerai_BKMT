@@ -9,7 +9,9 @@ import { useCartStore } from "@/store/cart";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { useAuthStore } from "@/store/auth";
 import { cn, formatRupiah } from "@/lib/utils";
-import { Search, Trash2, Plus, Minus, User, CreditCard, ShoppingCart } from "lucide-react";
+import { Search, Trash2, Plus, Minus, User, CreditCard, ShoppingCart, Clock } from "lucide-react";
+import Link from "next/link";
+import { strukDariPenjualan } from "@/lib/struk";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PrintReceipt } from "@/components/PrintReceipt";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
@@ -46,6 +48,8 @@ export default function KasirPage() {
   const [bayar, setBayar] = useState("");
   const [metodeBayar, setMetodeBayar] = useState("Tunai");
   const [processing, setProcessing] = useState(false);
+  // null = belum diketahui; tidak menampilkan peringatan sebelum pasti.
+  const [adaShift, setAdaShift] = useState<boolean | null>(null);
 
   const { items, addItem, removeItem, updateQty, setMember, clearCart, getTotal, getSubtotal, ambilKunci, resetKunci, memberId, diskon } = useCartStore();
   const { user } = useAuthStore();
@@ -54,7 +58,21 @@ export default function KasirPage() {
     fetchBarang();
     fetchMember();
     fetchPengaturan();
+    fetchShift();
   }, []);
+
+  // Penjualan tanpa shift terbuka tidak masuk rekap laci siapa pun, jadi uang
+  // tunainya tidak pernah dicocokkan dengan hitungan kasir.
+  const fetchShift = async () => {
+    try {
+      const res = await fetch("/api/shift?limit=1");
+      if (!res.ok) return;
+      const data = await res.json();
+      setAdaShift(Boolean(data?.shiftAktif));
+    } catch {
+      // Tanpa kepastian, peringatan tidak ditampilkan.
+    }
+  };
 
   const fetchBarang = async () => {
     try {
@@ -186,25 +204,7 @@ export default function KasirPage() {
 
       // Struk memakai angka hasil hitungan server (harga, diskon, total),
       // bukan angka dari keranjang, supaya struk selalu cocok dengan database.
-      const receipt = {
-        nomorTransaksi: data.nomorTransaksi,
-        tanggal: new Date(data.tanggal ?? Date.now()),
-        items: (data.detail ?? []).map((d: any) => ({
-          nama: d.barang?.nama ?? "-",
-          qty: d.qty,
-          harga: d.hargaJual,
-          subtotal: d.subtotal,
-        })),
-        subtotal: data.subtotal,
-        diskon: data.diskon,
-        total: data.total,
-        bayar: data.bayar,
-        kembalian: data.kembalian,
-        member: data.member?.nama,
-        kasir: user?.nama || "Kasir",
-      };
-
-      setReceiptData(receipt);
+      setReceiptData(strukDariPenjualan(data, { kasir: user?.nama }));
       setShowReceipt(true);
       clearCart();
       setShowPayment(false);
@@ -236,6 +236,22 @@ export default function KasirPage() {
           Proses transaksi penjualan dengan cepat, mudah, dan aman
         </p>
       </div>
+
+      {adaShift === false && (
+        <div className="rounded-card border border-amber-300 bg-amber-50 px-4 py-3 flex flex-wrap items-center gap-3">
+          <Clock className="h-5 w-5 text-amber-600 shrink-0" />
+          <p className="text-sm text-amber-900 flex-1 min-w-[200px]">
+            <strong>Belum ada shift yang dibuka.</strong> Penjualan tetap bisa dicatat, tetapi
+            uang tunainya tidak masuk rekap laci siapa pun.
+          </p>
+          <Link
+            href="/app/sistem/shift"
+            className="text-sm font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-950"
+          >
+            Buka shift
+          </Link>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
         {/* Product Grid */}
