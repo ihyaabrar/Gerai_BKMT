@@ -39,6 +39,12 @@ chk "401 bypass middleware header" 401 "$(code -H 'x-middleware-subrequest: midd
 chk "401 bypass middleware rantai" 401 "$(code -H 'x-middleware-subrequest: middleware:middleware:middleware:middleware:middleware' $B/api/nasabah)"
 chk "307 bypass middleware pada halaman" 307 "$(code -H 'x-middleware-subrequest: middleware' $B/app/keuangan/laporan)"
 
+echo "[Header keamanan]"
+hdr() { curl -sI "$B$1" | tr -d '' | grep -i "^$2:" | cut -d' ' -f2-; }
+chk "X-Frame-Options halaman kasir" SAMEORIGIN "$(hdr /app/kasir X-Frame-Options)"
+chk "X-Content-Type-Options" nosniff "$(hdr /login X-Content-Type-Options)"
+chk "Referrer-Policy" strict-origin-when-cross-origin "$(hdr /api/public/profil Referrer-Policy)"
+
 echo "[Publik tetap terbuka]"
 for ep in / /login /api/public/profil /api/public/berita /api/public/pengurus /api/public/gerai /api/public/galeri /api/public/agenda; do
   chk "200 $ep" 200 "$(code $B$ep)"

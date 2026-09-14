@@ -36,10 +36,21 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Pengguna tidak ditemukan" }, { status: 404 });
     }
 
-    // Password lama yang masih plain text tetap diterima, lalu ikut di-upgrade.
-    const cocok = user.password.startsWith("$2")
-      ? await bcrypt.compare(passwordLama, user.password)
-      : user.password === passwordLama;
+    // Sama seperti login: password tersimpan yang bukan hash bcrypt tidak
+    // pernah dibandingkan apa adanya. Jalur plain-text di sini dulu berarti
+    // siapa pun yang bisa menulis ke tabel User dapat memasang password yang
+    // langsung diterima — dan sekaligus dicuci menjadi hash bcrypt yang sah.
+    if (!user.password.startsWith("$2")) {
+      return NextResponse.json(
+        {
+          error:
+            "Akun ini perlu disetel ulang passwordnya oleh master sebelum bisa dipakai.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const cocok = await bcrypt.compare(passwordLama, user.password);
 
     if (!cocok) {
       return NextResponse.json(
