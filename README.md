@@ -226,18 +226,20 @@ DATABASE_URL="<url-produksi>" SEED_ADMIN_PASSWORD="..." SEED_KASIR_PASSWORD="...
 ## 🧪 Pengujian
 
 ```bash
-npm test                          # 50  perhitungan laba, periode WIB, sesi, hak akses
+npm test                          # 59  perhitungan laba, periode WIB, sesi, modal nasabah
 bash scripts/smoke-test.sh        # 75  hak akses, pencabutan sesi, header keamanan
 node scripts/uji-distribusi.mjs   # 22  rekaman bagi hasil kebal perubahan
 node scripts/uji-idempotensi.mjs  # 17  transaksi ganda & stok negatif
 node scripts/uji-pembatalan.mjs   # 32  pembatalan penjualan
-node scripts/uji-penguncian.mjs   # 35  kunci nasabah, arsip buka-kembali, shift beku
+node scripts/uji-penguncian.mjs   # 36  kunci persentase, arsip buka-kembali, shift beku
 node scripts/uji-barang.mjs       # 34  edit barang, harga rata-rata, barang rusak
+node scripts/uji-sesi.mjs         # 19  ganti password mengeluarkan perangkat lain
+node scripts/uji-nasabah.mjs      # 23  modal nasabah berlaku bulan berikutnya
                                   # ───
-                                  # 265 pemeriksaan
+                                  # 317 pemeriksaan
 ```
 
-Lima skrip terakhir butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.
+Skrip `uji-*` butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.
 
 Uji yang paling penting: setelah sebuah periode ditutup, harga beli dinaikkan dan daftar nasabah diubah — lalu periode itu dibaca ulang. **Seluruh angkanya tidak boleh bergeser satu rupiah pun.**
 

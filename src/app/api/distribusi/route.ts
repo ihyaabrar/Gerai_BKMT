@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { rosterPeriode } from "@/lib/modal-nasabah";
 import { requireAdminAuth, requireRole } from "@/lib/auth-middleware";
 import {
   PENJUALAN_SAH,
@@ -95,7 +96,7 @@ async function hitungPeriode(
 ): Promise<HitunganPeriode> {
   const { mulai, selesai } = rentangPeriode(periode);
 
-  const [penjualan, penyesuaian, pengaturan, nasabahAktif, arsipTerakhir] = await Promise.all([
+  const [penjualan, penyesuaian, pengaturan, nasabahPeriode, arsipTerakhir] = await Promise.all([
     db.penjualan.findMany({
       where: { ...PENJUALAN_SAH, tanggal: { gte: mulai, lte: selesai } },
       select: {
@@ -109,7 +110,8 @@ async function hitungPeriode(
       select: { jenis: true, qty: true, hargaBeli: true },
     }),
     db.pengaturan.findFirst(),
-    db.nasabah.findMany({ where: { aktif: true }, orderBy: { nama: "asc" } }),
+    // Modal yang berlaku pada periode ini, bukan daftar nasabah aktif hari ini.
+    rosterPeriode(db, periode),
     db.distribusiLabaArsip.findFirst({
       where: { periode },
       orderBy: { dibukaPada: "desc" },
@@ -144,11 +146,7 @@ async function hitungPeriode(
         nama: d.namaNasabah,
         jumlahInvestasi: d.jumlahInvestasi,
       }))
-    : nasabahAktif.map((n) => ({
-        id: n.id,
-        nama: n.nama,
-        jumlahInvestasi: n.jumlahInvestasi,
-      }));
+    : nasabahPeriode;
 
   const rugi = labaDibagi <= 0;
   const bagi = bagiHasil(labaDibagi, persenNasabah);

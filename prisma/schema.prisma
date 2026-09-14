@@ -79,6 +79,27 @@ model Nasabah {
   updatedAt       DateTime @updatedAt
 
   distribusi DistribusiLabaNasabah[]
+  modal      ModalNasabah[]
+}
+
+/// Riwayat modal nasabah per periode. Distribusi periode P memakai baris
+/// terakhir dengan berlakuMulai <= P. Nasabah baru, perubahan modal, dan
+/// nasabah yang berhenti berlaku mulai bulan berikutnya (keputusan pengurus,
+/// September 2026).
+model ModalNasabah {
+  id           String   @id @default(cuid())
+  nasabahId    String
+  nasabah      Nasabah  @relation(fields: [nasabahId], references: [id], onDelete: Cascade)
+  /// Periode "YYYY-MM" pertama kali nilai ini dipakai.
+  berlakuMulai String
+  jumlah       Float
+  aktif        Boolean
+  dibuatOlehId String?
+  dibuatPada   DateTime @default(now())
+  diubahPada   DateTime @updatedAt
+
+  @@unique([nasabahId, berlakuMulai])
+  @@index([berlakuMulai])
 }
 
 model Supplier {

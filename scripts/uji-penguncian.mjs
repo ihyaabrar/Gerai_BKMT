@@ -3,8 +3,9 @@
  *
  *  1. Kunci transaksi yang dipakai ulang untuk keranjang yang BERBEDA harus
  *     ditolak — bukan mengembalikan struk transaksi lama seolah-olah berhasil.
- *  2. Daftar nasabah dan persentase bagi hasil tidak boleh diubah selama
- *     distribusi bulan lalu belum ditutup.
+ *  2. Persentase bagi hasil tidak boleh diubah selama distribusi bulan lalu
+ *     belum ditutup. Nasabah baru boleh ditambahkan kapan saja, tetapi baru
+ *     ikut dibagi bulan berikutnya.
  *  3. Membuka kembali distribusi wajib beralasan, meninggalkan arsip, dan
  *     penutupan ulang memakai daftar nasabah yang sama dengan penutupan pertama.
  *  4. Selisih kas shift yang sudah ditutup tidak berubah walau transaksinya
@@ -144,15 +145,36 @@ async function main() {
   });
   cek("penjualan bulan lalu disiapkan", Boolean(lama.id));
 
-  const tambahTerkunci = await api("/api/nasabah", {
+  // Nasabah uji disiapkan langsung di database; yang lain dikeluarkan dulu
+  // agar pembagian mudah diperiksa. (Aman: skrip ini hanya untuk database uji.)
+  await prisma.nasabah.updateMany({ data: { aktif: false } });
+  await prisma.modalNasabah.deleteMany({});
+  const nA = await prisma.nasabah.create({
+    data: {
+      nama: "Uji Kunci A", jumlahInvestasi: 6_000_000, persentase: 60, aktif: true,
+      modal: { create: { berlakuMulai: "2000-01", jumlah: 6_000_000, aktif: true } },
+    },
+  });
+  const nB = await prisma.nasabah.create({
+    data: {
+      nama: "Uji Kunci B", jumlahInvestasi: 4_000_000, persentase: 40, aktif: true,
+      modal: { create: { berlakuMulai: "2000-01", jumlah: 4_000_000, aktif: true } },
+    },
+  });
+
+  const tambahBaru = await api("/api/nasabah", {
     method: "POST",
     body: JSON.stringify({ nama: "Uji Kunci Baru", jumlahInvestasi: 1_000_000 }),
   });
-  cek("menambah nasabah ditolak (409)", tambahTerkunci.status === 409,
-    `status ${tambahTerkunci.status}`);
-  cek("pesannya menyuruh menutup distribusi",
-    (tambahTerkunci.json?.error ?? "").includes("Distribusi Laba"),
-    tambahTerkunci.json?.error ?? "");
+  cek("menambah nasabah tetap boleh walau bulan lalu belum ditutup", tambahBaru.status === 200,
+    tambahBaru.teks.slice(0, 100));
+  const pratinjauLalu = await api(`/api/distribusi?periode=${PERIODE_LALU}`);
+  cek("nasabah baru tidak ikut bulan lalu",
+    !(pratinjauLalu.json?.distribusi?.detail ?? []).some((d) => d.namaNasabah === "Uji Kunci Baru"),
+    (pratinjauLalu.json?.distribusi?.detail ?? []).map((d) => d.namaNasabah).join(", "));
+  const pratinjauIni = await api("/api/distribusi");
+  cek("nasabah baru juga belum ikut bulan ini",
+    !(pratinjauIni.json?.distribusi?.detail ?? []).some((d) => d.namaNasabah === "Uji Kunci Baru"));
 
   const pengaturanAwal = (await api("/api/pengaturan")).json;
   const simpanPengaturan = (ubah) =>
@@ -184,15 +206,6 @@ async function main() {
   cek("persentase yang tidak berjumlah 100 ditolak (400)", tidakPas.status === 400,
     `status ${tidakPas.status}`);
 
-  // Nasabah uji disiapkan langsung di database; yang lain dinonaktifkan dulu
-  // agar pembagian mudah diperiksa. (Aman: skrip ini hanya untuk database uji.)
-  await prisma.nasabah.updateMany({ data: { aktif: false } });
-  const nA = await prisma.nasabah.create({
-    data: { nama: "Uji Kunci A", jumlahInvestasi: 6_000_000, persentase: 60, aktif: true },
-  });
-  const nB = await prisma.nasabah.create({
-    data: { nama: "Uji Kunci B", jumlahInvestasi: 4_000_000, persentase: 40, aktif: true },
-  });
 
   const tutup = await api("/api/distribusi", {
     method: "POST",
