@@ -325,6 +325,19 @@ hanya bertahan satu jam.
 
 ## 12. Catatan keamanan yang sudah diputuskan
 
+### Mengganti password mengeluarkan perangkat lain
+
+Kalau HP kasir hilang atau ada yang curiga akunnya dipakai orang lain, ganti
+passwordnya — dari **Akun Saya**, atau oleh master dari halaman **Pengguna**.
+Semua perangkat lain yang sedang login dengan akun itu langsung keluar;
+perangkat yang dipakai untuk mengganti tetap masuk. Sebelumnya perangkat lain
+tetap bisa dipakai sampai 12 jam kemudian. Uji: `node scripts/uji-sesi.mjs`.
+
+Menonaktifkan akun di halaman Pengguna juga langsung mengeluarkannya dari semua
+perangkat.
+
+### Yang sengaja tidak dikerjakan
+
 Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 
 | Tidak dikerjakan | Alasan |

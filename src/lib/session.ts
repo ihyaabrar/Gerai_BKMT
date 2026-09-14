@@ -20,8 +20,26 @@ export interface SessionPayload {
   nama: string;
   username: string;
   role: Role;
+  /** epoch detik — kapan sesi diterbitkan. Cookie lama belum punya ini. */
+  iat?: number;
   /** epoch detik — kapan sesi kedaluwarsa */
   exp: number;
+}
+
+/** Kapan sebuah sesi diterbitkan (epoch detik), termasuk cookie lama tanpa `iat`. */
+export function waktuTerbit(payload: SessionPayload): number {
+  return payload.iat ?? payload.exp - SESSION_MAX_AGE;
+}
+
+/**
+ * Batas pencabutan sesi: semua sesi yang terbit sebelum saat ini ditolak.
+ *
+ * Dibulatkan ke bawah ke detik penuh, sama seperti `iat`, supaya cookie baru
+ * yang langsung diterbitkan untuk perangkat yang sedang dipakai tidak ikut
+ * tertolak karena selisih milidetik.
+ */
+export function batasSesiBaru(): Date {
+  return new Date(Math.floor(Date.now() / 1000) * 1000);
 }
 
 const DEV_FALLBACK_SECRET = "gerai-bkmt-dev-secret-jangan-dipakai-di-produksi";
@@ -123,11 +141,13 @@ function fromBase64Url(value: string): Uint8Array<ArrayBuffer> {
 
 /** Buat token `<payload>.<signature>` untuk disimpan di cookie. */
 export async function signSession(
-  payload: Omit<SessionPayload, "exp">
+  payload: Omit<SessionPayload, "exp" | "iat">
 ): Promise<string> {
+  const sekarang = Math.floor(Date.now() / 1000);
   const full: SessionPayload = {
     ...payload,
-    exp: Math.floor(Date.now() / 1000) + SESSION_MAX_AGE,
+    iat: sekarang,
+    exp: sekarang + SESSION_MAX_AGE,
   };
 
   const body = toBase64Url(encoder.encode(JSON.stringify(full)));

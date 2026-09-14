@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireRole } from "@/lib/auth-middleware";
+import {
+  SESSION_COOKIE,
+  batasSesiBaru,
+  sessionCookieOptions,
+  signSession,
+  type Role,
+} from "@/lib/session";
 import bcrypt from "bcryptjs";
 import {
   ValidationError,
@@ -129,6 +136,9 @@ export async function PATCH(request: NextRequest) {
     if (body?.password) {
       const password = requireString(body.password, "Password", { min: 8, max: 100 });
       data.password = await bcrypt.hash(password, 12);
+      // Password yang disetel ulang master mengeluarkan akun itu dari semua
+      // perangkat — biasanya justru itu alasan password disetel ulang.
+      data.sesiBerlakuSejak = batasSesiBaru();
     }
 
     const user = await prisma.user.update({
@@ -137,7 +147,24 @@ export async function PATCH(request: NextRequest) {
       select: PILIH,
     });
 
-    return NextResponse.json(user);
+    const response = NextResponse.json(user);
+
+    // Master yang menyetel ulang password akunnya sendiri dari halaman
+    // Pengguna tidak boleh ikut terlempar dari perangkat yang sedang dipakai.
+    if (data.sesiBerlakuSejak && id === auth.user.id) {
+      response.cookies.set(
+        SESSION_COOKIE,
+        await signSession({
+          id: user.id,
+          nama: user.nama,
+          username: user.username,
+          role: user.role as Role,
+        }),
+        sessionCookieOptions
+      );
+    }
+
+    return response;
   } catch (error) {
     const { message, status } = toErrorResponse(error, "Gagal memperbarui pengguna");
     return NextResponse.json({ error: message }, { status });
