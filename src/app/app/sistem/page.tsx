@@ -59,8 +59,8 @@ export default function SistemPage() {
   const pintasan = [
     {
       href: "/app/sistem/shift",
-      label: "Shift Kasir",
-      desc: "Buka, tutup, dan rekap shift kasir",
+      label: "Buka / Tutup Kasir",
+      desc: "Buka kasir sebelum jualan, tutup setelah uang laci dihitung",
       icon: Clock,
       warna: "bg-brand-50 text-brand-600",
     },
@@ -83,8 +83,8 @@ export default function SistemPage() {
     },
     {
       href: "/app/sistem/backup",
-      label: "Ekspor Data",
-      desc: "Unduh arsip data per bulan",
+      label: "Unduh Data (Excel)",
+      desc: "Simpan salinan data per bulan ke komputer",
       icon: DatabaseBackup,
       warna: "bg-sky-50 text-sky-600",
       adminSaja: true,
@@ -108,7 +108,7 @@ export default function SistemPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Sistem</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Pengaturan</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Pengaturan toko, shift kasir, backup, dan informasi sistem
         </p>
@@ -215,7 +215,7 @@ export default function SistemPage() {
                   <p className="text-xl font-extrabold text-slate-900 mt-1">
                     {pengaturan.diskonMember}%
                   </p>
-                  <p className="text-[11px] text-slate-400 mt-1">
+                  <p className="text-xs text-slate-500 mt-1">
                     Dihitung otomatis di server saat transaksi
                   </p>
                 </div>

@@ -308,7 +308,7 @@ export default function Dashboard() {
                 <span className="h-8 w-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
                   <Boxes className="h-[18px] w-[18px]" />
                 </span>
-                Status Inventori
+                Status Stok
               </CardTitle>
               <Link
                 href="/app/inventori/stok"

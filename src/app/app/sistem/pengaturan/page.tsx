@@ -243,8 +243,8 @@ export default function PengaturanPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Pengaturan</h1>
-        <p className="text-slate-500">Konfigurasi sistem</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Pengaturan Toko</h1>
+        <p className="text-slate-500">Nama dan alamat toko, diskon member, dan bagi hasil</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">

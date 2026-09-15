@@ -44,15 +44,15 @@ const PINTASAN = [
   },
   {
     href: "/app/inventori/penyesuaian",
-    label: "Penyesuaian Stok",
-    desc: "Koreksi stok barang di gudang",
+    label: "Barang Rusak / Hilang",
+    desc: "Catat barang rusak, hilang, atau salah hitung",
     icon: ClipboardCheck,
     warna: "bg-sky-50 text-sky-600",
   },
   {
     href: "/app/inventori/retur",
-    label: "Retur Barang",
-    desc: "Kelola barang retur dan rusak",
+    label: "Retur ke Supplier",
+    desc: "Barang yang dikembalikan ke supplier",
     icon: Undo2,
     warna: "bg-rose-50 text-rose-600",
   },
@@ -105,7 +105,7 @@ export default function InventoriPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Inventori</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Barang</h1>
         <p className="text-sm text-slate-500 mt-0.5">
           Kelola stok barang, barang masuk, penyesuaian, dan retur dengan mudah
         </p>
@@ -186,7 +186,7 @@ export default function InventoriPage() {
                     <p className="mt-2.5 text-xl font-extrabold text-slate-900">
                       {r.nilai}
                     </p>
-                    <p className="text-[11px] text-slate-500">{r.label}</p>
+                    <p className="text-xs text-slate-500">{r.label}</p>
                   </div>
                 ))}
               </div>

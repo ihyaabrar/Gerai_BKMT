@@ -105,11 +105,11 @@ export default function PenyesuaianPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error || "Gagal menyimpan penyesuaian");
+        toast.error(data.error || "Gagal menyimpan. Coba lagi.");
         return;
       }
 
-      toast.success("Penyesuaian stok berhasil dicatat");
+      toast.success("Perubahan stok berhasil dicatat");
       setForm({ barangId: "", jenis: "masuk", qty: "", alasan: "" });
       setSelectedBarang(null);
       fetchBarang();
@@ -130,8 +130,10 @@ export default function PenyesuaianPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Penyesuaian Stok</h1>
-        <p className="text-slate-500">Stock opname dan koreksi stok</p>
+        <h1 className="text-2xl sm:text-3xl font-bold">Barang Rusak / Hilang</h1>
+        <p className="text-slate-500">
+          Catat barang rusak, hilang, atau kedaluwarsa — juga stok yang ternyata salah hitung.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -139,7 +141,7 @@ export default function PenyesuaianPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ClipboardList className="h-5 w-5" />
-              Form Penyesuaian
+              Catat Perubahan Stok
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -163,7 +165,7 @@ export default function PenyesuaianPage() {
 
               <div>
                 <p id="label-jenis-penyesuaian" className="text-sm font-medium">
-                  Jenis Penyesuaian
+                  Jenis
                 </p>
                 <div
                   role="group"
@@ -228,7 +230,7 @@ export default function PenyesuaianPage() {
                     <p className="text-xs text-slate-500 mt-1.5 leading-relaxed">
                       {form.jenis === "keluar"
                         ? "Nilai barang yang dikurangi (harga beli × jumlah) mengurangi laba bulan ini dan bagi hasil nasabah. Barang yang terjual dicatat lewat Kasir, bukan di sini."
-                        : "Untuk barang kiriman supplier, gunakan Barang Masuk. Penyesuaian tambah hanya mengoreksi kerugian bulan ini, tidak menambah laba."}
+                        : "Untuk barang kiriman supplier, gunakan Barang Masuk. Tambah di sini hanya untuk koreksi salah hitung, tidak menambah laba."}
                     </p>
                   </div>
 
@@ -257,7 +259,7 @@ export default function PenyesuaianPage() {
                     size="lg"
                     disabled={loading || (stokSetelah !== null && stokSetelah < 0)}
                   >
-                    {loading ? "Menyimpan..." : "Simpan Penyesuaian"}
+                    {loading ? "Menyimpan..." : "Simpan"}
                   </Button>
                 </>
               )}
@@ -310,14 +312,14 @@ export default function PenyesuaianPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <History className="h-5 w-5" />
-              Riwayat Penyesuaian
+              Riwayat
             </CardTitle>
           </CardHeader>
           <CardContent>
             {history.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
                 <ClipboardList className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                <p>Belum ada riwayat penyesuaian</p>
+                <p>Belum ada catatan barang rusak atau hilang</p>
               </div>
             ) : (
               <div className="space-y-3 max-h-[480px] overflow-y-auto pr-1">

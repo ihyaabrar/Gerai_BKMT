@@ -205,8 +205,8 @@ export default function NasabahPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Nasabah / Investor</h1>
-          <p className="text-slate-500">Data investor dan kepemilikan</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Nasabah (Pemodal)</h1>
+          <p className="text-slate-500">Orang yang menanam modal di gerai dan besar modalnya</p>
         </div>
         <Button onClick={openAdd}>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -308,7 +308,7 @@ export default function NasabahPage() {
                         <td className="py-3 px-4 text-right">
                           <p className="font-semibold">{formatRupiah(n.modalBulanIni || n.jumlahInvestasi)}</p>
                           {tertunda && (
-                            <p className="text-[11px] text-sky-700 mt-0.5 whitespace-nowrap">{tertunda}</p>
+                            <p className="text-xs text-sky-700 mt-0.5 whitespace-nowrap">{tertunda}</p>
                           )}
                         </td>
                         <td className="py-3 px-4 text-center">

@@ -303,10 +303,10 @@ export default function DistribusiPage() {
         <div className="flex flex-wrap gap-3 items-start justify-between">
           <div>
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Distribusi Laba
+              Bagi Hasil Nasabah
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              Bagi hasil nasabah per periode, dibekukan saat periode ditutup.
+              Hitung dan simpan bagian keuntungan nasabah setiap bulan.
             </p>
           </div>
 
@@ -384,7 +384,7 @@ export default function DistribusiPage() {
                     <p className="text-sm text-slate-500 mt-1 leading-relaxed max-w-2xl">
                       {sudahDitutup ? (
                         <>
-                          Angka periode ini sudah dibekukan
+                          Sudah disimpan
                           {d.dibuatOleh?.nama ? ` oleh ${d.dibuatOleh.nama}` : ""}
                           {d.createdAt
                             ? ` pada ${new Date(d.createdAt).toLocaleDateString("id-ID", {
@@ -393,17 +393,12 @@ export default function DistribusiPage() {
                                 year: "numeric",
                               })}`
                             : ""}
-                          . Mengubah harga barang atau daftar nasabah tidak
-                          mengubah angka ini lagi.
+                          . Angkanya tidak berubah lagi. Slip nasabah bisa dicetak atau dikirim.
                         </>
                       ) : (
                         <>
-                          Angka ini <strong>dihitung ulang setiap dibuka</strong> dan
-                          masih bisa berubah bila ada transaksi dibatalkan, atau
-                          bila daftar nasabah maupun persentase bagi hasil
-                          diubah. Karena itu perubahan nasabah dan persentase
-                          dikunci sampai bulan lalu ditutup. Tutup periode untuk
-                          membekukannya sebagai rekaman resmi.
+                          Angka ini <strong>masih sementara</strong> — bisa berubah bila
+                          ada transaksi yang dibatalkan.
                         </>
                       )}
                     </p>
@@ -426,13 +421,33 @@ export default function DistribusiPage() {
               </CardContent>
             </Card>
 
+            {!sudahDitutup && (
+              <ol className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-sm no-print">
+                {[
+                  ["Pilih bulan", "Bulan yang sudah selesai, biasanya bulan lalu."],
+                  ["Periksa angka", "Cek laba dan bagian setiap nasabah di bawah."],
+                  ["Tutup & Simpan", "Angka dikunci, lalu slip bisa dicetak atau dikirim."],
+                ].map(([judul, isi], i) => (
+                  <li key={judul} className="flex gap-3 rounded-card border border-border bg-white px-3.5 py-3">
+                    <span className="shrink-0 h-6 w-6 rounded-full bg-brand-600 text-white text-xs font-bold flex items-center justify-center">
+                      {i + 1}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-semibold text-slate-900">{judul}</span>
+                      <span className="block text-slate-500 leading-snug">{isi}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+
             {!sudahDitutup && d.rosterDariArsip && (
               <div className="rounded-card border border-sky-200 bg-sky-50/60 px-4 py-3 flex gap-3">
                 <AlertTriangle className="h-4 w-4 text-sky-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-sky-900 leading-relaxed">
-                  Periode ini pernah ditutup lalu dibuka kembali. Daftar nasabah,
-                  modal, dan persentasenya <strong>dipakai ulang dari rekaman
-                  sebelumnya</strong> — hanya angka laba yang dihitung ulang.
+                  Bulan ini pernah disimpan lalu dibuka kembali. Daftar nasabah, modal, dan
+                  persentasenya <strong>tetap memakai yang lama</strong>; hanya laba yang
+                  dihitung ulang.
                 </p>
               </div>
             )}
@@ -459,9 +474,8 @@ export default function DistribusiPage() {
                       </li>
                     ))}
                   </ul>
-                  <p className="text-[11px] text-slate-400 mt-2">
-                    Isi lengkap rekaman sebelum dibuka tersimpan di arsip dan ikut
-                    dalam ekspor data.
+                  <p className="text-xs text-slate-500 mt-2">
+                    Angka sebelum dibuka tetap tersimpan di arsip dan ikut dalam Unduh Data.
                   </p>
                 </CardContent>
               </Card>
@@ -471,8 +485,8 @@ export default function DistribusiPage() {
               <div className="rounded-card border border-gold-200 bg-gold-50/60 px-4 py-3 flex gap-3">
                 <AlertTriangle className="h-4 w-4 text-gold-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-gold-900 leading-relaxed">
-                  Periode ini belum berakhir, jadi belum bisa ditutup. Transaksi
-                  yang masuk sampai akhir bulan masih akan mengubah angkanya.
+                  Bulan ini belum selesai, jadi belum bisa disimpan. Pilih bulan lalu
+                  di kotak bulan di atas.
                 </p>
               </div>
             )}
@@ -481,10 +495,8 @@ export default function DistribusiPage() {
               <div className="rounded-card border border-rose-200 bg-rose-50/60 px-4 py-3 flex gap-3">
                 <TrendingDown className="h-4 w-4 text-rose-600 shrink-0 mt-0.5" />
                 <p className="text-sm text-rose-900 leading-relaxed">
-                  Periode ini <strong>tidak menghasilkan laba</strong>. Sesuai
-                  kebijakan sistem, kerugian tidak dibebankan ke nasabah — bagian
-                  mereka nol, tidak negatif. Bila pengurus memutuskan lain,
-                  kebijakan ini harus diubah lebih dulu.
+                  Bulan ini <strong>tidak ada laba</strong>. Nasabah tidak ikut
+                  menanggung rugi — bagian mereka Rp 0.
                 </p>
               </div>
             )}
@@ -511,7 +523,7 @@ export default function DistribusiPage() {
                 {
                   label: `Bagian Pengelola (${d.persenPengelola}%)`,
                   nilai: d.bagianPengelola,
-                  catatan: "Dialokasikan menurut tabel di bawah",
+                  catatan: "Pembagiannya ada di tabel paling bawah",
                   warna: "bg-sky-50 text-sky-600",
                   icon: Building,
                 },
@@ -530,7 +542,7 @@ export default function DistribusiPage() {
                         >
                           {formatRupiah(k.nilai)}
                         </p>
-                        <p className="text-[11px] text-slate-400 mt-1">{k.catatan}</p>
+                        <p className="text-xs text-slate-500 mt-1">{k.catatan}</p>
                       </div>
                       <span
                         className={cn(
@@ -549,7 +561,7 @@ export default function DistribusiPage() {
             {/* Asal-usul angka laba */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Dari Mana Angka Laba Ini</CardTitle>
+                <CardTitle>Asal Angka Laba</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <dl className="divide-y divide-border text-sm">
@@ -567,7 +579,7 @@ export default function DistribusiPage() {
                     <div key={label as string} className="flex items-baseline justify-between gap-4 py-2.5">
                       <div className="min-w-0">
                         <dt className="text-slate-700">{label as string}</dt>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {catatan as string}
                         </p>
                       </div>
@@ -590,8 +602,8 @@ export default function DistribusiPage() {
                   <div className="flex items-baseline justify-between gap-4 py-2.5">
                     <div className="min-w-0">
                       <dt className="text-slate-700">Barang rusak / hilang</dt>
-                      <p className="text-[11px] text-slate-400 mt-0.5">
-                        Penyesuaian stok keluar bulan ini, dinilai dengan harga beli
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Dicatat di menu Barang Rusak / Hilang, dinilai dengan harga beli
                       </p>
                     </div>
                     <dd className={cn("font-semibold tabular-nums shrink-0", (d.kerugianStok ?? 0) > 0 ? "text-rose-600" : "text-slate-900")}>
@@ -611,9 +623,8 @@ export default function DistribusiPage() {
                     </dd>
                   </div>
                 </dl>
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
-                  Diskon member sebesar {formatRupiah(d.totalDiskon)} sudah
-                  terpotong dari penjualan di atas, jadi tidak dikurangkan lagi.
+                <p className="text-xs text-slate-500 mt-2 leading-relaxed">
+                  Diskon member {formatRupiah(d.totalDiskon)} sudah terpotong dari penjualan.
                 </p>
               </CardContent>
             </Card>
@@ -635,7 +646,7 @@ export default function DistribusiPage() {
                       <thead>
                         <tr className="text-left text-xs uppercase tracking-wide text-slate-400 border-b border-border">
                           <th className="py-2.5 font-medium">Nasabah</th>
-                          <th className="py-2.5 font-medium text-right">Investasi</th>
+                          <th className="py-2.5 font-medium text-right">Modal</th>
                           <th className="py-2.5 font-medium text-right">Porsi</th>
                           <th className="py-2.5 font-medium text-right">Bagi Hasil</th>
                           {sudahDitutup && <th className="py-2.5 w-20 no-print" />}
@@ -689,10 +700,8 @@ export default function DistribusiPage() {
                     </table>
                   </div>
                 )}
-                <p className="text-xs text-slate-400 mt-3 leading-relaxed">
-                  Pembagian dibulatkan ke rupiah penuh. Sisa pembulatan diberikan
-                  ke porsi terbesar lebih dulu, sehingga jumlah seluruh bagian
-                  selalu persis sama dengan bagian nasabah di atas.
+                <p className="text-xs text-slate-500 mt-3 leading-relaxed">
+                  Dibulatkan ke rupiah penuh; jumlahnya selalu sama persis dengan bagian nasabah.
                 </p>
               </CardContent>
             </Card>
@@ -700,12 +709,12 @@ export default function DistribusiPage() {
             {/* Alokasi pengelola */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle>Alokasi Bagian Pengelola</CardTitle>
+                <CardTitle>Pembagian Bagian Pengelola</CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 {d.bagianPengelola <= 0 && (
                   <p className="text-sm text-slate-500 mb-2">
-                    Periode ini tidak menghasilkan laba, jadi tidak ada yang dialokasikan.
+                    Bulan ini tidak ada laba, jadi tidak ada yang dibagi.
                   </p>
                 )}
                 <dl className="divide-y divide-border text-sm">
@@ -745,14 +754,12 @@ export default function DistribusiPage() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-slate-500 leading-relaxed">
-              Rekaman resmi periode ini akan dilepas supaya transaksinya bisa
-              dikoreksi. Isinya — termasuk bagian setiap nasabah yang mungkin
-              sudah dibayarkan — <strong>disimpan utuh di arsip</strong>, bersama
-              nama Anda dan alasan di bawah.
+              Dibuka kembali hanya bila ada transaksi yang perlu dikoreksi. Angka
+              lama <strong>tetap tersimpan di arsip</strong> bersama nama Anda dan
+              alasannya.
             </p>
             <p className="text-sm text-slate-500 leading-relaxed">
-              Saat ditutup ulang, daftar nasabah dan persentasenya tetap memakai
-              yang lama. Kalau angka yang sudah dibayarkan berubah,{" "}
+              Kalau bagian yang sudah dibayarkan ternyata berubah,{" "}
               <strong>beri tahu nasabah</strong>.
             </p>
             <div>
@@ -767,7 +774,7 @@ export default function DistribusiPage() {
                 placeholder="Contoh: transaksi 28 September salah input, perlu dibatalkan"
                 className="mt-1.5 flex w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               />
-              <p className="text-[11px] text-slate-400 mt-1">Minimal 10 karakter.</p>
+              <p className="text-xs text-slate-500 mt-1">Minimal 10 huruf.</p>
             </div>
             <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2">
               <Button

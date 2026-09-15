@@ -117,13 +117,13 @@ export function DialogSlip({
                 </a>
               ) : (
                 <p className="flex-1 text-xs text-slate-500 self-center">
-                  Nomor telepon nasabah belum diisi atau tidak valid — isi di Master Data → Nasabah untuk
+                  Nomor telepon nasabah belum diisi atau tidak valid — isi di Kontak → Nasabah untuk
                   mengirim lewat WhatsApp.
                 </p>
               )}
             </div>
             {tautanWa && (
-              <p className="text-[11px] text-slate-400">
+              <p className="text-xs text-slate-500">
                 WhatsApp akan terbuka dengan pesan ringkasan yang sudah terisi. Periksa lalu tekan kirim sendiri.
               </p>
             )}

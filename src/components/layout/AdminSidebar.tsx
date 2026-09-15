@@ -10,7 +10,7 @@ import { useSidebar } from "@/components/layout/DashboardShell";
 import { useIdentitasStore } from "@/store/identitas";
 
 const adminMenuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/admin" },
+  { icon: LayoutDashboard, label: "Beranda", href: "/admin" },
   { icon: Building2, label: "Profil Organisasi", href: "/admin/profil" },
   { icon: FileText, label: "Berita", href: "/admin/berita" },
   { icon: Users, label: "Pengurus", href: "/admin/pengurus" },

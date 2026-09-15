@@ -140,7 +140,7 @@ export default function MasterDataPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Master Data</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Kontak</h1>
           <p className="text-sm text-slate-500 mt-0.5">
             Kelola data member, nasabah, dan supplier secara terintegrasi
           </p>
@@ -175,7 +175,7 @@ export default function MasterDataPage() {
             {t.label}
             <span
               className={cn(
-                "rounded-full px-1.5 py-0.5 text-[11px]",
+                "rounded-full px-1.5 py-0.5 text-xs",
                 tab === t.id ? "bg-white/20" : "bg-surface-sunken"
               )}
             >

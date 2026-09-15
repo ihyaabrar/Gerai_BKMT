@@ -14,8 +14,8 @@ import { useAuthStore } from "@/store/auth";
 const PINTASAN = [
   {
     href: "/app/keuangan/penjualan",
-    label: "Penjualan",
-    desc: "Pemasukan dari penjualan produk",
+    label: "Riwayat Penjualan",
+    desc: "Semua transaksi penjualan, cetak ulang struk",
     icon: Receipt,
     warna: "bg-brand-50 text-brand-600",
   },
@@ -28,8 +28,8 @@ const PINTASAN = [
   },
   {
     href: "/app/keuangan/distribusi",
-    label: "Distribusi Laba",
-    desc: "Pembagian keuntungan usaha",
+    label: "Bagi Hasil Nasabah",
+    desc: "Bagian keuntungan nasabah setiap bulan",
     icon: PieChart,
     warna: "bg-sky-50 text-sky-600",
     adminSaja: true,
@@ -223,7 +223,7 @@ export default function KeuanganPage() {
                         </p>
                       )}
                       {!loading && c.catatan && (
-                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                        <p className="text-xs text-slate-500 mt-1 leading-snug">
                           {c.catatan}
                         </p>
                       )}

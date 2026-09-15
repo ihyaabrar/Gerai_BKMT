@@ -81,7 +81,7 @@ export function GaleriAgendaSection({ galeri, agenda }: Props) {
                         {f.judul}
                       </p>
                       {f.kategori && (
-                        <p className="text-[11px] text-slate-400 mt-0.5">{f.kategori}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{f.kategori}</p>
                       )}
                     </figcaption>
                   </figure>
@@ -115,7 +115,7 @@ export function GaleriAgendaSection({ galeri, agenda }: Props) {
                       className="flex gap-3.5 rounded-card border border-border bg-white p-3.5"
                     >
                       <div className="w-12 shrink-0 rounded-lg bg-brand-50 text-center py-1.5">
-                        <p className="text-[10px] uppercase text-brand-600 tracking-wide">
+                        <p className="text-xs uppercase text-brand-600 tracking-wide">
                           {format(tgl, "MMM", { locale: localeId })}
                         </p>
                         <p className="text-lg font-bold text-brand-700 leading-tight">
@@ -126,7 +126,7 @@ export function GaleriAgendaSection({ galeri, agenda }: Props) {
                         <p className="text-sm font-semibold text-slate-900 leading-snug line-clamp-2">
                           {a.judul}
                         </p>
-                        <div className="mt-1.5 space-y-1 text-[11px] text-slate-500">
+                        <div className="mt-1.5 space-y-1 text-xs text-slate-500">
                           {(a.waktuMulai || a.waktuSelesai) && (
                             <p className="flex items-center gap-1.5">
                               <Clock className="h-3 w-3 text-slate-300 shrink-0" />

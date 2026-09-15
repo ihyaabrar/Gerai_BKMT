@@ -170,7 +170,7 @@ export default function StokPage() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold">Stok Barang</h1>
-        <p className="text-slate-500">Monitoring inventori real-time</p>
+        <p className="text-slate-500">Jumlah dan harga setiap barang di toko</p>
       </div>
 
       {/* Alert stok rendah/habis */}
@@ -222,7 +222,7 @@ export default function StokPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Nilai Inventori</CardTitle>
+            <CardTitle className="text-sm font-medium text-slate-600">Nilai Stok (harga beli)</CardTitle>
             <Package className="h-5 w-5 text-brand-600" />
           </CardHeader>
           <CardContent>
@@ -427,7 +427,7 @@ export default function StokPage() {
                 <span className="text-slate-500">Stok sekarang: </span>
                 <span className="font-semibold">{diedit.stok} {diedit.satuan}</span>
                 <p className="text-xs text-slate-500 mt-1">
-                  Stok tidak diubah di sini. Tambah lewat Barang Masuk, kurangi lewat Penyesuaian —
+                  Stok tidak diubah di sini. Tambah lewat Barang Masuk, kurangi lewat Barang Rusak / Hilang —
                   supaya setiap perubahan tercatat.
                 </p>
               </div>
