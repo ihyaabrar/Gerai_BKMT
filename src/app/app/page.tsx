@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatRupiah } from "@/lib/utils";
 import {
@@ -11,6 +11,7 @@ import {
   Wallet, UserPlus, Minus, ShoppingCart, PackagePlus,
 } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
+import { StatCard } from "@/components/ui/stat-card";
 import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
 import { useAuthStore } from "@/store/auth";
 
@@ -40,12 +41,12 @@ const WARNA_AKTIVITAS = {
 /** Indikator naik/turun pada kartu ringkasan. */
 function Tren({ nilai, satuan }: { nilai: number | null; satuan: string }) {
   if (nilai === null) {
-    return <p className="text-xs text-slate-400 mt-1.5">{satuan}</p>;
+    return <span>{satuan}</span>;
   }
   const naik = nilai >= 0;
   const Ikon = naik ? TrendingUp : TrendingDown;
   return (
-    <p className="text-xs mt-1.5 flex items-center gap-1.5">
+    <span className="flex items-center gap-1.5">
       <span
         className={cn(
           "inline-flex items-center gap-0.5 font-semibold",
@@ -56,8 +57,8 @@ function Tren({ nilai, satuan }: { nilai: number | null; satuan: string }) {
         {naik ? "+" : ""}
         {nilai}%
       </span>
-      <span className="text-slate-400">{satuan}</span>
-    </p>
+      <span>{satuan}</span>
+    </span>
   );
 }
 
@@ -87,8 +88,7 @@ export default function Dashboard() {
       title: "Penjualan Hari Ini",
       value: formatRupiah(data.penjualanHariIni),
       icon: DollarSign,
-      warna: "bg-brand-50 text-brand-700",
-      latar: "bg-brand-50/50",
+      nada: "brand" as const,
       tren: data.tren?.penjualan ?? null,
       satuan: "dari kemarin",
     },
@@ -99,8 +99,7 @@ export default function Dashboard() {
           title: "Laba Bulan Ini",
           value: formatRupiah(data.labaKotor),
           icon: TrendingUp,
-          warna: "bg-gold-50 text-gold-600",
-          latar: "bg-gold-50/40",
+          nada: "gold" as const,
           tren: data.tren?.laba ?? null,
           satuan: "dari bulan lalu",
         }
@@ -108,8 +107,7 @@ export default function Dashboard() {
           title: "Transaksi Hari Ini",
           value: `${data.transaksiHariIni ?? 0} transaksi`,
           icon: Receipt,
-          warna: "bg-gold-50 text-gold-600",
-          latar: "bg-gold-50/40",
+          nada: "gold" as const,
           tren: null,
           satuan: "Sejak pukul 00.00",
         },
@@ -117,8 +115,7 @@ export default function Dashboard() {
       title: "Stok Rendah",
       value: `${data.stokRendah} produk`,
       icon: AlertTriangle,
-      warna: "bg-rose-50 text-rose-600",
-      latar: "bg-rose-50/40",
+      nada: "rose" as const,
       tren: null,
       satuan: data.stokRendah > 0 ? "Perlu segera diisi" : "Semua stok aman",
     },
@@ -126,8 +123,7 @@ export default function Dashboard() {
       title: "Jumlah Barang",
       value: `${data.totalBarang} barang`,
       icon: Package,
-      warna: "bg-sky-50 text-sky-600",
-      latar: "bg-sky-50/40",
+      nada: "sky" as const,
       tren: data.tren?.produk ?? null,
       satuan: "dari bulan lalu",
     },
@@ -138,7 +134,7 @@ export default function Dashboard() {
       {/* Sambutan — ringkas, tanpa panel berwarna tebal */}
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-[28px] font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Selamat datang{user?.nama ? `, ${user.nama.split(" ")[0]}` : ""}!
           </h1>
           <p className="text-sm text-slate-500 mt-1">
@@ -183,30 +179,14 @@ export default function Dashboard() {
       {/* Ringkasan */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         {kartu.map((c) => (
-          <div
+          <StatCard
             key={c.title}
-            className={cn(
-              "rounded-card border border-border p-5 transition-colors",
-              c.latar
-            )}
-          >
-            <span
-              className={cn(
-                "inline-flex h-9 w-9 rounded-lg items-center justify-center",
-                c.warna
-              )}
-            >
-              <c.icon className="h-[18px] w-[18px]" />
-            </span>
-            <p className="mt-3.5 text-[13px] font-medium text-slate-500">{c.title}</p>
-            <p
-              title={String(c.value)}
-              className="mt-1 text-[22px] font-bold text-slate-900 truncate tracking-tight"
-            >
-              {c.value}
-            </p>
-            <Tren nilai={c.tren} satuan={c.satuan} />
-          </div>
+            label={c.title}
+            nilai={c.value}
+            icon={c.icon}
+            nada={c.nada}
+            catatan={<Tren nilai={c.tren} satuan={c.satuan} />}
+          />
         ))}
       </div>
 
@@ -216,9 +196,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
-                  <BarChart3 className="h-[18px] w-[18px]" />
-                </span>
+                <CardIcon icon={BarChart3} nada="brand" />
                 {typeof data.labaKotor === "number" ? "Grafik Penjualan & Laba" : "Grafik Penjualan"}
               </CardTitle>
               <span className="text-xs text-slate-500">12 bulan terakhir</span>
@@ -243,9 +221,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-8 w-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
-                  <Clock className="h-[18px] w-[18px]" />
-                </span>
+                <CardIcon icon={Clock} nada="sky" />
                 5 Transaksi Terakhir
               </CardTitle>
               <Link
@@ -299,9 +275,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2.5">
-              <span className="h-8 w-8 rounded-lg bg-gold-50 text-gold-600 flex items-center justify-center">
-                <Award className="h-[18px] w-[18px]" />
-              </span>
+              <CardIcon icon={Award} nada="gold" />
               Barang Paling Laku
             </CardTitle>
           </CardHeader>
@@ -337,9 +311,7 @@ export default function Dashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-8 w-8 rounded-lg bg-rose-50 text-rose-600 flex items-center justify-center">
-                  <Boxes className="h-[18px] w-[18px]" />
-                </span>
+                <CardIcon icon={Boxes} nada="rose" />
                 Status Stok
               </CardTitle>
               <Link
@@ -384,9 +356,7 @@ export default function Dashboard() {
         <Card className="lg:col-span-2 xl:col-span-1">
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2.5">
-              <span className="h-8 w-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
-                <Minus className="h-[18px] w-[18px] rotate-90" />
-              </span>
+              <CardIcon icon={Minus} nada="violet" />
               Aktivitas Hari Ini
             </CardTitle>
           </CardHeader>

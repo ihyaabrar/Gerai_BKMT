@@ -114,13 +114,13 @@ export function ImageUpload({
             src={gambarLebar(value, LEBAR.pratinjau)}
             alt="Pratinjau gambar"
             decoding="async"
-            className={`${sizeClass} ${shapeClass} object-cover border-2 border-gray-200`}
+            className={`${sizeClass} ${shapeClass} object-cover border-2 border-border`}
           />
           <div className="flex flex-wrap gap-2">
             <label
               htmlFor={inputId}
               onClick={handleLabelClick}
-              className={`inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+              className={`inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg border border-border bg-white text-sm font-medium text-slate-700 cursor-pointer hover:bg-surface-sunken transition-colors select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
             >
               {uploading ? (
                 <><Loader2 className="h-4 w-4 animate-spin" /> Mengunggah...</>
@@ -144,16 +144,16 @@ export function ImageUpload({
         <label
           htmlFor={inputId}
           onClick={handleLabelClick}
-          className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed border-gray-300 rounded-xl p-6 cursor-pointer hover:border-emerald-400 hover:bg-emerald-50/50 transition-all select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+          className={`flex flex-col items-center justify-center gap-3 border-2 border-dashed border-border rounded-xl p-6 cursor-pointer hover:border-brand-400 hover:bg-brand-50/50 transition-all select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
         >
           {uploading ? (
             <>
-              <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
+              <Loader2 className="h-8 w-8 text-brand-500 animate-spin" />
               <p className="text-sm text-slate-500">Mengunggah gambar...</p>
             </>
           ) : (
             <>
-              <div className="p-3 bg-gray-100 rounded-xl">
+              <div className="p-3 bg-surface-sunken rounded-xl">
                 <ImageIcon className="h-6 w-6 text-slate-400" />
               </div>
               <div className="text-center">

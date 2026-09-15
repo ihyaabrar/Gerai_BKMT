@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -117,8 +117,8 @@ export default function SupplierPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Supplier</h1>
-          <p className="text-slate-500">Daftar pemasok barang</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Supplier</h1>
+          <p className="text-sm text-slate-500 mt-1">Daftar pemasok barang</p>
         </div>
         <Dialog
           open={open}
@@ -185,8 +185,8 @@ export default function SupplierPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Truck className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Truck} nada="brand" />
             Daftar Supplier
           </CardTitle>
         </CardHeader>

@@ -110,7 +110,7 @@ export function DialogSlip({
                   href={tautanWa}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex-1 inline-flex items-center justify-center rounded-md bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700"
+                  className="flex-1 inline-flex items-center justify-center rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white hover:bg-brand-700"
                 >
                   <MessageCircle className="h-4 w-4 mr-2" />
                   Kirim lewat WhatsApp

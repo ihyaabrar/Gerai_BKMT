@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ShortcutCard } from "@/components/ui/shortcut-card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -62,14 +63,14 @@ export default function SistemPage() {
       label: "Buka / Tutup Kasir",
       desc: "Buka kasir sebelum jualan, tutup setelah uang laci dihitung",
       icon: Clock,
-      warna: "bg-brand-50 text-brand-600",
+      nada: "brand" as const,
     },
     {
       href: "/app/sistem/pengaturan",
       label: "Pengaturan Toko",
       desc: "Identitas toko, diskon, dan kategori",
       icon: Settings,
-      warna: "bg-gold-50 text-gold-600",
+      nada: "gold" as const,
       adminSaja: true,
     },
     {
@@ -77,7 +78,7 @@ export default function SistemPage() {
       label: "Pengguna",
       desc: "Kelola akun dan hak akses",
       icon: Users,
-      warna: "bg-violet-50 text-violet-600",
+      nada: "violet" as const,
       adminSaja: true,
       masterSaja: true,
     },
@@ -86,7 +87,7 @@ export default function SistemPage() {
       label: "Unduh Data (Excel)",
       desc: "Simpan salinan data per bulan ke komputer",
       icon: DatabaseBackup,
-      warna: "bg-sky-50 text-sky-600",
+      nada: "sky" as const,
       adminSaja: true,
     },
     {
@@ -94,22 +95,22 @@ export default function SistemPage() {
       label: "Printer",
       desc: "Printer thermal Bluetooth atau printer sistem, lebar kertas",
       icon: Printer,
-      warna: "bg-slate-100 text-slate-600",
+      nada: "slate" as const,
     },
     {
       href: "/app/akun",
       label: "Akun Saya",
       desc: "Lihat akun dan ganti password",
       icon: KeyRound,
-      warna: "bg-emerald-50 text-emerald-600",
+      nada: "brand" as const,
     },
   ];
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Pengaturan</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Pengaturan</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Pengaturan toko, buka/tutup kasir, printer, dan unduh data
         </p>
       </div>
@@ -118,25 +119,7 @@ export default function SistemPage() {
         {pintasan
           .filter((p) => (isAdmin || !p.adminSaja) && (!p.masterSaja || user?.role === "master"))
           .map((p) => (
-            <Link
-              key={p.href}
-              href={p.href}
-              className="group rounded-card border border-border bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-            >
-              <div className="flex items-start justify-between gap-3">
-                <span
-                  className={cn(
-                    "h-11 w-11 rounded-2xl flex items-center justify-center shrink-0",
-                    p.warna
-                  )}
-                >
-                  <p.icon className="h-5 w-5" />
-                </span>
-                <ArrowRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500" />
-              </div>
-              <p className="mt-3.5 font-bold text-slate-900">{p.label}</p>
-              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{p.desc}</p>
-            </Link>
+            <ShortcutCard key={p.href} href={p.href} label={p.label} desc={p.desc} icon={p.icon} nada={p.nada} />
           ))}
       </div>
 
@@ -146,9 +129,7 @@ export default function SistemPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-9 w-9 rounded-xl bg-brand-50 text-brand-600 flex items-center justify-center">
-                  <Store className="h-[18px] w-[18px]" />
-                </span>
+                <CardIcon icon={Store} nada="brand" />
                 Informasi Toko
               </CardTitle>
               {isAdmin && (
@@ -197,9 +178,7 @@ export default function SistemPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2.5">
-              <span className="h-9 w-9 rounded-xl bg-gold-50 text-gold-600 flex items-center justify-center">
-                <Percent className="h-[18px] w-[18px]" />
-              </span>
+              <CardIcon icon={Percent} nada="gold" />
               Aturan Berjalan
             </CardTitle>
           </CardHeader>
@@ -253,9 +232,7 @@ export default function SistemPage() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-9 w-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center">
-                  <Clock className="h-[18px] w-[18px]" />
-                </span>
+                <CardIcon icon={Clock} nada="sky" />
                 Status Shift
               </CardTitle>
               <Link
@@ -306,9 +283,7 @@ export default function SistemPage() {
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2.5">
-              <span className="h-9 w-9 rounded-xl bg-violet-50 text-violet-600 flex items-center justify-center">
-                <ShieldCheck className="h-[18px] w-[18px]" />
-              </span>
+              <CardIcon icon={ShieldCheck} nada="violet" />
               Informasi Sistem
             </CardTitle>
           </CardHeader>

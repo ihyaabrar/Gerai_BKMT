@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, History, Trash2 } from "lucide-react";
@@ -131,8 +131,8 @@ export default function PenyesuaianPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Barang Rusak / Hilang</h1>
-        <p className="text-slate-500">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Barang Rusak / Hilang</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Catat barang rusak, hilang, atau kedaluwarsa — juga stok yang ternyata salah hitung.
         </p>
       </div>
@@ -140,8 +140,8 @@ export default function PenyesuaianPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <ClipboardList className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={ClipboardList} nada="brand" />
               Catat Perubahan Stok
             </CardTitle>
           </CardHeader>
@@ -153,7 +153,7 @@ export default function PenyesuaianPage() {
                   required
                   value={form.barangId}
                   onChange={(e) => handleBarangChange(e.target.value)}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm mt-1"
+                  className="flex h-10 w-full rounded-lg border border-border bg-white px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/25 mt-1"
                 >
                   <option value="">-- Pilih Barang --</option>
                   {barangList.map((b) => (
@@ -176,15 +176,13 @@ export default function PenyesuaianPage() {
                   <Button
                     type="button"
                     variant={form.jenis === "masuk" ? "default" : "outline"}
-                    className={form.jenis === "masuk" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
                     onClick={() => setForm({ ...form, jenis: "masuk" })}
                   >
                     + Tambah
                   </Button>
                   <Button
                     type="button"
-                    variant={form.jenis === "keluar" ? "default" : "outline"}
-                    className={form.jenis === "keluar" ? "bg-red-600 hover:bg-red-700" : ""}
+                    variant={form.jenis === "keluar" ? "destructive" : "outline"}
                     onClick={() => setForm({ ...form, jenis: "keluar" })}
                   >
                     − Kurangi
@@ -192,8 +190,7 @@ export default function PenyesuaianPage() {
                   {bolehHapusBarang && (
                     <Button
                       type="button"
-                      variant={form.jenis === "hapus" ? "default" : "outline"}
-                      className={form.jenis === "hapus" ? "bg-gray-800 hover:bg-gray-900" : ""}
+                      variant={form.jenis === "hapus" ? "destructive" : "outline"}
                       onClick={() => setForm({ ...form, jenis: "hapus" })}
                     >
                       <Trash2 className="h-4 w-4" />
@@ -239,12 +236,12 @@ export default function PenyesuaianPage() {
                     <div className={`p-3 rounded-lg border-2 ${
                       stokSetelah !== null && stokSetelah < 0
                         ? "bg-red-50 border-red-200"
-                        : "bg-blue-50 border-blue-200"
+                        : "bg-sky-50 border-sky-200"
                     }`}>
                       <p className="text-sm font-medium text-slate-700">Stok setelah disimpan</p>
                       <div className="flex justify-between mt-1 text-sm">
                         <span className="text-slate-600">Stok saat ini: <strong>{selectedBarang.stok}</strong></span>
-                        <span className={stokSetelah !== null && stokSetelah < 0 ? "text-red-600 font-bold" : "text-blue-700 font-bold"}>
+                        <span className={stokSetelah !== null && stokSetelah < 0 ? "text-red-600 font-bold" : "text-sky-700 font-bold"}>
                           Setelah: {stokSetelah}
                         </span>
                       </div>
@@ -267,7 +264,7 @@ export default function PenyesuaianPage() {
 
               {form.jenis === "hapus" && bolehHapusBarang && selectedBarang && (
                 <div className="space-y-3">
-                  <div className="p-3 rounded-lg border-2 bg-red-50 border-red-300">
+                  <div className="p-3 rounded-lg border bg-rose-50 border-rose-200">
                     <p className="text-sm font-semibold text-red-700 flex items-center gap-1">
                       <Trash2 className="h-4 w-4" /> Konfirmasi Hapus Barang
                     </p>
@@ -279,7 +276,8 @@ export default function PenyesuaianPage() {
                   {!confirmHapus ? (
                     <Button
                       type="button"
-                      className="w-full bg-red-600 hover:bg-red-700"
+                      variant="destructive"
+                      className="w-full"
                       size="lg"
                       onClick={() => setConfirmHapus(true)}
                     >
@@ -294,7 +292,7 @@ export default function PenyesuaianPage() {
                         </Button>
                         <Button
                           type="button"
-                          className="bg-red-600 hover:bg-red-700"
+                          variant="destructive"
                           disabled={loading}
                           onClick={handleHapusBarang}
                         >
@@ -311,15 +309,15 @@ export default function PenyesuaianPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <History className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={History} nada="brand" />
               Riwayat
             </CardTitle>
           </CardHeader>
           <CardContent>
             {history.length === 0 ? (
               <div className="text-center py-8 text-slate-500">
-                <ClipboardList className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                <ClipboardList className="h-12 w-12 mx-auto mb-3 text-slate-300" />
                 <p>Belum ada catatan barang rusak atau hilang</p>
               </div>
             ) : (
@@ -335,7 +333,7 @@ export default function PenyesuaianPage() {
                       <div className="text-right">
                         <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
                           p.jenis === "masuk"
-                            ? "bg-emerald-100 text-emerald-700"
+                            ? "bg-brand-100 text-brand-800"
                             : "bg-red-100 text-red-700"
                         }`}>
                           {p.jenis === "masuk" ? `+${p.qty}` : `-${p.qty}`}

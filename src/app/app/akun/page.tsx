@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { KeyRound, UserCircle } from "lucide-react";
@@ -60,14 +60,14 @@ export default function AkunPage() {
   return (
     <div className="space-y-6 max-w-xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Akun Saya</h1>
-        <p className="text-sm text-slate-500 mt-0.5">Data akun dan password Anda</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Akun Saya</h1>
+        <p className="text-sm text-slate-500 mt-1">Data akun dan password Anda</p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <UserCircle className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={UserCircle} nada="brand" />
             Akun
           </CardTitle>
         </CardHeader>
@@ -87,8 +87,8 @@ export default function AkunPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <KeyRound className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={KeyRound} nada="brand" />
             Ganti Password
           </CardTitle>
         </CardHeader>

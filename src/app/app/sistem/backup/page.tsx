@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -114,10 +114,10 @@ export default function EksporPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Unduh Data (Excel)
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 mt-1">
             Salinan data dalam format JSON untuk arsip dan pemeriksaan.
           </p>
         </div>
@@ -150,7 +150,7 @@ export default function EksporPage() {
 
       {/* Yang sebenarnya melindungi data */}
       <Card>
-        <CardContent className="p-5 pt-5 flex items-start gap-3.5">
+        <CardContent className="flex items-start gap-3.5">
           <span className="shrink-0 h-11 w-11 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center">
             <ShieldCheck className="h-5 w-5" />
           </span>
@@ -174,8 +174,8 @@ export default function EksporPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <Database className="h-5 w-5 text-slate-400" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Database} nada="brand" />
             Isi Database
           </CardTitle>
         </CardHeader>

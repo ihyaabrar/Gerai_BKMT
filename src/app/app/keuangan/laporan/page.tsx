@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { BarChart3, TrendingUp, ShoppingCart, DollarSign, Download, FileText, Loader2, Calendar } from "lucide-react";
+import { BarChart3, TrendingUp, ShoppingCart, Coins, Download, Printer, Loader2, Calendar, Award } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -47,13 +48,13 @@ export default function LaporanPage() {
       if (!res.ok || !result) {
         // Tanpa ini, respons galat disimpan sebagai laporan dan halaman
         // menampilkan "Rp NaN" atau berhenti karena data yang tidak lengkap.
-        toast.error(result?.error || "Gagal generate laporan");
+        toast.error(result?.error || "Laporan gagal dibuat");
         return;
       }
       setData(result);
-      toast.success("Laporan berhasil di-generate!");
+      toast.success("Laporan siap");
     } catch (error) {
-      toast.error("Gagal generate laporan");
+      toast.error("Laporan gagal dibuat");
       console.error("Failed to generate report:", error);
     } finally {
       setLoading(false);
@@ -124,59 +125,60 @@ export default function LaporanPage() {
     }
   };
 
-  return (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="animate-slideInRight">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-          Laporan Penjualan
-        </h1>
-        <p className="text-slate-600 mt-2">Ringkasan dan statistik penjualan periode tertentu</p>
-      </div>
+  const maks = data ? Math.max(1, ...data.chartData.map((d) => d.total)) : 1;
+  const labaKotor = data ? data.labaDibagi ?? data.totalLaba : 0;
 
-      <Card className="border-0 shadow-lg animate-fadeIn" style={{ animationDelay: '0.1s' }}>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
-              <Calendar className="h-4 w-4 text-white" />
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        judul="Laporan Penjualan"
+        deskripsi="Penjualan per hari dan barang paling laku untuk periode yang dipilih."
+        aksi={
+          data && (
+            <div className="flex gap-2 print:hidden">
+              <Button onClick={handleExportExcel} variant="outline">
+                <Download className="h-4 w-4" /> Unduh Excel
+              </Button>
+              <Button onClick={handlePrint} variant="outline">
+                <Printer className="h-4 w-4" /> Cetak / PDF
+              </Button>
             </div>
-            Filter Periode
+          )
+        }
+      />
+
+      <Card className="print:hidden">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Calendar} nada="sky" />
+            Pilih Periode
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4 items-end flex-wrap">
-            <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium text-slate-700" htmlFor="tanggal-mulai">Tanggal Mulai</label>
+          <div className="flex gap-3 items-end flex-wrap">
+            <div className="flex-1 min-w-[180px]">
+              <label className="text-sm font-medium text-slate-700" htmlFor="tanggal-mulai">Dari tanggal</label>
               <Input id="tanggal-mulai"
                 type="date"
                 value={form.startDate}
                 onChange={(e) => setForm({ ...form, startDate: e.target.value })}
-                className="mt-1"
+                className="mt-1.5"
               />
             </div>
-            <div className="flex-1 min-w-[200px]">
-              <label className="text-sm font-medium text-slate-700" htmlFor="tanggal-akhir">Tanggal Akhir</label>
+            <div className="flex-1 min-w-[180px]">
+              <label className="text-sm font-medium text-slate-700" htmlFor="tanggal-akhir">Sampai tanggal</label>
               <Input id="tanggal-akhir"
                 type="date"
                 value={form.endDate}
                 onChange={(e) => setForm({ ...form, endDate: e.target.value })}
-                className="mt-1"
+                className="mt-1.5"
               />
             </div>
-            <Button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="h-11"
-            >
+            <Button onClick={handleGenerate} disabled={loading} className="w-full sm:w-auto">
               {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Memproses...
-                </>
+                <><Loader2 className="h-4 w-4 animate-spin" /> Memproses...</>
               ) : (
-                <>
-                  <BarChart3 className="h-4 w-4 mr-2" />
-                  Tampilkan Laporan
-                </>
+                <><BarChart3 className="h-4 w-4" /> Tampilkan Laporan</>
               )}
             </Button>
           </div>
@@ -185,200 +187,97 @@ export default function LaporanPage() {
 
       {data && (
         <>
-          <div className="flex justify-end gap-2 print:hidden animate-fadeIn" style={{ animationDelay: '0.2s' }}>
-            <Button 
-              onClick={handleExportExcel} 
-              variant="outline"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Unduh Excel
-            </Button>
-            <Button onClick={handlePrint} variant="outline" className="hover-lift">
-              <FileText className="h-4 w-4 mr-2" />
-              Cetak / PDF
-            </Button>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StatCard
+              label="Total Penjualan"
+              nilai={formatRupiah(data.totalPenjualan)}
+              icon={TrendingUp}
+              nada="brand"
+              catatan={`${data.totalTransaksi} transaksi`}
+            />
+            <StatCard
+              label="Laba Kotor"
+              nilai={formatRupiah(labaKotor)}
+              icon={Coins}
+              nada="gold"
+              negatif={labaKotor < 0}
+              catatan={
+                (data.kerugianStok ?? 0) > 0
+                  ? `Sudah dikurangi barang rusak/hilang ${formatRupiah(data.kerugianStok ?? 0)}`
+                  : `${data.totalPenjualan > 0 ? ((labaKotor / data.totalPenjualan) * 100).toFixed(1) : 0}% dari penjualan`
+              }
+            />
+            <StatCard
+              label="Rata-rata per Transaksi"
+              nilai={formatRupiah(data.totalTransaksi > 0 ? Math.round(data.totalPenjualan / data.totalTransaksi) : 0)}
+              icon={ShoppingCart}
+              nada="violet"
+            />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <Card className="relative overflow-hidden hover-lift animate-fadeIn border-0 shadow-lg" style={{ animationDelay: '0.3s' }}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-500 to-teal-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-slate-600">Total Penjualan</CardTitle>
-                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                  <DollarSign className="h-4 w-4 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-slate-900">
-                  {formatRupiah(data.totalPenjualan)}
-                </div>
-                <p className="text-sm text-brand-600 mt-2 font-medium">
-                  {data.totalTransaksi} transaksi
-                </p>
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden hover-lift animate-fadeIn border-0 shadow-lg" style={{ animationDelay: '0.4s' }}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-500 to-indigo-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-slate-600">Total Laba</CardTitle>
-                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
-                  <TrendingUp className="h-4 w-4 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-slate-900">
-                  {formatRupiah(data.totalLaba)}
-                </div>
-                <p className="text-sm text-brand-600 mt-2 font-medium">
-                  Margin:{" "}
-                  {data.totalPenjualan > 0
-                    ? ((data.totalLaba / data.totalPenjualan) * 100).toFixed(1)
-                    : 0}
-                  %
-                </p>
-                {(data.kerugianStok ?? 0) > 0 && (
-                  <p className="text-xs text-slate-500 mt-1">
-                    Barang rusak/hilang {formatRupiah(data.kerugianStok ?? 0)} → laba dibagi{" "}
-                    <span className="font-semibold text-slate-700">
-                      {formatRupiah(data.labaDibagi ?? data.totalLaba)}
-                    </span>
-                  </p>
-                )}
-              </CardContent>
-            </Card>
-
-            <Card className="relative overflow-hidden hover-lift animate-fadeIn border-0 shadow-lg" style={{ animationDelay: '0.5s' }}>
-              <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-violet-500 to-purple-600 opacity-10 rounded-full -mr-16 -mt-16"></div>
-              <CardHeader className="flex flex-row items-center justify-between pb-2 relative z-10">
-                <CardTitle className="text-sm font-medium text-slate-600">Rata-rata Transaksi</CardTitle>
-                <div className="p-2 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600">
-                  <ShoppingCart className="h-4 w-4 text-white" />
-                </div>
-              </CardHeader>
-              <CardContent className="relative z-10">
-                <div className="text-3xl font-bold text-slate-900">
-                  {formatRupiah(
-                    data.totalTransaksi > 0 ? data.totalPenjualan / data.totalTransaksi : 0
-                  )}
-                </div>
-                <p className="text-sm text-violet-600 mt-2 font-medium">Per transaksi</p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card className="border-0 shadow-lg animate-fadeIn" style={{ animationDelay: '0.6s' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                  <BarChart3 className="h-4 w-4 text-white" />
-                </div>
-                Grafik Penjualan Harian
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2.5">
+                <CardIcon icon={BarChart3} nada="brand" />
+                Penjualan per Hari
               </CardTitle>
             </CardHeader>
             <CardContent>
               {data.chartData.length > 0 ? (
-                <div className="space-y-3">
-                  {data.chartData.map((item, idx) => {
-                    const maxValue = Math.max(...data.chartData.map((d) => d.total));
-                    const percentage = maxValue > 0 ? (item.total / maxValue) * 100 : 0;
-
-                    return (
-                      <div 
-                        key={item.date} 
-                        className="flex items-center gap-4 animate-slideInRight"
-                        style={{ animationDelay: `${0.7 + idx * 0.05}s` }}
-                      >
-                        <div className="w-24 text-sm font-medium text-slate-700">
-                          {format(new Date(item.date), "dd MMM")}
-                        </div>
-                        <div className="flex-1">
-                          <div className="w-full bg-gray-100 rounded-full h-10 relative overflow-hidden">
-                            <div
-                              className="bg-gradient-to-r from-emerald-500 to-teal-600 h-10 rounded-full flex items-center justify-end pr-4 transition-all-smooth"
-                              style={{ width: `${Math.max(percentage, 5)}%` }}
-                            >
-                              {percentage > 20 && (
-                                <span className="text-white text-sm font-semibold">
-                                  {formatRupiah(item.total)}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                        {percentage <= 20 && (
-                          <div className="w-32 text-sm font-semibold text-slate-700">
-                            {formatRupiah(item.total)}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <ul className="space-y-2.5">
+                  {data.chartData.map((item) => (
+                    <li key={item.date} className="grid grid-cols-[4.5rem_1fr_auto] sm:grid-cols-[6rem_1fr_8rem] items-center gap-3">
+                      <span className="text-sm text-slate-600">{format(new Date(item.date), "dd MMM")}</span>
+                      <span className="h-3 rounded-full bg-surface-sunken overflow-hidden">
+                        <span
+                          className="block h-full rounded-full bg-brand-500"
+                          style={{ width: `${Math.max(2, (item.total / maks) * 100)}%` }}
+                        />
+                      </span>
+                      <span className="text-sm font-semibold text-slate-900 tabular-nums text-right">
+                        {formatRupiah(item.total)}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               ) : (
                 <div className="text-center py-12 text-slate-500">
-                  <BarChart3 className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>Tidak ada data penjualan pada periode ini</p>
+                  <BarChart3 className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+                  <p className="text-sm">Tidak ada penjualan pada periode ini</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-lg animate-fadeIn" style={{ animationDelay: '0.8s' }}>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500 to-orange-600">
-                  <TrendingUp className="h-4 w-4 text-white" />
-                </div>
-                Produk Terlaris
+          <Card>
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-2.5">
+                <CardIcon icon={Award} nada="gold" />
+                Barang Paling Laku
               </CardTitle>
             </CardHeader>
             <CardContent>
               {data.produkTerlaris.length > 0 ? (
-                <div className="overflow-x-auto">
-                  <table className="w-full min-w-[600px]">
-                    <thead>
-                      <tr className="border-b-2 border-gray-200">
-                        <th className="text-left p-4 text-sm font-semibold text-slate-700">Ranking</th>
-                        <th className="text-left p-4 text-sm font-semibold text-slate-700">Produk</th>
-                        <th className="text-right p-4 text-sm font-semibold text-slate-700">Qty Terjual</th>
-                        <th className="text-right p-4 text-sm font-semibold text-slate-700">Total Penjualan</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.produkTerlaris.map((p, index) => (
-                        <tr 
-                          key={p.id} 
-                          className="border-b border-gray-100 hover:bg-gradient-to-r hover:from-emerald-50 hover:to-teal-50 transition-all-smooth animate-fadeIn"
-                          style={{ animationDelay: `${0.9 + index * 0.1}s` }}
-                        >
-                          <td className="p-4">
-                            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-bold shadow-md">
-                              {index + 1}
-                            </div>
-                          </td>
-                          <td className="p-4">
-                            <p className="font-semibold text-slate-900">{p.nama}</p>
-                          </td>
-                          <td className="p-4 text-right">
-                            <Badge variant="outline" className="font-semibold">
-                              {p.qty} unit
-                            </Badge>
-                          </td>
-                          <td className="p-4 text-right">
-                            <p className="font-bold text-brand-600 text-lg">
-                              {formatRupiah(p.total)}
-                            </p>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                <ol className="divide-y divide-border">
+                  {data.produkTerlaris.map((p, index) => (
+                    <li key={p.id} className="flex items-center gap-3 py-3 first:pt-0 last:pb-0">
+                      <span className="shrink-0 h-8 w-8 rounded-lg bg-brand-50 text-brand-700 text-sm font-bold flex items-center justify-center">
+                        {index + 1}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-sm text-slate-900 break-words">{p.nama}</p>
+                        <p className="text-xs text-slate-500 mt-0.5">{p.qty} terjual</p>
+                      </div>
+                      <span className="font-bold text-sm text-brand-700 tabular-nums shrink-0">
+                        {formatRupiah(p.total)}
+                      </span>
+                    </li>
+                  ))}
+                </ol>
               ) : (
                 <div className="text-center py-12 text-slate-500">
-                  <TrendingUp className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                  <p>Tidak ada data produk pada periode ini</p>
+                  <Award className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+                  <p className="text-sm">Tidak ada barang terjual pada periode ini</p>
                 </div>
               )}
             </CardContent>
@@ -387,15 +286,13 @@ export default function LaporanPage() {
       )}
 
       {!data && !loading && (
-        <Card className="border-0 shadow-lg animate-scaleIn" style={{ animationDelay: '0.2s' }}>
-          <CardContent className="py-16">
-            <div className="text-center text-slate-500">
-              <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center animate-bounce-soft">
-                <BarChart3 className="h-10 w-10 text-white" />
-              </div>
-              <p className="text-lg font-medium text-slate-700 mb-2">Belum Ada Laporan</p>
-              <p className="text-slate-500">Pilih periode lalu tekan "Tampilkan Laporan"</p>
-            </div>
+        <Card>
+          <CardContent className="py-14 text-center">
+            <span className="mx-auto mb-4 h-14 w-14 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center">
+              <BarChart3 className="h-7 w-7" />
+            </span>
+            <p className="font-semibold text-slate-900">Belum ada laporan</p>
+            <p className="text-sm text-slate-500 mt-1">Pilih periode lalu tekan &quot;Tampilkan Laporan&quot;.</p>
           </CardContent>
         </Card>
       )}

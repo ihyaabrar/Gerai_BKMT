@@ -14,6 +14,7 @@ import { strukDariPenjualan } from "@/lib/struk";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PrintReceipt } from "@/components/PrintReceipt";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { cariBarangDariPindai } from "@/lib/barcode";
 import { DialogBukaKasir } from "@/components/DialogBukaKasir";
 import { InputRupiah } from "@/components/ui/input-rupiah";
 import { saranUangBayar } from "@/lib/uang";
@@ -123,12 +124,37 @@ export default function KasirPage() {
   );
 
   const handleBarcodeScanned = (barcode: string) => {
-    const barang = barangList.find((b) => b.barcode === barcode);
+    const barang = cariBarangDariPindai(barangList, barcode);
     if (barang) {
       handleAddToCart(barang);
+      toast.success(`${barang.nama} ditambahkan`, { duration: 1500 });
     } else {
-      toast.error("Barang tidak ditemukan");
+      toast.error(`Barcode ${barcode.trim()} belum terdaftar`, {
+        description: "Daftarkan dulu lewat Barang Masuk → Barang Baru.",
+      });
     }
+  };
+
+  // Pemindai USB/Bluetooth mengetik barcode ke kotak cari lalu menekan Enter.
+  // Enter juga dipakai kasir: bila hanya satu barang yang cocok, langsung masuk
+  // keranjang.
+  const saatEnterCari = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key !== "Enter") return;
+    e.preventDefault();
+    const teks = search.trim();
+    if (!teks) return;
+    const tepat = cariBarangDariPindai(barangList, teks);
+    if (tepat) {
+      handleAddToCart(tepat);
+      setSearch("");
+      return;
+    }
+    if (filteredBarang.length === 1) {
+      handleAddToCart(filteredBarang[0]);
+      setSearch("");
+      return;
+    }
+    if (/^\d{6,}$/.test(teks)) handleBarcodeScanned(teks);
   };
 
   const handleAddToCart = (barang: Barang) => {
@@ -251,8 +277,8 @@ export default function KasirPage() {
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Kasir</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Kasir</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Pilih barang, lalu tekan Bayar.
         </p>
       </div>
@@ -277,9 +303,11 @@ export default function KasirPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-[18px] w-[18px] text-slate-400" />
               <Input aria-label="Cari barang atau scan barcode..."
-                placeholder="Cari produk, scan barcode, atau ketik nama..."
+                placeholder="Cari nama, atau pindai barcode lalu Enter"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={saatEnterCari}
+                enterKeyHint="search"
                 className="pl-11"
               />
             </div>
@@ -377,7 +405,7 @@ export default function KasirPage() {
         {/* Cart */}
         <Card className="h-fit lg:sticky lg:top-4">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2.5">
               <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                 <ShoppingCart className="h-[18px] w-[18px]" />
               </span>
@@ -636,7 +664,7 @@ export default function KasirPage() {
                 <Button
                   key={member.id}
                   variant={memberId === member.id ? "default" : "outline"}
-                  className={`w-full justify-start ${memberId === member.id ? "bg-violet-600 hover:bg-violet-700" : ""}`}
+                  className="w-full justify-start"
                   onClick={() => handleSelectMember(member)}
                 >
                   <div className="text-left">

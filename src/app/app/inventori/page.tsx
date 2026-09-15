@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { ShortcutCard } from "@/components/ui/shortcut-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -33,28 +34,28 @@ const PINTASAN = [
     label: "Barang Masuk",
     desc: "Pencatatan stok masuk dari supplier",
     icon: PackagePlus,
-    warna: "bg-brand-50 text-brand-600",
+    nada: "brand" as const,
   },
   {
     href: "/app/inventori/stok",
     label: "Stok Barang",
     desc: "Lihat dan kelola stok produk",
     icon: Boxes,
-    warna: "bg-gold-50 text-gold-600",
+    nada: "gold" as const,
   },
   {
     href: "/app/inventori/penyesuaian",
     label: "Barang Rusak / Hilang",
     desc: "Catat barang rusak, hilang, atau salah hitung",
     icon: ClipboardCheck,
-    warna: "bg-sky-50 text-sky-600",
+    nada: "sky" as const,
   },
   {
     href: "/app/inventori/retur",
     label: "Retur ke Supplier",
     desc: "Barang yang dikembalikan ke supplier",
     icon: Undo2,
-    warna: "bg-rose-50 text-rose-600",
+    nada: "rose" as const,
   },
 ];
 
@@ -105,8 +106,8 @@ export default function InventoriPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Barang</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Barang</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Kelola stok barang, barang masuk, penyesuaian, dan retur dengan mudah
         </p>
       </div>
@@ -114,25 +115,7 @@ export default function InventoriPage() {
       {/* Pintasan menu inventori */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {PINTASAN.map((p) => (
-          <Link
-            key={p.href}
-            href={p.href}
-            className="group rounded-card border border-border bg-white p-5 shadow-card transition-all hover:-translate-y-0.5 hover:shadow-card-hover hover:border-brand-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
-          >
-            <div className="flex items-start justify-between gap-3">
-              <span
-                className={cn(
-                  "h-10 w-10 rounded-lg flex items-center justify-center shrink-0",
-                  p.warna
-                )}
-              >
-                <p.icon className="h-[18px] w-[18px]" />
-              </span>
-              <ArrowRight className="h-4 w-4 text-slate-300 transition-transform group-hover:translate-x-0.5 group-hover:text-brand-500" />
-            </div>
-            <p className="mt-3.5 font-semibold text-slate-900">{p.label}</p>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">{p.desc}</p>
-          </Link>
+          <ShortcutCard key={p.href} href={p.href} label={p.label} desc={p.desc} icon={p.icon} nada={p.nada} />
         ))}
       </div>
 
@@ -194,7 +177,7 @@ export default function InventoriPage() {
           </Card>
 
           <Card className="bg-brand-50/50">
-            <CardContent className="p-5 pt-5">
+            <CardContent>
               <span className="inline-flex h-9 w-9 rounded-lg bg-brand-50 text-brand-600 items-center justify-center">
                 <Wallet className="h-[18px] w-[18px]" />
               </span>

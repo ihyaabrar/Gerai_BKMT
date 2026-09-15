@@ -9,6 +9,7 @@ import {
   toErrorResponse,
 } from "@/lib/validate";
 import { periodeYangHarusDitutup, pesanTerkunci } from "@/lib/penguncian";
+import { ambilIdentitas } from "@/lib/identitas";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,9 @@ export async function GET(request: NextRequest) {
     if (!pengaturan) {
       pengaturan = await prisma.pengaturan.create({ data: {} });
     }
-    return NextResponse.json(pengaturan);
+    // Logo organisasi dipakai struk bila tidak ada logo khusus struk.
+    const { logoUrl } = await ambilIdentitas();
+    return NextResponse.json({ ...pengaturan, logoOrganisasi: logoUrl });
   } catch (error) {
     const { message, status } = toErrorResponse(error, "Gagal memuat pengaturan");
     return NextResponse.json({ error: message }, { status });

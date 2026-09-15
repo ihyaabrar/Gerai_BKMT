@@ -55,7 +55,7 @@ export function ConfirmDialog({
         <div className="flex gap-4">
           <div
             className={`shrink-0 w-10 h-10 rounded-full flex items-center justify-center ${
-              destruktif ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
+              destruktif ? "bg-red-100 text-red-600" : "bg-brand-100 text-brand-600"
             }`}
           >
             <AlertTriangle className="h-5 w-5" />

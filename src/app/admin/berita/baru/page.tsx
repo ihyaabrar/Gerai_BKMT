@@ -71,10 +71,10 @@ export default function BeritaBaruPage() {
             </Button>
           </Link>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               Tulis Berita
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-slate-500 mt-1">
               Tulis judul dan isi, pilih simpan dulu atau terbitkan, lalu tekan tombol di bawah.
             </p>
           </div>
@@ -92,7 +92,7 @@ export default function BeritaBaruPage() {
       */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start">
         <Card>
-          <CardContent className="p-5 sm:p-6 pt-5 sm:pt-6 space-y-5">
+          <CardContent className="space-y-5">
             <div>
               <label
                 htmlFor="judul"
@@ -153,7 +153,7 @@ export default function BeritaBaruPage() {
 
         <div className="space-y-5 lg:sticky lg:top-24">
           <Card>
-            <CardContent className="p-5 pt-5 space-y-4">
+            <CardContent className="space-y-4">
               <PilihanTerbit status={form.status} onUbah={(status) => setForm({ ...form, status })} />
               <p className="text-xs text-slate-500">
                 Tanggal terbit diisi otomatis saat berita diterbitkan.
@@ -162,7 +162,7 @@ export default function BeritaBaruPage() {
           </Card>
 
           <Card>
-            <CardContent className="p-5 pt-5 space-y-3">
+            <CardContent className="space-y-3">
               <p className="text-[15px] font-semibold text-slate-900">
                 Gambar Berita
               </p>

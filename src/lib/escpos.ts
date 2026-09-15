@@ -18,6 +18,23 @@ export interface IdentitasStruk {
   nama: string;
   alamat: string;
   telepon: string;
+  /** Baris tambahan di bawah alamat, dari halaman Printer. Boleh beberapa baris. */
+  header?: string;
+  /** Pengganti "Terima Kasih / Selamat Berbelanja Kembali". */
+  footer?: string;
+  /** Logo di atas struk; kosong = tanpa logo. */
+  logoUrl?: string | null;
+}
+
+export const FOOTER_BAWAAN = "Terima Kasih\nSelamat Berbelanja Kembali";
+
+/** Logo yang sudah diubah jadi titik hitam-putih untuk printer thermal. */
+export interface RasterLogo {
+  /** Lebar dalam titik (dot), kelipatan 8. */
+  lebar: number;
+  tinggi: number;
+  /** Satu bit per titik, baris demi baris, 1 = hitam. */
+  data: Uint8Array;
 }
 
 export type Rata = "kiri" | "tengah";
@@ -105,6 +122,7 @@ export function susunStruk(data: DataStruk, toko: IdentitasStruk, lebarKertas: L
   );
   if (toko.alamat) tengah(toko.alamat);
   if (toko.telepon) tengah(`Telp: ${toko.telepon}`);
+  barisTeks(toko.header).forEach((t) => tengah(t));
   kiri(garis);
 
   if (data.salinan) tengah("*** SALINAN ***", true);
@@ -132,9 +150,29 @@ export function susunStruk(data: DataStruk, toko: IdentitasStruk, lebarKertas: L
   duaKolom("Kembalian", rupiahPolos(data.kembalian), lebar).forEach((t) => kiri(t));
   kiri(garis);
 
-  tengah("Terima Kasih");
-  tengah("Selamat Berbelanja Kembali");
+  barisTeks(toko.footer?.trim() ? toko.footer : FOOTER_BAWAAN).forEach((t) => tengah(t));
   return b;
+}
+
+/** Teks bebas dari pengurus: dipecah per baris, baris kosong di ujung dibuang. */
+function barisTeks(teks: string | undefined): string[] {
+  if (!teks) return [];
+  const rapi = teks.trim();
+  if (!rapi) return [];
+  return rapi.split(/\r?\n/).map((t) => t.trim());
+}
+
+/** Perintah ESC/POS "GS v 0": cetak gambar raster, rata tengah. */
+export function perintahRaster(logo: RasterLogo): number[] {
+  const perBaris = logo.lebar / 8;
+  return [
+    ESC, 0x61, 1,
+    GS, 0x76, 0x30, 0,
+    perBaris & 0xff, (perBaris >> 8) & 0xff,
+    logo.tinggi & 0xff, (logo.tinggi >> 8) & 0xff,
+    ...logo.data,
+    LF,
+  ];
 }
 
 const ESC = 0x1b;
@@ -142,8 +180,14 @@ const GS = 0x1d;
 const LF = 0x0a;
 
 /** Byte ESC/POS siap kirim ke printer. */
-export function strukKeEscPos(data: DataStruk, toko: IdentitasStruk, lebarKertas: LebarKertas): Uint8Array {
+export function strukKeEscPos(
+  data: DataStruk,
+  toko: IdentitasStruk,
+  lebarKertas: LebarKertas,
+  logo?: RasterLogo | null
+): Uint8Array {
   const byte: number[] = [ESC, 0x40]; // inisialisasi printer
+  if (logo) byte.push(...perintahRaster(logo));
 
   for (const baris of susunStruk(data, toko, lebarKertas)) {
     byte.push(ESC, 0x61, baris.rata === "tengah" ? 1 : 0);

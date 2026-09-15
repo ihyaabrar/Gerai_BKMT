@@ -187,10 +187,10 @@ export default function AdminProfilPage() {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Profil Organisasi
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 mt-1">
             Kelola informasi, sejarah, visi-misi, dan kontak organisasi.
           </p>
         </div>
@@ -235,7 +235,7 @@ export default function AdminProfilPage() {
 
         {/* Isi bagian terpilih */}
         <Card>
-          <CardContent className="p-5 sm:p-6 pt-5 sm:pt-6 space-y-5">
+          <CardContent className="space-y-5">
             <div className="pb-1">
               <h2 className="text-[15px] font-semibold text-slate-900">
                 {aktif.label}
