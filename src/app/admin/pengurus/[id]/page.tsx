@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { LABEL_JENJANG, jenjangJabatan } from "@/lib/struktur-pengurus";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { PageSkeleton } from "@/components/ui/skeleton";
 
@@ -91,6 +92,11 @@ export default function EditPengurusPage({ params }: { params: { id: string } })
           <div>
             <label className="text-sm font-medium text-slate-700" htmlFor="jabatan">Jabatan *</label>
             <Input id="jabatan" value={form.jabatan} onChange={(e) => setForm({ ...form, jabatan: e.target.value })} className="mt-1" />
+            {form.jabatan.trim() && (
+              <p className="text-xs text-slate-500 mt-1.5">
+                Tampil di bagan sebagai: <strong>{LABEL_JENJANG[jenjangJabatan(form.jabatan)]}</strong>
+              </p>
+            )}
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700" htmlFor="tingkatan">Tingkatan</label>
