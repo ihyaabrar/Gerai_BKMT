@@ -10,6 +10,7 @@ import { TOKO_BAWAAN, ambilIdentitasToko, cetakStruk } from "@/lib/cetak";
 import type { DataStruk } from "@/lib/struk";
 import { usePrinterStore } from "@/store/printer";
 import { cn } from "@/lib/utils";
+import { gambarLebar } from "@/lib/gambar";
 
 /**
  * Pratinjau dan tombol cetak struk.
@@ -82,13 +83,21 @@ export function PrintReceipt({ data, otomatis = false }: { data: DataStruk; otom
         </Link>
       </div>
 
-      <StrukPratinjau baris={baris} lebar={lebar} />
+      <StrukPratinjau baris={baris} lebar={lebar} logoUrl={toko.logoUrl} />
     </div>
   );
 }
 
 /** Tampilan struk di layar: baris yang sama persis dengan yang dikirim ke printer. */
-export function StrukPratinjau({ baris, lebar }: { baris: BarisStruk[]; lebar: LebarKertas }) {
+export function StrukPratinjau({
+  baris,
+  lebar,
+  logoUrl,
+}: {
+  baris: BarisStruk[];
+  lebar: LebarKertas;
+  logoUrl?: string | null;
+}) {
   return (
     <div
       className={cn(
@@ -96,6 +105,17 @@ export function StrukPratinjau({ baris, lebar }: { baris: BarisStruk[]; lebar: L
         lebar === 58 ? "max-w-[18rem] text-[11px]" : "max-w-[26rem] text-[10.5px]"
       )}
     >
+      {logoUrl && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={gambarLebar(logoUrl, 320)}
+          alt=""
+          className={cn(
+            "mx-auto mb-2 object-contain grayscale contrast-125",
+            lebar === 58 ? "max-h-24 max-w-[7.5rem]" : "max-h-28 max-w-[9rem]"
+          )}
+        />
+      )}
       {baris.map((b, i) => (
         <div
           key={i}

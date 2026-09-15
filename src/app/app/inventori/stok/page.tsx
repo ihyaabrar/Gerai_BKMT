@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { StatCard } from "@/components/ui/stat-card";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ImageUpload } from "@/components/ui/ImageUpload";
@@ -394,8 +395,11 @@ export default function StokPage() {
                 </div>
                 <div>
                   <label htmlFor="edit-barcode" className="text-sm font-medium text-slate-700">Barcode</label>
-                  <Input id="edit-barcode" value={form.barcode}
-                    onChange={(e) => setForm({ ...form, barcode: e.target.value })} className="mt-1" />
+                  <div className="flex gap-2 mt-1">
+                    <Input id="edit-barcode" value={form.barcode}
+                      onChange={(e) => setForm({ ...form, barcode: e.target.value })} />
+                    <BarcodeScanner onScan={(kode) => setForm((f) => (f ? { ...f, barcode: kode } : f))} label="" className="shrink-0 px-3" />
+                  </div>
                 </div>
               </div>
 

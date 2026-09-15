@@ -12,11 +12,13 @@ import { toast } from "sonner";
 import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useAuthStore } from "@/store/auth";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { cariBarangDariPindai } from "@/lib/barcode";
 
 interface Barang {
   id: string;
   kode: string;
-  barcode: string;
+  barcode: string | null;
   nama: string;
   kategori: string;
   hargaBeli: number;
@@ -199,8 +201,32 @@ export default function BarangMasukPage() {
     (b) =>
       b.nama.toLowerCase().includes(search.toLowerCase()) ||
       b.kode.toLowerCase().includes(search.toLowerCase()) ||
-      b.barcode.toLowerCase().includes(search.toLowerCase())
+      // Barang tanpa barcode bernilai null; sebelumnya mengetik di kotak cari
+      // membuat halaman error.
+      (b.barcode ?? "").toLowerCase().includes(search.toLowerCase())
   );
+
+  const pilihBarang = (barang: Barang) => {
+    setSelectedBarang(barang);
+    setHargaBeliBaru(barang.hargaBeli.toString());
+  };
+
+  const saatPindai = (kode: string) => {
+    const barang = cariBarangDariPindai(barangList, kode);
+    if (barang) {
+      pilihBarang(barang);
+      setSearch("");
+      toast.success(`${barang.nama} dipilih — isi jumlah yang datang`);
+      return;
+    }
+    if (bolehUbahHarga) {
+      setMode("baru");
+      setFormBaru((f) => ({ ...f, barcode: kode.trim() }));
+      toast.info("Barcode belum terdaftar — isi data barang baru", { description: kode.trim() });
+    } else {
+      toast.error(`Barcode ${kode.trim()} belum terdaftar`, { description: "Minta pengurus mendaftarkan barang ini." });
+    }
+  };
 
   // Hitung total pengeluaran untuk preview
   const calculateTotalPengeluaran = () => {
@@ -257,14 +283,28 @@ export default function BarangMasukPage() {
                 <CardIcon icon={Package} nada="sky" />
                 Pilih Barang
               </CardTitle>
-              <div className="relative mt-4">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-                <Input aria-label="Cari barang..."
-                  placeholder="Cari barang..."
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  className="pl-9"
-                />
+              <div className="flex gap-2 mt-4">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                  <Input aria-label="Cari barang atau pindai barcode"
+                    placeholder="Cari nama, atau pindai barcode lalu Enter"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter" || !search.trim()) return;
+                      e.preventDefault();
+                      if (filteredBarang.length === 1 && !cariBarangDariPindai(barangList, search)) {
+                        pilihBarang(filteredBarang[0]);
+                        setSearch("");
+                      } else {
+                        saatPindai(search);
+                      }
+                    }}
+                    enterKeyHint="search"
+                    className="pl-9"
+                  />
+                </div>
+                <BarcodeScanner onScan={saatPindai} label="" className="shrink-0 px-3" />
               </div>
             </CardHeader>
             <CardContent>
@@ -272,10 +312,7 @@ export default function BarangMasukPage() {
                 {filteredBarang.map((barang) => (
                   <div
                     key={barang.id}
-                    onClick={() => {
-                      setSelectedBarang(barang);
-                      setHargaBeliBaru(barang.hargaBeli.toString());
-                    }}
+                    onClick={() => pilihBarang(barang)}
                     className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                       selectedBarang?.id === barang.id
                         ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
@@ -285,7 +322,7 @@ export default function BarangMasukPage() {
                     <div className="flex flex-wrap gap-3 justify-between items-start">
                       <div>
                         <p className="font-bold text-slate-900">{barang.nama}</p>
-                        <p className="text-sm text-slate-500">{barang.kode} • {barang.barcode}</p>
+                        <p className="text-sm text-slate-500">{barang.kode}{barang.barcode ? ` • ${barang.barcode}` : ""}</p>
                         <p className="text-xs text-slate-400 mt-1">{barang.kategori}</p>
                       </div>
                       <div className="text-right">
@@ -475,9 +512,14 @@ export default function BarangMasukPage() {
                       id="barang-barcode"
                       value={formBaru.barcode}
                       onChange={(e) => setFormBaru({ ...formBaru, barcode: e.target.value })}
-                      placeholder="Kosongkan atau tekan Buat Otomatis"
+                      placeholder="Pindai, ketik, atau Buat Otomatis"
                     />
-                    <Button type="button" onClick={handleGenerateBarcode} variant="outline">
+                    <BarcodeScanner
+                      onScan={(kode) => setFormBaru((f) => ({ ...f, barcode: kode }))}
+                      label=""
+                      className="shrink-0 px-3"
+                    />
+                    <Button type="button" onClick={handleGenerateBarcode} variant="outline" className="shrink-0">
                       Buat Otomatis
                     </Button>
                   </div>

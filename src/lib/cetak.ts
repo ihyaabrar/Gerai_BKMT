@@ -1,4 +1,6 @@
 import { KOLOM, strukKeEscPos, susunStruk, type IdentitasStruk, type LebarKertas } from "@/lib/escpos";
+import { gambarLebar } from "@/lib/gambar";
+import { muatLogoRaster } from "@/lib/logo-struk";
 import { kirimKePrinter, pilihPrinter, printerTersambung, sambungUlang } from "@/lib/printer-bluetooth";
 import type { DataStruk } from "@/lib/struk";
 import type { MetodeCetak } from "@/store/printer";
@@ -17,24 +19,33 @@ const bersihkan = (nilai: unknown): string => {
 
 export const TOKO_BAWAAN: IdentitasStruk = { nama: "Gerai BKMT", alamat: "", telepon: "" };
 
-/** Kepala struk dari Sistem → Pengaturan. */
+/** Pengaturan toko (GET /api/pengaturan) -> isi kepala dan kaki struk. */
+export function identitasDariPengaturan(p: Record<string, unknown>): IdentitasStruk {
+  const logoKhusus = bersihkan(p.strukLogoUrl);
+  const logoOrganisasi = bersihkan(p.logoOrganisasi);
+  return {
+    nama: bersihkan(p.namaToko) || TOKO_BAWAAN.nama,
+    alamat: bersihkan(p.alamatToko),
+    telepon: bersihkan(p.teleponToko),
+    header: bersihkan(p.strukHeader),
+    footer: bersihkan(p.strukFooter),
+    logoUrl: p.strukLogo === true ? logoKhusus || logoOrganisasi || null : null,
+  };
+}
+
+/** Kepala struk dari Pengaturan Toko dan tampilan struk di halaman Printer. */
 export async function ambilIdentitasToko(): Promise<IdentitasStruk> {
   try {
     const res = await fetch("/api/pengaturan");
     if (!res.ok) return TOKO_BAWAAN;
-    const p = await res.json();
-    return {
-      nama: bersihkan(p.namaToko) || TOKO_BAWAAN.nama,
-      alamat: bersihkan(p.alamatToko),
-      telepon: bersihkan(p.teleponToko),
-    };
+    return identitasDariPengaturan(await res.json());
   } catch {
     return TOKO_BAWAAN;
   }
 }
 
 const escapeHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 /** HTML struk dengan susunan baris yang sama persis dengan printer thermal. */
 export function strukHtml(data: DataStruk, toko: IdentitasStruk, lebar: LebarKertas): string {
@@ -45,6 +56,10 @@ export function strukHtml(data: DataStruk, toko: IdentitasStruk, lebar: LebarKer
       return `<div class="${kelas}">${isi}</div>`;
     })
     .join("");
+  // Logo dicetak abu-abu kontras: printer thermal tidak punya warna.
+  const logo = toko.logoUrl
+    ? `<div class="c"><img src="${escapeHtml(gambarLebar(toko.logoUrl, 480))}" alt="" style="width:${lebar === 58 ? 30 : 40}mm;max-height:${lebar === 58 ? 30 : 40}mm;object-fit:contain;filter:grayscale(1) contrast(1.4);margin-bottom:1.5mm"></div>`
+    : "";
 
   // Lebar huruf dihitung dari jumlah kolom supaya satu baris pas selebar kertas.
   const lebarIsi = lebar === 58 ? 48 : 72; // mm area cetak
@@ -57,7 +72,8 @@ body { width: ${lebar}mm; padding: 2mm ${(lebar - lebarIsi) / 2}mm 6mm; box-sizi
   font-family: "Courier New", Courier, monospace; font-size: ${ukuranHuruf}mm; line-height: 1.25; color: #000; }
 div { white-space: pre; }
 .c { text-align: center; } .b { font-weight: bold; } .l { font-size: 2em; line-height: 1.1; }
-</style></head><body>${baris}</body></html>`;
+div.c img { display: inline-block; }
+</style></head><body>${logo}${baris}</body></html>`;
 }
 
 /**
@@ -77,15 +93,23 @@ export function cetakLewatSistem(html: string): Promise<void> {
     doc.open();
     doc.write(html);
     doc.close();
-    setTimeout(() => {
-      iframe.contentWindow?.focus();
-      iframe.contentWindow?.print();
-      // Beri waktu dialog cetak terbuka sebelum iframe dibuang.
+    // Tunggu logo termuat (maks. 3 detik) supaya tidak tercetak kosong.
+    const gambar = Array.from(doc.images).filter((g) => !g.complete);
+    const muat = Promise.race([
+      Promise.all(gambar.map((g) => new Promise((r) => { g.onload = r; g.onerror = r; }))),
+      new Promise((r) => setTimeout(r, 3000)),
+    ]);
+    muat.then(() =>
       setTimeout(() => {
-        iframe.remove();
-        selesai();
-      }, 1000);
-    }, 250);
+        iframe.contentWindow?.focus();
+        iframe.contentWindow?.print();
+        // Beri waktu dialog cetak terbuka sebelum iframe dibuang.
+        setTimeout(() => {
+          iframe.remove();
+          selesai();
+        }, 1000);
+      }, 250)
+    );
   });
 }
 
@@ -123,6 +147,7 @@ export async function cetakStruk(
     }
     printerBaru = await pilihPrinter();
   }
-  await kirimKePrinter(strukKeEscPos(data, toko, pengaturan.lebar));
+  const logo = toko.logoUrl ? await muatLogoRaster(toko.logoUrl, pengaturan.lebar) : null;
+  await kirimKePrinter(strukKeEscPos(data, toko, pengaturan.lebar, logo));
   return { printerBaru };
 }

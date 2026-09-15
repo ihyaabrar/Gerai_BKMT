@@ -319,6 +319,10 @@ model Pengaturan {
   diskonMember    Float    @default(5)
   persenNasabah   Float    @default(30)
   persenPengelola Float    @default(70)
+  strukLogo       Boolean  @default(false)
+  strukLogoUrl    String?
+  strukHeader     String?
+  strukFooter     String?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
