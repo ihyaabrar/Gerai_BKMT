@@ -244,9 +244,6 @@ export default function AdminProfilPage() {
                     shape="circle"
                     previewSize="md"
                   />
-                  <p className="text-xs text-slate-400 mt-2">
-                    Format PNG, JPG (maks. 5 MB)
-                  </p>
                 </div>
               </div>
             )}
