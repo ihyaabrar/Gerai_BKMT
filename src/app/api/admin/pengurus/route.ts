@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuth } from "@/lib/auth-middleware";
 import { sortPengurus } from "@/lib/utils";
+import { parsePengurus } from "@/lib/validasi-pengurus";
+import { toErrorResponse } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
-
-const VALID_TINGKATAN = ["PD", "PC", "Permata"];
 
 export async function GET(request: NextRequest) {
   const auth = await requireAdminAuth(request);
@@ -24,16 +24,11 @@ export async function POST(request: NextRequest) {
   if (auth.error) return auth.error;
 
   try {
-    const body = await request.json();
-    if (!body.nama?.trim()) return NextResponse.json({ error: "Nama tidak boleh kosong" }, { status: 400 });
-    if (!body.jabatan?.trim()) return NextResponse.json({ error: "Jabatan tidak boleh kosong" }, { status: 400 });
-    if (!VALID_TINGKATAN.includes(body.tingkatan)) {
-      return NextResponse.json({ error: "Tingkatan harus PD, PC, atau Permata" }, { status: 400 });
-    }
-
-    const pengurus = await prisma.pengurus.create({ data: body });
+    const data = parsePengurus(await request.json().catch(() => null));
+    const pengurus = await prisma.pengurus.create({ data: data as any });
     return NextResponse.json({ data: pengurus }, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: "Gagal menambah pengurus" }, { status: 500 });
+  } catch (error) {
+    const { message, status } = toErrorResponse(error, "Gagal menambah pengurus");
+    return NextResponse.json({ error: message }, { status });
   }
 }

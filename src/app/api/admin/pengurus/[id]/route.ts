@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdminAuth } from "@/lib/auth-middleware";
+import { parsePengurus } from "@/lib/validasi-pengurus";
+import { toErrorResponse } from "@/lib/validate";
 
 export const dynamic = "force-dynamic";
 
@@ -22,18 +24,12 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
   if (auth.error) return auth.error;
 
   try {
-    const body = await request.json();
-    if (!body.nama?.trim()) return NextResponse.json({ error: "Nama tidak boleh kosong" }, { status: 400 });
-    if (!body.jabatan?.trim()) return NextResponse.json({ error: "Jabatan tidak boleh kosong" }, { status: 400 });
-    if (body.tingkatan && !["PD", "PC", "Permata"].includes(body.tingkatan)) {
-      return NextResponse.json({ error: "Tingkatan harus PD, PC, atau Permata" }, { status: 400 });
-    }
-
-    const { id: _id, createdAt: _c, updatedAt: _u, ...data } = body;
+    const data = parsePengurus(await request.json().catch(() => null), { sebagian: true });
     const pengurus = await prisma.pengurus.update({ where: { id: params.id }, data });
     return NextResponse.json({ data: pengurus });
-  } catch {
-    return NextResponse.json({ error: "Gagal mengupdate pengurus" }, { status: 500 });
+  } catch (error) {
+    const { message, status } = toErrorResponse(error, "Gagal mengupdate pengurus");
+    return NextResponse.json({ error: message }, { status });
   }
 }
 

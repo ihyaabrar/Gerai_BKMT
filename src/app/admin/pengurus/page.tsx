@@ -10,7 +10,8 @@ import { Pagination } from "@/components/ui/pagination";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
-import { Plus, Edit, Trash2, Users, Search, Phone } from "lucide-react";
+import { Plus, Edit, Trash2, Users, Search, MapPin } from "lucide-react";
+import { LABEL_JENJANG, jenjangJabatan } from "@/lib/struktur-pengurus";
 import { toast } from "sonner";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
 
@@ -97,7 +98,8 @@ export default function AdminPengurusPage() {
           p.nama.toLowerCase().includes(q) || p.jabatan.toLowerCase().includes(q)
       );
     }
-    return hasil;
+    // Yang aktif lebih dulu; urutan dari server (sesuai bagan) tetap terjaga.
+    return [...hasil.filter((p) => p.aktif), ...hasil.filter((p) => !p.aktif)];
   }, [list, tingkatan, cari]);
 
   const totalHalaman = Math.max(1, Math.ceil(tersaring.length / PER_HALAMAN));
@@ -182,7 +184,7 @@ export default function AdminPengurusPage() {
                     <th className="py-2.5 px-3 font-semibold">Nama</th>
                     <th className="py-2.5 px-3 font-semibold">Jabatan</th>
                     <th className="py-2.5 px-3 font-semibold">Periode</th>
-                    <th className="py-2.5 px-3 font-semibold">Kontak</th>
+                    <th className="py-2.5 px-3 font-semibold">Alamat</th>
                     <th className="py-2.5 px-3 font-semibold text-center">Status</th>
                     <th className="py-2.5 pl-3 font-semibold text-center">Aksi</th>
                   </tr>
@@ -224,12 +226,17 @@ export default function AdminPengurusPage() {
                           </div>
                         </div>
                       </td>
-                      <td className="py-3 px-3 text-slate-600">{p.jabatan}</td>
+                      <td className="py-3 px-3">
+                        <p className="text-slate-600">{p.jabatan}</p>
+                        <p className="text-[11px] text-slate-400 mt-0.5">
+                          Bagan: {LABEL_JENJANG[jenjangJabatan(p.jabatan)]} · urutan {p.urutan}
+                        </p>
+                      </td>
                       <td className="py-3 px-3 text-slate-500">{p.periode || "-"}</td>
                       <td className="py-3 px-3 text-slate-500">
                         {p.alamat ? (
                           <span className="flex items-center gap-1.5 max-w-[200px] truncate">
-                            <Phone className="h-3.5 w-3.5 shrink-0 text-slate-300" />
+                            <MapPin className="h-3.5 w-3.5 shrink-0 text-slate-300" />
                             <span className="truncate">{p.alamat}</span>
                           </span>
                         ) : (

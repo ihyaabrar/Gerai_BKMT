@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { jenjangJabatan, perluBagan, susunStruktur } from "../struktur-pengurus";
+import { sortPengurus } from "../utils";
+import { parsePengurus } from "../validasi-pengurus";
 
 describe("tingkat jabatan pengurus", () => {
   it("mengenali jabatan inti", () => {
@@ -41,5 +43,42 @@ describe("tingkat jabatan pengurus", () => {
     expect(s.ketua).toHaveLength(1);
     expect(s.penasehat).toHaveLength(1);
     expect(s.lainnya).toHaveLength(1);
+  });
+});
+
+describe("ketua bidang dan urutan pengurus", () => {
+  it("ketua bidang bukan ketua organisasi", () => {
+    expect(jenjangJabatan("Ketua Bidang Dakwah")).toBe("lainnya");
+    expect(jenjangJabatan("Koordinator Seksi Sosial")).toBe("lainnya");
+    expect(jenjangJabatan("Ketua Umum")).toBe("ketua");
+    expect(jenjangJabatan("Dewan Pembina")).toBe("penasehat");
+  });
+
+  it("daftar mengikuti tingkatan, tingkat bagan, Urutan Tampil, lalu nama", () => {
+    const data = [
+      { nama: "Wasilun", jabatan: "Da'i PD", tingkatan: "PD", urutan: 1 },
+      { nama: "Haniah", jabatan: "Penaashet", tingkatan: "PD", urutan: 2 },
+      { nama: "Romlah", jabatan: "Penasehat", tingkatan: "PD", urutan: 2 },
+      { nama: "Tutik", jabatan: "Ketua PC Sungai Raya", tingkatan: "PC", urutan: 0 },
+      { nama: "Qibtiyah", jabatan: "Ketua", tingkatan: "PD", urutan: 5 },
+      { nama: "Seti", jabatan: "Wakil Ketua 1", tingkatan: "PD", urutan: 6 },
+    ];
+    expect(sortPengurus(data).map((p) => p.nama)).toEqual([
+      "Haniah", "Romlah", "Qibtiyah", "Seti", "Wasilun", "Tutik",
+    ]);
+  });
+});
+
+describe("validasi form pengurus", () => {
+  it("hanya kolom yang dikenal yang disimpan", () => {
+    const data = parsePengurus({
+      id: "palsu", createdAt: "x", nama: " Siti ", jabatan: "Ketua", tingkatan: "PD", urutan: "3", alamat: "",
+    });
+    expect(data).toEqual({ nama: "Siti", jabatan: "Ketua", tingkatan: "PD", urutan: 3, alamat: null });
+  });
+
+  it("urutan yang bukan angka ditolak dengan pesan jelas", () => {
+    expect(() => parsePengurus({ nama: "A", jabatan: "B", tingkatan: "PD", urutan: "abc" })).toThrow(/Urutan Tampil/);
+    expect(() => parsePengurus({ nama: "A", jabatan: "B", tingkatan: "PW" })).toThrow(/Tingkatan/);
   });
 });
