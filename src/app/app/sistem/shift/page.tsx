@@ -239,17 +239,17 @@ export default function ShiftPage() {
                   return (
                     <div key={s.id} className="border rounded-lg p-4">
                       <div className="flex flex-wrap gap-3 justify-between items-start">
-                        <div className="flex gap-4">
-                          <div className="bg-brand-100 p-3 rounded-lg">
+                        <div className="flex gap-4 min-w-0 flex-1">
+                          <div className="hidden sm:flex self-start bg-brand-100 p-3 rounded-lg">
                             <User className="h-6 w-6 text-brand-600" />
                           </div>
-                          <div>
+                          <div className="min-w-0 flex-1">
                             <h3 className="font-semibold text-lg">{s.user.nama}</h3>
                             <p className="text-sm text-slate-500">
                               {format(new Date(s.jamBuka), "dd/MM/yyyy HH:mm")} -{" "}
                               {format(new Date(s.jamTutup!), "HH:mm")} ({durasi} menit)
                             </p>
-                            <div className="grid grid-cols-2 gap-4 mt-3">
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-3">
                               <div>
                                 <p className="text-xs text-slate-500">Saldo Awal</p>
                                 <p className="font-semibold">
@@ -258,10 +258,13 @@ export default function ShiftPage() {
                               </div>
                               <div>
                                 <p className="text-xs text-slate-500">
-                                  Penjualan Tunai · {s.jumlahTransaksi ?? 0} transaksi semua metode
+                                  Penjualan Tunai
                                 </p>
                                 <p className="font-semibold text-green-600">
                                   {formatRupiah(tunai)}
+                                </p>
+                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                  {s.jumlahTransaksi ?? 0} transaksi (semua metode)
                                 </p>
                                 {nonTunai > 0 && (
                                   <p className="text-[11px] text-slate-400 mt-0.5">

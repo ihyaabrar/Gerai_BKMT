@@ -9,6 +9,24 @@ interface PaginationProps {
   totalItems: number;
 }
 
+/**
+ * Deret nomor halaman. `sisi` = berapa halaman di kiri-kanan halaman aktif.
+ * Di HP dipakai 0 (hanya halaman aktif + awal/akhir) supaya deretnya muat
+ * di lebar 360 px; sebelumnya 1 2 3 4 … 28 membuat seluruh halaman bisa
+ * digeser ke samping.
+ */
+export function nomorHalaman(aktif: number, total: number, sisi: number): (number | "...")[] {
+  const hasil: (number | "...")[] = [];
+  const awal = Math.max(2, aktif - sisi);
+  const akhir = Math.min(total - 1, aktif + sisi);
+  hasil.push(1);
+  if (awal > 2) hasil.push("...");
+  for (let i = awal; i <= akhir; i++) hasil.push(i);
+  if (akhir < total - 1) hasil.push("...");
+  if (total > 1) hasil.push(total);
+  return hasil;
+}
+
 export function Pagination({
   currentPage,
   totalPages,
@@ -16,89 +34,69 @@ export function Pagination({
   itemsPerPage,
   totalItems,
 }: PaginationProps) {
+  if (totalPages <= 1) return null;
+
   const startItem = (currentPage - 1) * itemsPerPage + 1;
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
-  const getPageNumbers = () => {
-    const pages = [];
-    const maxVisible = 5;
-
-    if (totalPages <= maxVisible) {
-      for (let i = 1; i <= totalPages; i++) {
-        pages.push(i);
-      }
-    } else {
-      if (currentPage <= 3) {
-        for (let i = 1; i <= 4; i++) pages.push(i);
-        pages.push("...");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 2) {
-        pages.push(1);
-        pages.push("...");
-        for (let i = totalPages - 3; i <= totalPages; i++) pages.push(i);
-      } else {
-        pages.push(1);
-        pages.push("...");
-        for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
-        pages.push("...");
-        pages.push(totalPages);
-      }
-    }
-
-    return pages;
-  };
-
-  if (totalPages <= 1) return null;
+  const tombolHalaman = (daftar: (number | "...")[]) =>
+    daftar.map((page, idx) =>
+      page === "..." ? (
+        <span key={`elipsis-${idx}`} className="px-1 text-slate-400" aria-hidden="true">
+          …
+        </span>
+      ) : (
+        <Button
+          key={page}
+          variant={currentPage === page ? "default" : "outline"}
+          size="sm"
+          aria-current={currentPage === page ? "page" : undefined}
+          onClick={() => onPageChange(page)}
+          className="min-w-9 px-2.5"
+        >
+          {page}
+        </Button>
+      )
+    );
 
   return (
-    <div className="flex items-center justify-between px-4 py-3 border-t">
-      <div className="text-sm text-slate-700">
-        Menampilkan <span className="font-medium">{startItem}</span> sampai{" "}
+    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-1 sm:px-4 pt-4 pb-1 border-t">
+      <p className="text-xs sm:text-sm text-slate-600 text-center sm:text-left">
+        Menampilkan <span className="font-medium">{startItem}</span>–
         <span className="font-medium">{endItem}</span> dari{" "}
         <span className="font-medium">{totalItems}</span> data
-      </div>
+      </p>
 
-      <div className="flex items-center gap-2">
+      <nav aria-label="Halaman" className="flex items-center justify-center gap-1.5">
         <Button
           variant="outline"
           size="sm"
+          aria-label="Halaman sebelumnya"
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
+          className="px-2.5"
         >
           <ChevronLeft className="h-4 w-4" />
         </Button>
 
-        {getPageNumbers().map((page, idx) =>
-          page === "..." ? (
-            <span key={`ellipsis-${idx}`} className="px-2">
-              ...
-            </span>
-          ) : (
-            <Button
-              key={page}
-              variant={currentPage === page ? "default" : "outline"}
-              size="sm"
-              onClick={() => onPageChange(page as number)}
-              className={
-                currentPage === page
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : ""
-              }
-            >
-              {page}
-            </Button>
-          )
-        )}
+        <span className="flex items-center gap-1.5 sm:hidden">
+          {tombolHalaman(nomorHalaman(currentPage, totalPages, 0))}
+        </span>
+        <span className="hidden sm:flex items-center gap-1.5">
+          {tombolHalaman(nomorHalaman(currentPage, totalPages, 1))}
+        </span>
 
         <Button
           variant="outline"
           size="sm"
+          aria-label="Halaman berikutnya"
           onClick={() => onPageChange(currentPage + 1)}
           disabled={currentPage === totalPages}
+          className="px-2.5"
         >
           <ChevronRight className="h-4 w-4" />
         </Button>
-      </div>
+      </nav>
     </div>
   );
 }

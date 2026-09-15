@@ -166,15 +166,15 @@ export default function PengeluaranPage() {
           <h1 className="text-2xl sm:text-3xl font-bold">Pengeluaran</h1>
           <p className="text-slate-500">Catat pengeluaran operasional</p>
         </div>
-        <div className="flex gap-2">
-          <Button onClick={handleExportExcel} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button onClick={handleExportExcel} variant="outline" className="flex-1 sm:flex-none">
+            <Download className="h-4 w-4" />
             Export Excel
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-red-600 hover:bg-red-700">
-                <Plus className="h-4 w-4 mr-2" />
+              <Button className="bg-red-600 hover:bg-red-700 flex-1 sm:flex-none">
+                <Plus className="h-4 w-4" />
                 Tambah Pengeluaran
               </Button>
             </DialogTrigger>
@@ -291,17 +291,17 @@ export default function PengeluaranPage() {
                     {paginatedData.map((p) => (
                       <tr key={p.id} className="border-b hover:bg-surface-muted">
                         <td className="p-3">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 whitespace-nowrap">
                             <Calendar className="h-4 w-4 text-slate-400" />
                             {format(new Date(p.tanggal), "dd/MM/yyyy")}
                           </div>
                         </td>
                         <td className="p-3">
-                          <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm">
+                          <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm whitespace-nowrap">
                             {p.kategori}
                           </span>
                         </td>
-                        <td className="p-3">{p.keterangan}</td>
+                        <td className="p-3 min-w-[12rem]">{p.keterangan}</td>
                         <td className="p-3 text-right font-semibold text-red-600">
                           {formatRupiah(p.jumlah)}
                         </td>

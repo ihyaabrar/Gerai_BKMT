@@ -288,7 +288,7 @@ export default function PenjualanPage() {
                             </p>
                           )}
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="py-3 px-4 whitespace-nowrap">
                           {new Date(p.tanggal).toLocaleDateString("id-ID", {
                             day: "2-digit",
                             month: "short",

@@ -94,7 +94,7 @@ export function DialogContent({
         "relative bg-white shadow-lg w-full overflow-y-auto",
         // Sheet di mobile, kartu mengambang di layar >=sm.
         "rounded-t-2xl sm:rounded-lg",
-        "p-5 sm:p-6 sm:max-w-md sm:mx-4",
+        "p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] sm:p-6 sm:max-w-md sm:mx-4",
         className
       )}
     >
