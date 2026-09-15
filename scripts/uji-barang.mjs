@@ -143,6 +143,25 @@ async function main() {
   });
   cek("kasir tidak bisa mengubah barang (403)", kasirUbah.status === 403, `status ${kasirUbah.status}`);
 
+  // ── 4b. Menghapus barang yang masih punya stok ──
+  console.log("[Hapus barang]");
+  const hapusBerstok = await admin(`/api/barang?id=${b.id}`, { method: "DELETE" });
+  cek("barang yang masih punya stok tidak bisa dihapus (400)", hapusBerstok.status === 400,
+    hapusBerstok.json?.error ?? `status ${hapusBerstok.status}`);
+  const stokB = (await prisma.barang.findUnique({ where: { id: b.id } })).stok;
+  await kasir("/api/penyesuaian", {
+    method: "POST",
+    body: JSON.stringify({ barangId: b.id, jenis: "keluar", qty: stokB, alasan: "Uji: dikembalikan ke supplier" }),
+  });
+  const hapusKosong = await admin(`/api/barang?id=${b.id}`, { method: "DELETE" });
+  cek("setelah stok dikurangi habis, barang bisa dihapus", hapusKosong.status === 200,
+    hapusKosong.teks.slice(0, 100));
+
+  // ── 4c. Riwayat penjualan membawa nama kasir untuk cetak ulang struk ──
+  const riwayat = await admin("/api/penjualan?limit=5");
+  const salah = (riwayat.json?.data ?? []).find((x) => x.id === sesudah.json?.id);
+  cek("riwayat penjualan menyertakan nama kasir", salah?.user?.nama === "Kasir 1", salah?.user?.nama);
+
   // ── 5. Harga beli rata-rata ──
   console.log("[Harga beli rata-rata]");
   const c = await siapkanBarang("UJI-RATA", {

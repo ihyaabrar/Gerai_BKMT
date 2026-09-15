@@ -25,6 +25,8 @@ interface ReceiptData {
   kembalian: number;
   member?: string;
   kasir: string;
+  /** Cetak ulang dari riwayat penjualan. */
+  salinan?: boolean;
 }
 
 interface IdentitasToko {
@@ -186,6 +188,9 @@ export function PrintReceipt({ data }: { data: ReceiptData }) {
         </div>
 
         <div className="info text-xs mb-3">
+          {data.salinan && (
+            <p className="text-center font-bold tracking-widest mb-2">*** SALINAN ***</p>
+          )}
           <div className="flex justify-between">
             <span>No. Transaksi:</span>
             <span className="font-bold">{data.nomorTransaksi}</span>

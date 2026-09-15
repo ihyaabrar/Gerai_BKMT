@@ -200,6 +200,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: "Barang tidak ditemukan" }, { status: 404 });
     }
 
+    // Barang yang dihapus hilang dari kasir dan dari hitungan nilai persediaan.
+    // Kalau stoknya masih ada, barang itu lenyap tanpa pernah tercatat — tidak
+    // sebagai penjualan, tidak juga sebagai barang rusak.
+    if (existing.stok > 0) {
+      throw new ValidationError(
+        `${existing.nama} masih punya stok ${existing.stok} ${existing.satuan}. ` +
+          `Kurangi dulu lewat Penyesuaian (mis. rusak atau dikembalikan ke supplier), lalu hapus.`
+      );
+    }
+
     const barang = await prisma.barang.update({ where: { id }, data: { aktif: false } });
     return NextResponse.json(barang);
   } catch (error) {
