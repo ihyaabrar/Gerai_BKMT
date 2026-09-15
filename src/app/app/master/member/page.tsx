@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -116,8 +116,8 @@ export default function MemberPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Member</h1>
-          <p className="text-slate-500">Data pelanggan setia</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Member</h1>
+          <p className="text-sm text-slate-500 mt-1">Data pelanggan setia</p>
         </div>
         <Button onClick={openAdd}>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -128,12 +128,12 @@ export default function MemberPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap gap-3 justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={Users} nada="brand" />
               Daftar Member
             </CardTitle>
             <div className="relative w-60">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari member..."
                 placeholder="Cari member..."
                 value={search}
@@ -190,7 +190,7 @@ export default function MemberPage() {
                       <td className="py-3 px-4 text-slate-600">{m.telepon || "-"}</td>
                       <td className="py-3 px-4 text-slate-600 max-w-[200px] truncate">{m.alamat || "-"}</td>
                       <td className="py-3 px-4 text-center">
-                        <span className="px-2 py-1 bg-cyan-100 text-cyan-800 rounded-full text-xs font-medium">
+                        <span className="px-2 py-1 bg-gold-100 text-gold-800 rounded-full text-xs font-semibold">
                           {m.poin}
                         </span>
                       </td>

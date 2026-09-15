@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { formatRupiah } from "@/lib/utils";
 import { Receipt, Search, Download, Ban, Undo2, Printer } from "lucide-react";
@@ -198,8 +198,8 @@ export default function PenjualanPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Riwayat Penjualan</h1>
-          <p className="text-slate-500">Semua transaksi. Cetak ulang struk, retur, atau batalkan dari sini.</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Riwayat Penjualan</h1>
+          <p className="text-sm text-slate-500 mt-1">Semua transaksi. Cetak ulang struk, retur, atau batalkan dari sini.</p>
         </div>
         <Button variant="outline"
           onClick={handleExportExcel}
@@ -213,12 +213,12 @@ export default function PenjualanPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap gap-3 justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Receipt className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={Receipt} nada="brand" />
               Transaksi Terbaru
             </CardTitle>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari transaksi..."
                 placeholder="Cari transaksi..."
                 value={search}

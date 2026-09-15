@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { TableSkeleton } from "@/components/ui/skeleton";
@@ -101,19 +102,19 @@ export default function MasterDataPage() {
 
   const ringkasan = {
     member: [
-      { label: "Total Member", nilai: String(member.length), icon: Users, warna: "bg-brand-50 text-brand-600" },
-      { label: "Total Poin", nilai: totalPoin.toLocaleString("id-ID"), icon: CheckCircle2, warna: "bg-gold-50 text-gold-600" },
-      { label: "Rata-rata Poin", nilai: member.length ? Math.round(totalPoin / member.length).toLocaleString("id-ID") : "0", icon: UserPlus, warna: "bg-sky-50 text-sky-600" },
+      { label: "Total Member", nilai: String(member.length), icon: Users, nada: "brand" as const },
+      { label: "Total Poin", nilai: totalPoin.toLocaleString("id-ID"), icon: CheckCircle2, nada: "gold" as const },
+      { label: "Rata-rata Poin", nilai: member.length ? Math.round(totalPoin / member.length).toLocaleString("id-ID") : "0", icon: UserPlus, nada: "sky" as const },
     ],
     nasabah: [
-      { label: "Total Nasabah", nilai: String(nasabah.length), icon: PiggyBank, warna: "bg-brand-50 text-brand-600" },
-      { label: "Total Investasi", nilai: formatRupiah(totalInvestasi), icon: Coins, warna: "bg-gold-50 text-gold-600" },
-      { label: "Rata-rata Porsi", nilai: nasabah.length ? `${(100 / nasabah.length).toFixed(1)}%` : "0%", icon: CheckCircle2, warna: "bg-sky-50 text-sky-600" },
+      { label: "Total Nasabah", nilai: String(nasabah.length), icon: PiggyBank, nada: "brand" as const },
+      { label: "Total Investasi", nilai: formatRupiah(totalInvestasi), icon: Coins, nada: "gold" as const },
+      { label: "Rata-rata Porsi", nilai: nasabah.length ? `${(100 / nasabah.length).toFixed(1)}%` : "0%", icon: CheckCircle2, nada: "sky" as const },
     ],
     supplier: [
-      { label: "Total Supplier", nilai: String(supplier.length), icon: Truck, warna: "bg-brand-50 text-brand-600" },
-      { label: "Punya Telepon", nilai: String(supplier.filter((s) => s.telepon).length), icon: CheckCircle2, warna: "bg-gold-50 text-gold-600" },
-      { label: "Punya Alamat", nilai: String(supplier.filter((s) => s.alamat).length), icon: UserPlus, warna: "bg-sky-50 text-sky-600" },
+      { label: "Total Supplier", nilai: String(supplier.length), icon: Truck, nada: "brand" as const },
+      { label: "Punya Telepon", nilai: String(supplier.filter((s) => s.telepon).length), icon: CheckCircle2, nada: "gold" as const },
+      { label: "Punya Alamat", nilai: String(supplier.filter((s) => s.alamat).length), icon: UserPlus, nada: "sky" as const },
     ],
   }[tab];
 
@@ -140,8 +141,8 @@ export default function MasterDataPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Kontak</h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Kontak</h1>
+          <p className="text-sm text-slate-500 mt-1">
             Kelola data member, nasabah, dan supplier secara terintegrasi
           </p>
         </div>
@@ -187,27 +188,7 @@ export default function MasterDataPage() {
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {ringkasan.map((r) => (
-          <Card key={r.label}>
-            <CardContent className="p-5 pt-5 flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-500">{r.label}</p>
-                <p
-                  title={r.nilai}
-                  className="mt-1.5 text-xl sm:text-2xl font-extrabold text-slate-900 truncate"
-                >
-                  {r.nilai}
-                </p>
-              </div>
-              <span
-                className={cn(
-                  "shrink-0 h-11 w-11 rounded-2xl flex items-center justify-center",
-                  r.warna
-                )}
-              >
-                <r.icon className="h-5 w-5" />
-              </span>
-            </CardContent>
-          </Card>
+          <StatCard key={r.label} label={r.label} nilai={r.nilai} icon={r.icon} nada={r.nada} />
         ))}
       </div>
 

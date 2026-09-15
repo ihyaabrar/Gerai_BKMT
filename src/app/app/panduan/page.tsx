@@ -91,8 +91,8 @@ export default function PanduanPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Cara Pakai</h1>
-        <p className="text-slate-500 mt-1">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Cara Pakai</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Ketuk judul untuk melihat langkahnya. Tidak perlu dihafal — buka lagi kapan saja.
         </p>
       </div>

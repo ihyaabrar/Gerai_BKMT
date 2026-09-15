@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -117,8 +117,8 @@ export default function ReturPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Retur ke Supplier</h1>
-          <p className="text-slate-500">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Retur ke Supplier</h1>
+          <p className="text-sm text-slate-500 mt-1">
             Barang rusak atau kedaluwarsa yang dikembalikan ke supplier. Stok berkurang saat ditandai selesai.
           </p>
         </div>
@@ -130,8 +130,8 @@ export default function ReturPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <RotateCcw className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={RotateCcw} nada="brand" />
             Daftar Retur
           </CardTitle>
         </CardHeader>
@@ -148,11 +148,11 @@ export default function ReturPage() {
                 <div key={r.id} className="border rounded-lg p-4">
                   <div className="flex flex-wrap gap-3 justify-between items-start">
                     <div className="flex gap-4">
-                      <div className="bg-orange-100 p-3 rounded-lg">
-                        <Package className="h-6 w-6 text-orange-600" />
+                      <div className="bg-gold-50 p-3 rounded-lg">
+                        <Package className="h-6 w-6 text-gold-600" />
                       </div>
                       <div>
-                        <h3 className="font-semibold text-lg">
+                        <h3 className="font-semibold text-slate-900">
                           {r.barang.kode} - {r.barang.nama}
                         </h3>
                         <p className="text-sm text-slate-500">
@@ -169,7 +169,7 @@ export default function ReturPage() {
                     <div className="text-right">
                       {r.status === "proses" ? (
                         <div className="space-y-2">
-                          <span className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-sm">
+                          <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-semibold">
                             Proses
                           </span>
                           <div>
@@ -182,7 +182,7 @@ export default function ReturPage() {
                           </div>
                         </div>
                       ) : (
-                        <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                        <span className="px-2.5 py-0.5 bg-brand-100 text-brand-800 rounded-full text-xs font-semibold">
                           Selesai
                         </span>
                       )}

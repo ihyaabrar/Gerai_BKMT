@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Clock, PlayCircle, StopCircle, User } from "lucide-react";
@@ -106,8 +106,8 @@ export default function ShiftPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Buka / Tutup Kasir</h1>
-          <p className="text-slate-500">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Buka / Tutup Kasir</h1>
+          <p className="text-sm text-slate-500 mt-1">
             Buka kasir sebelum berjualan, tutup setelah selesai dan uang di laci dihitung.
           </p>
         </div>
@@ -132,36 +132,39 @@ export default function ShiftPage() {
       </div>
 
       {activeShift && (
-        <Card className="bg-gradient-to-r from-green-500 to-emerald-600 text-white">
-          <CardHeader>
-            <CardTitle className="text-white flex items-center gap-2">
-              <Clock className="h-5 w-5" />
+        <Card className="border-brand-200 bg-brand-50/60">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-2.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-400 opacity-75" />
+                <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-brand-500" />
+              </span>
               Kasir Sedang Buka
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm opacity-90">Kasir</p>
-                <p className="text-xl font-bold">{activeShift.user.nama}</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="rounded-xl bg-white border border-brand-100 px-4 py-3">
+                <p className="text-xs font-medium text-slate-500">Kasir</p>
+                <p className="mt-0.5 text-lg font-bold text-slate-900">{activeShift.user.nama}</p>
               </div>
-              <div>
-                <p className="text-sm opacity-90">Dibuka</p>
-                <p className="text-xl font-bold">
+              <div className="rounded-xl bg-white border border-brand-100 px-4 py-3">
+                <p className="text-xs font-medium text-slate-500">Dibuka</p>
+                <p className="mt-0.5 text-lg font-bold text-slate-900">
                   {/* Tanggal ikut ditampilkan: tanpa itu, shift kemarin yang
                       lupa ditutup terlihat seperti shift yang dibuka pagi ini. */}
                   {format(new Date(activeShift.jamBuka), "dd/MM/yyyy HH:mm")}
                 </p>
               </div>
-              <div>
-                <p className="text-sm opacity-90">Uang Awal di Laci</p>
-                <p className="text-xl font-bold">
+              <div className="rounded-xl bg-white border border-brand-100 px-4 py-3">
+                <p className="text-xs font-medium text-slate-500">Uang Awal di Laci</p>
+                <p className="mt-0.5 text-lg font-bold text-slate-900">
                   {formatRupiah(activeShift.saldoAwal)}
                 </p>
               </div>
-              <div>
-                <p className="text-sm opacity-90">Lama Buka</p>
-                <p className="text-xl font-bold">
+              <div className="rounded-xl bg-white border border-brand-100 px-4 py-3">
+                <p className="text-xs font-medium text-slate-500">Lama Buka</p>
+                <p className="mt-0.5 text-lg font-bold text-slate-900">
                   {Math.floor(
                     (new Date().getTime() - new Date(activeShift.jamBuka).getTime()) /
                       (1000 * 60)
@@ -176,8 +179,8 @@ export default function ShiftPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Clock} nada="brand" />
             Riwayat Buka / Tutup
           </CardTitle>
         </CardHeader>
@@ -230,7 +233,7 @@ export default function ShiftPage() {
                                 <p className="text-xs text-slate-500">
                                   Penjualan Tunai
                                 </p>
-                                <p className="font-semibold text-green-600">
+                                <p className="font-semibold text-brand-600">
                                   {formatRupiah(tunai)}
                                 </p>
                                 <p className="text-xs text-slate-500 mt-0.5">
@@ -261,10 +264,10 @@ export default function ShiftPage() {
                                 <p
                                   className={`font-semibold ${
                                     selisih === 0
-                                      ? "text-green-600"
+                                      ? "text-brand-600"
                                       : selisih > 0
-                                      ? "text-blue-600"
-                                      : "text-red-600"
+                                      ? "text-sky-600"
+                                      : "text-rose-600"
                                   }`}
                                 >
                                   {selisih === 0

@@ -117,10 +117,10 @@ export default function AdminPengurusPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Data Pengurus
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 mt-1">
             Kelola struktur dan daftar pengurus PD BKMT Kubu Raya.
           </p>
         </div>
@@ -132,7 +132,7 @@ export default function AdminPengurusPage() {
       </div>
 
       <Card>
-        <CardContent className="p-5 pt-5 space-y-4">
+        <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             {tab.map((t) => (
               <button

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -215,10 +215,10 @@ export default function BarangMasukPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
           Barang Masuk
         </h1>
-        <p className="text-slate-600 mt-2">Tambah stok barang yang sudah ada atau tambah produk baru</p>
+        <p className="text-sm text-slate-500 mt-1">Tambah stok barang yang sudah ada atau tambah produk baru</p>
       </div>
 
       {/* Mode Selector */}
@@ -232,7 +232,6 @@ export default function BarangMasukPage() {
             setHargaBeliBaru("");
           }}
           variant={mode === "pilih" ? "default" : "outline"}
-          className={mode === "pilih" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
         >
           <Package className="h-4 w-4" />
           Tambah Stok
@@ -241,7 +240,6 @@ export default function BarangMasukPage() {
           <Button
             onClick={() => setMode("baru")}
             variant={mode === "baru" ? "default" : "outline"}
-            className={mode === "baru" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
           >
             <Plus className="h-4 w-4" />
             Barang Baru
@@ -253,16 +251,14 @@ export default function BarangMasukPage() {
       {mode === "pilih" && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* List Barang */}
-          <Card className="lg:col-span-2 border-0 shadow-lg">
+          <Card className="lg:col-span-2">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600">
-                  <Package className="h-4 w-4 text-white" />
-                </div>
+              <CardTitle className="flex items-center gap-2.5">
+                <CardIcon icon={Package} nada="sky" />
                 Pilih Barang
               </CardTitle>
               <div className="relative mt-4">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input aria-label="Cari barang..."
                   placeholder="Cari barang..."
                   value={search}
@@ -280,10 +276,10 @@ export default function BarangMasukPage() {
                       setSelectedBarang(barang);
                       setHargaBeliBaru(barang.hargaBeli.toString());
                     }}
-                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all hover-lift ${
+                    className={`p-4 rounded-lg border-2 cursor-pointer transition-all ${
                       selectedBarang?.id === barang.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-blue-300"
+                        ? "border-brand-500 bg-brand-50 ring-1 ring-brand-500"
+                        : "border-border hover:border-brand-300"
                     }`}
                   >
                     <div className="flex flex-wrap gap-3 justify-between items-start">
@@ -311,19 +307,17 @@ export default function BarangMasukPage() {
           </Card>
 
           {/* Form Update Stok */}
-          <Card className="border-0 shadow-lg">
+          <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                  <RefreshCw className="h-4 w-4 text-white" />
-                </div>
+              <CardTitle className="flex items-center gap-2.5">
+                <CardIcon icon={RefreshCw} nada="brand" />
                 Update Stok
               </CardTitle>
             </CardHeader>
             <CardContent>
               {selectedBarang ? (
                 <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg border border-brand-200">
+                  <div className="p-4 bg-surface-sunken rounded-lg border border-brand-200">
                     <p className="font-bold text-slate-900 mb-1">{selectedBarang.nama}</p>
                     <p className="text-sm text-slate-600">{selectedBarang.kode}</p>
                     <div className="mt-3 pt-3 border-t border-brand-200">
@@ -358,7 +352,7 @@ export default function BarangMasukPage() {
                         id="updateHargaBeli"
                         checked={updateHargaBeli}
                         onChange={(e) => setUpdateHargaBeli(e.target.checked)}
-                        className="w-4 h-4 text-brand-600 rounded focus:ring-blue-500"
+                        className="w-4 h-4 text-brand-600 rounded focus:ring-brand-500"
                       />
                       <label htmlFor="updateHargaBeli" className="text-sm font-medium text-slate-700 cursor-pointer">
                         Harga beli pembelian ini berbeda
@@ -443,7 +437,7 @@ export default function BarangMasukPage() {
                 </div>
               ) : (
                 <div className="text-center py-12 text-slate-500">
-                  <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                  <Package className="h-12 w-12 mx-auto mb-3 text-slate-300" />
                   <p>Pilih barang dari daftar</p>
                 </div>
               )}
@@ -454,12 +448,10 @@ export default function BarangMasukPage() {
 
       {/* Mode: Tambah Baru */}
       {mode === "baru" && bolehUbahHarga && (
-        <Card className="max-w-2xl border-0 shadow-lg">
+        <Card className="max-w-2xl">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600">
-                <PackagePlus className="h-4 w-4 text-white" />
-              </div>
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={PackagePlus} nada="brand" />
               Form Barang Baru
             </CardTitle>
           </CardHeader>
@@ -483,7 +475,7 @@ export default function BarangMasukPage() {
                       id="barang-barcode"
                       value={formBaru.barcode}
                       onChange={(e) => setFormBaru({ ...formBaru, barcode: e.target.value })}
-                      placeholder="Auto generate"
+                      placeholder="Kosongkan atau tekan Buat Otomatis"
                     />
                     <Button type="button" onClick={handleGenerateBarcode} variant="outline">
                       Buat Otomatis
@@ -508,7 +500,7 @@ export default function BarangMasukPage() {
                 <select id="kategori"
                   value={formBaru.kategori}
                   onChange={(e) => setFormBaru({ ...formBaru, kategori: e.target.value })}
-                  className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex h-10 w-full rounded-lg border border-border bg-white px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/25 mt-1"
                 >
                   <option value="">-- Pilih Kategori --</option>
                   {kategoriList.map((k) => (

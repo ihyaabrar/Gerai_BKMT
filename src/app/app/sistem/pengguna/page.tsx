@@ -228,7 +228,7 @@ export default function PenggunaPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Pengguna
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 mt-1">
             Kelola akun dan hak akses pengguna sistem.
           </p>
         </div>
@@ -244,7 +244,7 @@ export default function PenggunaPage() {
       </div>
 
       <Card>
-        <CardContent className="p-5 pt-5 space-y-4">
+        <CardContent className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             {tab.map((t) => (
               <button

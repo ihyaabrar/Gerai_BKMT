@@ -10,7 +10,7 @@ export function Skeleton({ className, ...props }: React.HTMLAttributes<HTMLDivEl
   return (
     <div
       aria-hidden="true"
-      className={cn("animate-pulse rounded-md bg-gray-200", className)}
+      className={cn("animate-pulse rounded-md bg-slate-200/70", className)}
       {...props}
     />
   );
@@ -50,7 +50,7 @@ export function PageSkeleton() {
         <Skeleton className="h-8 w-56" />
         <Skeleton className="h-4 w-72" />
       </div>
-      <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-6">
+      <div className="space-y-4 rounded-xl border border-border bg-white p-6">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="space-y-2">
             <Skeleton className="h-3 w-32" />
@@ -72,7 +72,7 @@ export function StatsSkeleton({ count = 4 }: { count?: number }) {
     >
       <span className="sr-only">Memuat ringkasan…</span>
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="rounded-xl border border-gray-200 bg-white p-5 space-y-3">
+        <div key={i} className="rounded-xl border border-border bg-white p-5 space-y-3">
           <Skeleton className="h-3 w-24" />
           <Skeleton className="h-7 w-32" />
           <Skeleton className="h-3 w-20" />

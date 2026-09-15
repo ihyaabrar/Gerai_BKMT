@@ -251,8 +251,8 @@ export default function KasirPage() {
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Kasir</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Kasir</h1>
+        <p className="text-sm text-slate-500 mt-1">
           Pilih barang, lalu tekan Bayar.
         </p>
       </div>
@@ -377,7 +377,7 @@ export default function KasirPage() {
         {/* Cart */}
         <Card className="h-fit lg:sticky lg:top-4">
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2.5">
               <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center shrink-0">
                 <ShoppingCart className="h-[18px] w-[18px]" />
               </span>
@@ -636,7 +636,7 @@ export default function KasirPage() {
                 <Button
                   key={member.id}
                   variant={memberId === member.id ? "default" : "outline"}
-                  className={`w-full justify-start ${memberId === member.id ? "bg-violet-600 hover:bg-violet-700" : ""}`}
+                  className="w-full justify-start"
                   onClick={() => handleSelectMember(member)}
                 >
                   <div className="text-left">

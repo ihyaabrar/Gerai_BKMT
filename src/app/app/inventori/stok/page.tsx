@@ -3,10 +3,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { ImageUpload } from "@/components/ui/ImageUpload";
-import { Package, AlertTriangle, Search, Pencil } from "lucide-react";
+import { Package, AlertTriangle, Search, Pencil, Boxes } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { toast } from "sonner";
@@ -42,7 +43,7 @@ interface FormEdit {
 }
 
 const kelasSelect =
-  "flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-blue-500";
+  "flex h-10 w-full rounded-lg border border-border bg-white px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/25 mt-1";
 
 export default function StokPage() {
   const [barang, setBarang] = useState<Barang[]>([]);
@@ -164,13 +165,13 @@ export default function StokPage() {
       ? { label: "Habis", color: "bg-red-100 text-red-800" }
       : b.stok <= b.stokMinimum
       ? { label: "Rendah", color: "bg-amber-100 text-amber-800" }
-      : { label: "Aman", color: "bg-emerald-100 text-emerald-800" };
+      : { label: "Aman", color: "bg-brand-100 text-brand-800" };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Stok Barang</h1>
-        <p className="text-slate-500">Jumlah dan harga setiap barang di toko</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Stok Barang</h1>
+        <p className="text-sm text-slate-500 mt-1">Jumlah dan harga setiap barang di toko</p>
       </div>
 
       {/* Alert stok rendah/habis */}
@@ -198,37 +199,16 @@ export default function StokPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Total Barang</CardTitle>
-            <Package className="h-5 w-5 text-brand-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{barang.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Stok Rendah / Habis</CardTitle>
-            <AlertTriangle className="h-5 w-5 text-amber-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-amber-600">
-              {stokRendah.length + stokHabis.length}
-            </div>
-            <p className="text-xs text-slate-400 mt-1">{stokHabis.length} habis · {stokRendah.length} rendah</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-slate-600">Nilai Stok (harga beli)</CardTitle>
-            <Package className="h-5 w-5 text-brand-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatRupiah(nilaiInventori)}</div>
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="Jumlah Barang" nilai={`${barang.length} barang`} icon={Package} nada="brand" />
+        <StatCard
+          label="Stok Rendah / Habis"
+          nilai={`${stokRendah.length + stokHabis.length} barang`}
+          icon={AlertTriangle}
+          nada="amber"
+          catatan={`${stokHabis.length} habis · ${stokRendah.length} rendah`}
+        />
+        <StatCard label="Nilai Stok" nilai={formatRupiah(nilaiInventori)} icon={Boxes} nada="sky" catatan="Dihitung dari harga beli × stok" />
       </div>
 
       <Card>
@@ -240,7 +220,6 @@ export default function StokPage() {
                   key={f}
                   size="sm"
                   variant={filter === f ? "default" : "outline"}
-                  className={filter === f ? "bg-emerald-600 hover:bg-emerald-700" : ""}
                   onClick={() => setFilter(f)}
                 >
                   {f === "semua"
@@ -252,7 +231,7 @@ export default function StokPage() {
               ))}
             </div>
             <div className="relative w-full sm:w-64">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari barang..."
                 placeholder="Cari barang..."
                 value={search}

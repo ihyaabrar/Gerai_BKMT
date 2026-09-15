@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Settings, Save, Plus, Trash2, Tag } from "lucide-react";
@@ -244,16 +244,16 @@ export default function PengaturanPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">Pengaturan Toko</h1>
-        <p className="text-slate-500">Nama dan alamat toko, diskon member, dan bagi hasil</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Pengaturan Toko</h1>
+        <p className="text-sm text-slate-500 mt-1">Nama dan alamat toko, diskon member, dan bagi hasil</p>
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-start">
       {/* Pengaturan Toko */}
       <Card className="xl:row-span-2">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Settings className="h-5 w-5" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Settings} nada="brand" />
             Pengaturan Toko
           </CardTitle>
         </CardHeader>
@@ -301,8 +301,8 @@ export default function PengaturanPage() {
             </div>
             <div className={`p-3 rounded-lg text-sm font-medium ${
               totalPersen === 100
-                ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
-                : "bg-red-50 text-red-700 border border-red-200"
+                ? "bg-brand-50 text-brand-800 border border-brand-200"
+                : "bg-rose-50 text-rose-700 border border-rose-200"
             }`}>
               Total persentase: {totalPersen}% {totalPersen === 100 ? "✓" : "(harus 100%)"}
             </div>
@@ -318,8 +318,8 @@ export default function PengaturanPage() {
       {/* Kategori Barang */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-brand-600" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Tag} nada="brand" />
             Kategori Barang
           </CardTitle>
         </CardHeader>
@@ -352,7 +352,7 @@ export default function PengaturanPage() {
                   <button
                     aria-label={`Hapus kategori ${k.nama}`}
                     onClick={() => handleDeleteKategoriBarang(k.id, k.nama)}
-                    className="ml-1 text-blue-400 hover:text-red-500 transition-colors"
+                    className="ml-1 text-slate-400 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>
@@ -366,8 +366,8 @@ export default function PengaturanPage() {
       {/* Kategori Pengeluaran */}
       <Card>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Tag className="h-5 w-5 text-orange-600" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Tag} nada="gold" />
             Kategori Pengeluaran
           </CardTitle>
         </CardHeader>
@@ -395,12 +395,12 @@ export default function PengaturanPage() {
             <div className="flex flex-wrap gap-2">
               {kategoriPengeluaran.map((k) => (
                 <div key={k.id}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-orange-50 border border-orange-200 rounded-full text-sm text-orange-800">
+                  className="flex items-center gap-1 px-3 py-1.5 bg-gold-50 border border-gold-200 rounded-full text-sm text-gold-800">
                   <span>{k.nama}</span>
                   <button
                     aria-label={`Hapus kategori ${k.nama}`}
                     onClick={() => handleDeleteKategoriPengeluaran(k.id, k.nama)}
-                    className="ml-1 text-orange-400 hover:text-red-500 transition-colors"
+                    className="ml-1 text-slate-400 hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="h-3 w-3" />
                   </button>

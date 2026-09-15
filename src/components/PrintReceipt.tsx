@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { Bluetooth, Printer, Settings2 } from "lucide-react";
 import { toast } from "sonner";
-import { susunStruk, type IdentitasStruk } from "@/lib/escpos";
+import { susunStruk, type BarisStruk, type IdentitasStruk, type LebarKertas } from "@/lib/escpos";
 import { TOKO_BAWAAN, ambilIdentitasToko, cetakStruk } from "@/lib/cetak";
 import type { DataStruk } from "@/lib/struk";
 import { usePrinterStore } from "@/store/printer";
@@ -69,7 +69,7 @@ export function PrintReceipt({ data, otomatis = false }: { data: DataStruk; otom
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <Button onClick={() => cetak(true)} disabled={mencetak} className="bg-blue-600 hover:bg-blue-700">
+        <Button onClick={() => cetak(true)} disabled={mencetak}>
           {metode === "bluetooth" ? <Bluetooth className="h-4 w-4 mr-2" /> : <Printer className="h-4 w-4 mr-2" />}
           {mencetak ? "Mencetak..." : "Cetak Struk"}
         </Button>
@@ -82,26 +82,33 @@ export function PrintReceipt({ data, otomatis = false }: { data: DataStruk; otom
         </Link>
       </div>
 
-      <div
-        className={cn(
-          "bg-white border rounded-lg mx-auto px-3 py-4 font-mono text-slate-900 overflow-x-auto",
-          lebar === 58 ? "max-w-[18rem] text-[11px]" : "max-w-[26rem] text-[10.5px]"
-        )}
-      >
-        {baris.map((b, i) => (
-          <div
-            key={i}
-            className={cn(
-              "whitespace-pre leading-snug",
-              b.rata === "tengah" && "text-center",
-              b.tebal && "font-bold",
-              b.besar && "text-base"
-            )}
-          >
-            {b.teks || " "}
-          </div>
-        ))}
-      </div>
+      <StrukPratinjau baris={baris} lebar={lebar} />
+    </div>
+  );
+}
+
+/** Tampilan struk di layar: baris yang sama persis dengan yang dikirim ke printer. */
+export function StrukPratinjau({ baris, lebar }: { baris: BarisStruk[]; lebar: LebarKertas }) {
+  return (
+    <div
+      className={cn(
+        "bg-white border border-border rounded-lg mx-auto px-3 py-4 font-mono text-slate-900 overflow-x-auto shadow-sm",
+        lebar === 58 ? "max-w-[18rem] text-[11px]" : "max-w-[26rem] text-[10.5px]"
+      )}
+    >
+      {baris.map((b, i) => (
+        <div
+          key={i}
+          className={cn(
+            "whitespace-pre leading-snug",
+            b.rata === "tengah" && "text-center",
+            b.tebal && "font-bold",
+            b.besar && "text-base"
+          )}
+        >
+          {b.teks || " "}
+        </div>
+      ))}
     </div>
   );
 }

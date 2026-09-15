@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
+import { StatCard } from "@/components/ui/stat-card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DollarSign, Plus, Trash2, Calendar, Search, Download } from "lucide-react";
+import { DollarSign, Plus, Trash2, Calendar, Search, Download, Wallet } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
 import { Pagination } from "@/components/ui/pagination";
@@ -164,8 +166,8 @@ export default function PengeluaranPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Pengeluaran</h1>
-          <p className="text-slate-500">Catat pengeluaran operasional</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Pengeluaran</h1>
+          <p className="text-sm text-slate-500 mt-1">Catat biaya operasional seperti listrik, plastik, dan transport.</p>
         </div>
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button onClick={handleExportExcel} variant="outline" className="flex-1 sm:flex-none">
@@ -174,7 +176,7 @@ export default function PengeluaranPage() {
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
-              <Button className="bg-red-600 hover:bg-red-700 flex-1 sm:flex-none">
+              <Button className="flex-1 sm:flex-none">
                 <Plus className="h-4 w-4" />
                 Tambah Pengeluaran
               </Button>
@@ -195,8 +197,7 @@ export default function PengeluaranPage() {
                 </div>
                 <div>
                   <label className="text-sm font-medium" htmlFor="kategori">Kategori</label>
-                  <select id="kategori"
-                    className="flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                  <Select id="kategori"
                     value={form.kategori}
                     onChange={(e) => setForm({ ...form, kategori: e.target.value })}
                     required
@@ -205,7 +206,7 @@ export default function PengeluaranPage() {
                     {kategoriList.map((k) => (
                       <option key={k.id} value={k.nama}>{k.nama}</option>
                     ))}
-                  </select>
+                  </Select>
                   {kategoriList.length === 0 && (
                     <p className="text-xs text-amber-600 mt-1">
                       Belum ada kategori. Tambahkan di menu Pengaturan.
@@ -232,7 +233,7 @@ export default function PengeluaranPage() {
                     required
                   />
                 </div>
-                <Button type="submit" className="w-full bg-red-600 hover:bg-red-700">
+                <Button type="submit" className="w-full">
                   Simpan
                 </Button>
               </form>
@@ -241,24 +242,25 @@ export default function PengeluaranPage() {
         </div>
       </div>
 
-      <Card className="bg-gradient-to-r from-red-500 to-orange-600 text-white">
-        <CardHeader>
-          <CardTitle className="text-white">Total Pengeluaran</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-4xl font-bold">{formatRupiah(totalPengeluaran)}</div>
-        </CardContent>
-      </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        <StatCard
+          label="Total Pengeluaran"
+          nilai={formatRupiah(totalPengeluaran)}
+          icon={Wallet}
+          nada="rose"
+          catatan={`${filteredData.length} catatan${search ? " (hasil pencarian)" : ""}`}
+        />
+      </div>
 
       <Card>
         <CardHeader>
           <div className="flex flex-wrap gap-3 justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <DollarSign className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={DollarSign} nada="brand" />
               Riwayat Pengeluaran
             </CardTitle>
-            <div className="relative w-64">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari pengeluaran..."
                 placeholder="Cari pengeluaran..."
                 value={search}
@@ -320,7 +322,7 @@ export default function PengeluaranPage() {
                           </div>
                         </td>
                         <td className="p-3">
-                          <span className="px-2 py-1 bg-orange-100 text-orange-700 rounded text-sm whitespace-nowrap">
+                          <span className="px-2.5 py-0.5 bg-gold-100 text-gold-800 rounded-full text-xs font-semibold whitespace-nowrap">
                             {p.kategori}
                           </span>
                         </td>

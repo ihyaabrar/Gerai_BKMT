@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
+import { PageHeader } from "@/components/ui/page-header";
+import { StrukPratinjau } from "@/components/PrintReceipt";
 import { Button } from "@/components/ui/button";
 import { Bluetooth, BluetoothOff, Info, Printer, ScrollText } from "lucide-react";
 import { toast } from "sonner";
@@ -14,9 +16,9 @@ import {
   putuskanPrinter,
   sambungUlang,
 } from "@/lib/printer-bluetooth";
-import { ambilIdentitasToko, cetakStruk } from "@/lib/cetak";
+import { TOKO_BAWAAN, ambilIdentitasToko, cetakStruk } from "@/lib/cetak";
 import type { DataStruk } from "@/lib/struk";
-import type { LebarKertas } from "@/lib/escpos";
+import { susunStruk, type IdentitasStruk, type LebarKertas } from "@/lib/escpos";
 
 const STRUK_UJI = (): DataStruk => ({
   nomorTransaksi: "CETAK-UJI",
@@ -53,11 +55,13 @@ export default function PrinterPage() {
   const [didukung, setDidukung] = useState<boolean | null>(null);
   const [tersambung, setTersambung] = useState(false);
   const [sibuk, setSibuk] = useState(false);
+  const [toko, setToko] = useState<IdentitasStruk>(TOKO_BAWAAN);
 
   // Dicek di browser saja; saat render server `navigator` belum ada.
   useEffect(() => {
     setDidukung(bluetoothDidukung());
     setTersambung(printerTersambung());
+    ambilIdentitasToko().then(setToko);
   }, []);
 
   const pilih = async () => {
@@ -112,17 +116,20 @@ export default function PrinterPage() {
   };
 
   return (
-    <div className="space-y-6 max-w-3xl">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Printer</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
-          Pengaturan ini tersimpan di perangkat ini saja — setiap HP atau komputer kasir diatur sendiri.
-        </p>
-      </div>
+    <div className="space-y-6">
+      <PageHeader
+        judul="Printer"
+        deskripsi="Pengaturan ini tersimpan di perangkat ini saja — setiap HP atau komputer kasir diatur sendiri."
+      />
 
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_24rem] gap-6 items-start">
+      <div className="space-y-6 min-w-0">
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">Cara mencetak struk</CardTitle>
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={Printer} nada="brand" />
+            Cara mencetak struk
+          </CardTitle>
         </CardHeader>
         <CardContent className="grid gap-3 sm:grid-cols-2">
           {PILIHAN_METODE.map((m) => (
@@ -132,7 +139,7 @@ export default function PrinterPage() {
               aria-pressed={metode === m.id}
               onClick={() => atur({ metode: m.id })}
               className={cn(
-                "text-left rounded-card border p-4 transition-colors",
+                "text-left rounded-xl border p-4 transition-colors",
                 metode === m.id
                   ? "border-brand-500 bg-brand-50 ring-2 ring-brand-500/20"
                   : "border-border hover:border-brand-300"
@@ -149,14 +156,14 @@ export default function PrinterPage() {
       {metode === "bluetooth" && (
         <Card>
           <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Bluetooth className="h-4 w-4" />
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={Bluetooth} nada="sky" />
               Printer Bluetooth
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {didukung === false ? (
-              <div className="rounded-md border border-amber-300 bg-amber-50 p-3 flex gap-3">
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 flex gap-3">
                 <BluetoothOff className="h-5 w-5 text-amber-600 shrink-0" />
                 <p className="text-sm text-amber-900 leading-relaxed">
                   Browser ini tidak mendukung Bluetooth langsung. Buka aplikasi ini di <strong>Google Chrome</strong>{" "}
@@ -166,12 +173,12 @@ export default function PrinterPage() {
               </div>
             ) : (
               <>
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-md bg-surface-muted p-3">
+                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-border bg-surface-sunken/60 p-3.5">
                   <div>
                     <p className="text-sm font-medium text-slate-900">
                       {perangkatNama ?? "Belum ada printer dipilih"}
                     </p>
-                    <p className={cn("text-xs mt-0.5", tersambung ? "text-emerald-600" : "text-slate-500")}>
+                    <p className={cn("text-xs mt-0.5", tersambung ? "text-brand-600 font-medium" : "text-slate-500")}>
                       {tersambung
                         ? "Tersambung"
                         : perangkatNama
@@ -208,8 +215,8 @@ export default function PrinterPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base flex items-center gap-2">
-            <ScrollText className="h-4 w-4" />
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={ScrollText} nada="gold" />
             Kertas & kebiasaan cetak
           </CardTitle>
         </CardHeader>
@@ -237,7 +244,7 @@ export default function PrinterPage() {
           <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
-              className="mt-1 h-4 w-4"
+              className="mt-1 h-4 w-4 accent-brand-600"
               checked={cetakOtomatis}
               onChange={(e) => atur({ cetakOtomatis: e.target.checked })}
             />
@@ -253,7 +260,7 @@ export default function PrinterPage() {
 
           <div className="flex flex-wrap items-center gap-3 pt-1">
             <Button onClick={cetakUji} disabled={sibuk}>
-              <Printer className="h-4 w-4 mr-2" />
+              <Printer className="h-4 w-4" />
               Cetak uji
             </Button>
             <p className="text-xs text-slate-500 flex items-center gap-1">
@@ -263,6 +270,23 @@ export default function PrinterPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
+
+      <Card className="xl:sticky xl:top-6">
+        <CardHeader className="pb-4">
+          <CardTitle className="flex items-center gap-2.5">
+            <CardIcon icon={ScrollText} nada="slate" />
+            Contoh struk
+          </CardTitle>
+          <p className="text-sm text-slate-500">Seperti ini struk keluar di kertas {lebar} mm.</p>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-xl bg-surface-sunken p-4">
+            <StrukPratinjau baris={susunStruk(STRUK_UJI(), toko, lebar)} lebar={lebar} />
+          </div>
+        </CardContent>
+      </Card>
+      </div>
     </div>
   );
 }

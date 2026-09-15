@@ -46,10 +46,10 @@ export default function AdminGeraiPage() {
     <form onSubmit={handleSubmit} className="space-y-5">
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Informasi Gerai
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 mt-1">
             Data operasional Gerai BKMT yang tampil di halaman publik.
           </p>
         </div>
@@ -60,7 +60,7 @@ export default function AdminGeraiPage() {
       </div>
 
       <Card>
-        <CardContent className="p-5 sm:p-6 pt-5 sm:pt-6 grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
+        <CardContent className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-5">
         <div className="lg:col-span-2">
           <label className="text-sm font-medium text-slate-700" htmlFor="nama-gerai">Nama Gerai *</label>
           <Input id="nama-gerai" value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />

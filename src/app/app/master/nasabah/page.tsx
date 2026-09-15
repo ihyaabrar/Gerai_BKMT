@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { UserPlus, Users, Search, Edit, Trash2, CalendarClock } from "lucide-react";
+import { UserPlus, Users, Search, Edit, Trash2, CalendarClock, Coins, TrendingUp, PiggyBank } from "lucide-react";
 import { cn, formatRupiah } from "@/lib/utils";
 import { labelPeriode, periodeBerikutnya, periodeDari } from "@/lib/keuangan";
 import { toast } from "sonner";
@@ -205,8 +206,8 @@ export default function NasabahPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Nasabah (Pemodal)</h1>
-          <p className="text-slate-500">Orang yang menanam modal di gerai dan besar modalnya</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Nasabah (Pemodal)</h1>
+          <p className="text-sm text-slate-500 mt-1">Orang yang menanam modal di gerai dan besar modalnya</p>
         </div>
         <Button onClick={openAdd}>
           <UserPlus className="mr-2 h-4 w-4" />
@@ -215,35 +216,20 @@ export default function NasabahPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-slate-500">Total Investasi</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-violet-600">{formatRupiah(totalInvestasi)}</p>
-            {totalModalBulanIni !== totalInvestasi && (
-              <p className="text-xs text-slate-400 mt-1">
-                Ikut dibagi {labelBulanIni}: {formatRupiah(totalModalBulanIni)}
-              </p>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-slate-500">Laba Bulan Ini</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-brand-600">{formatRupiah(totalLabaBulanIni)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-slate-500">Bagian Nasabah ({pratinjau?.persenNasabah ?? "–"}%)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold text-brand-600">{formatRupiah(bagianNasabahTotal)}</p>
-          </CardContent>
-        </Card>
+        <StatCard
+          label="Total Modal"
+          nilai={formatRupiah(totalInvestasi)}
+          icon={Coins}
+          nada="violet"
+          catatan={totalModalBulanIni !== totalInvestasi ? `Ikut dibagi ${labelBulanIni}: ${formatRupiah(totalModalBulanIni)}` : undefined}
+        />
+        <StatCard label="Laba Bulan Ini" nilai={formatRupiah(totalLabaBulanIni)} icon={TrendingUp} nada="brand" />
+        <StatCard
+          label={`Bagian Nasabah (${pratinjau?.persenNasabah ?? "–"}%)`}
+          nilai={formatRupiah(bagianNasabahTotal)}
+          icon={PiggyBank}
+          nada="gold"
+        />
       </div>
 
       <div className="rounded-card border border-sky-200 bg-sky-50/60 px-4 py-3 flex gap-3">
@@ -258,12 +244,12 @@ export default function NasabahPage() {
       <Card>
         <CardHeader>
           <div className="flex flex-wrap gap-3 justify-between items-center">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
+            <CardTitle className="flex items-center gap-2.5">
+              <CardIcon icon={Users} nada="brand" />
               Daftar Nasabah
             </CardTitle>
             <div className="relative w-60">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari nasabah..."
                 placeholder="Cari nasabah..."
                 value={search}

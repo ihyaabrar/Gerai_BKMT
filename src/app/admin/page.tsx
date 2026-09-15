@@ -7,7 +7,7 @@ import {
   Circle, Clock, PenLine, Plus,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardIcon, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -171,7 +171,7 @@ export default function AdminDashboard() {
         <div className="relative flex flex-wrap items-end justify-between gap-5 lg:pr-[320px]">
           <div className="max-w-xl">
             <p className="text-sm text-slate-500">Selamat datang,</p>
-            <h1 className="mt-0.5 text-2xl sm:text-[28px] font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               {user?.nama ?? "Admin"}!
             </h1>
             <p className="mt-2 text-sm text-slate-600 leading-relaxed">
@@ -262,9 +262,7 @@ export default function AdminDashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between gap-3">
               <CardTitle className="flex items-center gap-2.5">
-                <span className="h-8 w-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
-                  <Clock className="h-[18px] w-[18px]" />
-                </span>
+                <CardIcon icon={Clock} nada="sky" />
                 Aktivitas Terbaru
               </CardTitle>
               <Link

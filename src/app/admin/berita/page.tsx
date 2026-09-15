@@ -114,10 +114,10 @@ export default function AdminBeritaPage() {
     <div className="space-y-5">
       <div className="flex flex-wrap gap-3 items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
             Berita &amp; Pengumuman
           </h1>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <p className="text-sm text-slate-500 mt-1">
             Kelola semua konten berita, kegiatan, dan pengumuman yang tampil di
             website publik.
           </p>
@@ -130,7 +130,7 @@ export default function AdminBeritaPage() {
       </div>
 
       <Card>
-        <CardContent className="p-5 pt-5 space-y-4">
+        <CardContent className="space-y-4">
           {/* Penyaring */}
           <div className="flex flex-wrap items-center gap-2">
             {tab.map((t) => (

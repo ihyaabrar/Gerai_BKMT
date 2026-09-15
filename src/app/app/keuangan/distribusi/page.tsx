@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { StatCard } from "@/components/ui/stat-card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select } from "@/components/ui/select";
@@ -302,10 +303,10 @@ export default function DistribusiPage() {
       <div className="space-y-5">
         <div className="flex flex-wrap gap-3 items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">
               Bagi Hasil Nasabah
             </h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <p className="text-sm text-slate-500 mt-1">
               Hitung dan simpan bagian keuntungan nasabah setiap bulan.
             </p>
           </div>
@@ -358,7 +359,7 @@ export default function DistribusiPage() {
           <>
             {/* Status periode */}
             <Card>
-              <CardContent className="p-5 pt-5 flex flex-wrap items-start justify-between gap-4">
+              <CardContent className="flex flex-wrap items-start justify-between gap-4">
                 <div className="flex items-start gap-3.5 min-w-0">
                   <span
                     className={cn(
@@ -454,7 +455,7 @@ export default function DistribusiPage() {
 
             {(data.riwayatBuka?.length ?? 0) > 0 && (
               <Card>
-                <CardContent className="p-5 pt-5">
+                <CardContent>
                   <p className="text-sm font-semibold text-slate-900">
                     Riwayat dibuka kembali
                   </p>
@@ -510,51 +511,33 @@ export default function DistribusiPage() {
                   catatan: (d.kerugianStok ?? 0) > 0
                     ? `${d.totalTransaksi ?? 0} transaksi · setelah barang rusak ${formatRupiah(d.kerugianStok ?? 0)}`
                     : `${d.totalTransaksi ?? 0} transaksi`,
-                  warna: "bg-gold-50 text-gold-600",
+                  nada: "gold" as const,
                   icon: Building,
                 },
                 {
                   label: `Bagian Nasabah (${d.persenNasabah}%)`,
                   nilai: d.bagianNasabah,
                   catatan: `${d.detail.length} nasabah · modal ${formatRupiah(d.totalInvestasi)}`,
-                  warna: "bg-brand-50 text-brand-600",
+                  nada: "brand" as const,
                   icon: Users,
                 },
                 {
                   label: `Bagian Pengelola (${d.persenPengelola}%)`,
                   nilai: d.bagianPengelola,
                   catatan: "Pembagiannya ada di tabel paling bawah",
-                  warna: "bg-sky-50 text-sky-600",
+                  nada: "sky" as const,
                   icon: Building,
                 },
               ].map((k) => (
-                <Card key={k.label}>
-                  <CardContent className="p-5 pt-5">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-sm font-medium text-slate-500">{k.label}</p>
-                        <p
-                          title={formatRupiah(k.nilai)}
-                          className={cn(
-                            "mt-1.5 text-xl sm:text-2xl font-extrabold truncate",
-                            k.nilai < 0 ? "text-rose-600" : "text-brand-900"
-                          )}
-                        >
-                          {formatRupiah(k.nilai)}
-                        </p>
-                        <p className="text-xs text-slate-500 mt-1">{k.catatan}</p>
-                      </div>
-                      <span
-                        className={cn(
-                          "shrink-0 h-11 w-11 rounded-2xl flex items-center justify-center",
-                          k.warna
-                        )}
-                      >
-                        <k.icon className="h-5 w-5" />
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
+                <StatCard
+                  key={k.label}
+                  label={k.label}
+                  nilai={formatRupiah(k.nilai)}
+                  icon={k.icon}
+                  nada={k.nada}
+                  catatan={k.catatan}
+                  negatif={k.nilai < 0}
+                />
               ))}
             </div>
 

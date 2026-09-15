@@ -50,8 +50,8 @@ export default function PengurusBaruPage() {
             </Button>
           </Link>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">Tambah Pengurus</h1>
-            <p className="text-sm text-slate-500 mt-0.5">
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 tracking-tight">Tambah Pengurus</h1>
+            <p className="text-sm text-slate-500 mt-1">
               Data pengurus tampil pada halaman susunan pengurus di website publik.
             </p>
           </div>
@@ -69,7 +69,7 @@ export default function PengurusBaruPage() {
       */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_280px] gap-5 items-start">
         <Card>
-          <CardContent className="p-5 sm:p-6 pt-5 sm:pt-6">
+          <CardContent>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="sm:col-span-2">
             <label className="text-sm font-medium text-slate-700" htmlFor="nama-lengkap">Nama Lengkap *</label>
@@ -87,7 +87,7 @@ export default function PengurusBaruPage() {
           <div>
             <label className="text-sm font-medium text-slate-700" htmlFor="tingkatan">Tingkatan *</label>
             <select id="tingkatan" value={form.tingkatan} onChange={(e) => setForm({ ...form, tingkatan: e.target.value })}
-              className="mt-1 flex h-10 w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-violet-500">
+              className="mt-1 flex h-10 w-full rounded-lg border border-border bg-white px-3.5 py-2 text-sm focus-visible:outline-none focus-visible:border-brand-500 focus-visible:ring-2 focus-visible:ring-brand-500/25">
               <option value="PD">PD BKMT (Pimpinan Daerah)</option>
               <option value="PC">PC BKMT (Pimpinan Cabang)</option>
               <option value="Permata">Permata BKMT</option>
@@ -132,7 +132,7 @@ export default function PengurusBaruPage() {
         </Card>
 
         <Card className="lg:sticky lg:top-24">
-          <CardContent className="p-5 pt-5 space-y-3">
+          <CardContent className="space-y-3">
             <p className="text-[15px] font-semibold text-slate-900">Foto Pengurus</p>
             <ImageUpload
               value={form.fotoUrl}
