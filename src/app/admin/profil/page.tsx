@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { CEK_INTERNET } from "@/lib/pesan";
+import { labelTautan, tautanSosial, type JenisSosial } from "@/lib/sosial";
 
 type Bagian = "umum" | "visimisi" | "sejarah" | "kontak";
 
@@ -62,6 +63,9 @@ const KOSONG = {
   instagram: "",
   youtube: "",
   website: "",
+  whatsapp: "",
+  tiktok: "",
+  slogan: "",
 };
 
 export default function AdminProfilPage() {
@@ -74,7 +78,16 @@ export default function AdminProfilPage() {
     fetch("/api/admin/profil")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((res) => {
-        if (res.data) setForm((f) => ({ ...f, ...res.data }));
+        if (!res.data) return;
+        // Kolom kosong di database bernilai null; form butuh string supaya
+        // .trim() dan isian tidak rusak.
+        setForm((f) => {
+          const baru = { ...f };
+          for (const k of Object.keys(KOSONG) as (keyof typeof KOSONG)[]) {
+            if (typeof res.data[k] === "string") baru[k] = res.data[k];
+          }
+          return baru;
+        });
       })
       .catch(() => toast.error("Gagal memuat profil"))
       .finally(() => setLoading(false));
@@ -140,9 +153,22 @@ export default function AdminProfilPage() {
             className="mt-1.5"
           />
         )}
-        {bantuan && <p className="text-xs text-slate-400 mt-1.5">{bantuan}</p>}
+        {bantuan && <p className="text-xs text-slate-500 mt-1.5">{bantuan}</p>}
       </div>
     );
+  };
+
+  // Kolom media sosial menampilkan tautan hasil tebakan, supaya pengurus
+  // bisa memastikan isiannya benar sebelum menyimpan.
+  const kolomSosial = (label: string, key: JenisSosial & keyof typeof form) => {
+    const tautan = tautanSosial(key, form[key]);
+    return kolom(label, key, {
+      bantuan: !form[key].trim()
+        ? "Kosong — tidak ditampilkan"
+        : tautan
+          ? `Membuka: ${labelTautan(tautan)}`
+          : "Belum bisa dibaca sebagai tautan — periksa lagi isinya",
+    });
   };
 
   // Penanda bagian yang sudah terisi, supaya admin tahu apa yang tersisa.
@@ -226,6 +252,9 @@ export default function AdminProfilPage() {
                       bantuan: "Dipakai sebagai judul besar di halaman publik",
                     })}
                   </div>
+                  {kolom("Slogan", "slogan", {
+                    bantuan: "Tampil di bagian atas dan bawah situs. Kosongkan untuk memakai \"Bersama Umat, Membangun Masyarakat\".",
+                  })}
                   {kolom("Deskripsi Singkat", "deskripsi", {
                     baris: 5,
                     bantuan: `${form.deskripsi.length} karakter`,
@@ -273,21 +302,31 @@ export default function AdminProfilPage() {
 
             {bagian === "kontak" && (
               <div className="space-y-5">
+                <p className="text-sm text-slate-600 rounded-lg bg-surface-muted border border-border px-3.5 py-2.5 leading-relaxed">
+                  Semua isian di bagian ini tampil di <strong>bagian paling bawah situs</strong>. Yang dikosongkan tidak ditampilkan.
+                </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {kolom("Email", "email", { type: "email" })}
                   {kolom("Telepon", "telepon")}
+                  {kolom("WhatsApp", "whatsapp", {
+                    bantuan: "Nomor HP, mis. 0812 3456 7890. Pengunjung bisa langsung mengirim pesan.",
+                  })}
                 </div>
                 {kolom("Alamat Sekretariat", "alamat", { baris: 3 })}
 
                 <div className="pt-1">
-                  <p className="text-sm font-semibold text-slate-700 mb-3">
+                  <p className="text-sm font-semibold text-slate-700">
                     Media Sosial
                   </p>
+                  <p className="text-xs text-slate-500 mt-0.5 mb-3">
+                    Boleh ditempel alamat lengkapnya, atau cukup nama akun seperti @bkmtkuburaya.
+                  </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {kolom("Facebook", "facebook")}
-                    {kolom("Instagram", "instagram")}
-                    {kolom("YouTube", "youtube")}
-                    {kolom("Website", "website")}
+                    {kolomSosial("Facebook", "facebook")}
+                    {kolomSosial("Instagram", "instagram")}
+                    {kolomSosial("TikTok", "tiktok")}
+                    {kolomSosial("YouTube", "youtube")}
+                    {kolomSosial("Website", "website")}
                   </div>
                 </div>
               </div>

@@ -6,6 +6,7 @@ import { BeritaSection } from "@/components/public/BeritaSection";
 import { PengurusSection } from "@/components/public/PengurusSection";
 import { GeraiSection } from "@/components/public/GeraiSection";
 import { GaleriAgendaSection } from "@/components/public/GaleriAgendaSection";
+import { PublicFooter } from "@/components/public/PublicFooter";
 import type { PengurusPublic, BeritaPublic } from "@/types/public-profile";
 
 export const dynamic = "force-dynamic";
@@ -74,6 +75,7 @@ export default async function PublicProfilePage() {
         orgName={profil?.nama || "PD BKMT Kabupaten Kubu Raya"}
         singkatan={profil?.singkatan}
         logoUrl={profil?.logoUrl}
+        slogan={profil?.slogan}
       />
 
       <main>
@@ -85,48 +87,7 @@ export default async function PublicProfilePage() {
         <GeraiSection gerai={gerai} />
       </main>
 
-      <footer className="bg-brand-deep text-brand-200">
-        <div className="max-w-6xl mx-auto px-6 py-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
-            <div>
-              <h3 className="text-white font-bold text-lg mb-3 font-display">{profil?.singkatan || "PD BKMT"}</h3>
-              <p className="text-brand-200/80 text-sm leading-relaxed">
-                {profil?.deskripsi || "Pimpinan Daerah Badan Kontak Majelis Taklim Kabupaten Kubu Raya"}
-              </p>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-3">Navigasi</h4>
-              <div className="space-y-2">
-                {["#beranda", "#profil", "#berita", "#pengurus", "#gerai"].map((href, i) => (
-                  <a key={href} href={href} className="block text-brand-200/80 hover:text-white text-sm transition-colors">
-                    {["Beranda", "Profil", "Berita", "Pengurus", "Gerai"][i]}
-                  </a>
-                ))}
-              </div>
-            </div>
-            <div>
-              <h4 className="text-white font-semibold mb-3">Kontak</h4>
-              <div className="space-y-2 text-sm text-brand-200/80">
-                {profil?.alamat && <p>{profil.alamat}</p>}
-                {profil?.telepon && <p>{profil.telepon}</p>}
-                {profil?.email && <p>{profil.email}</p>}
-              </div>
-            </div>
-          </div>
-          <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row justify-between items-center gap-3">
-            <p className="text-brand-300/70 text-sm">© {new Date().getFullYear()} PD BKMT Kabupaten Kubu Raya</p>
-            <p className="font-script text-lg text-gold-300">
-              Bersama Umat, Membangun Masyarakat
-            </p>
-            <a
-              href="/login"
-              className="text-gold-300 hover:text-gold-200 text-sm font-medium transition-colors"
-            >
-              Masuk Pengurus →
-            </a>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter profil={profil} />
     </div>
   );
 }

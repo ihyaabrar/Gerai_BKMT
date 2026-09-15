@@ -437,6 +437,9 @@ model ProfilOrganisasi {
   instagram String?
   youtube   String?
   website   String?
+  whatsapp  String?
+  tiktok    String?
+  slogan    String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

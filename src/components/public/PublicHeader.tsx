@@ -8,9 +8,10 @@ interface PublicHeaderProps {
   orgName: string;
   singkatan?: string | null;
   logoUrl?: string | null;
+  slogan?: string | null;
 }
 
-export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps) {
+export function PublicHeader({ orgName, singkatan, logoUrl, slogan }: PublicHeaderProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -54,7 +55,7 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
               {singkatan || "BKMT"}
             </p>
             <p className="text-xs leading-tight text-slate-500">
-              Bersama Umat, Membangun Masyarakat
+              {slogan?.trim() || "Bersama Umat, Membangun Masyarakat"}
             </p>
           </div>
         </div>
