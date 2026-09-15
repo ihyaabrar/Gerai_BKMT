@@ -1,5 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
+import { URUTAN_JENJANG, jenjangJabatan } from "@/lib/struktur-pengurus";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -43,13 +44,28 @@ export function ensureUniqueSlug(baseSlug: string, existingSlugs: string[]): str
   return `${baseSlug}-${counter}`;
 }
 
-export function sortPengurus<T extends { tingkatan: string; urutan: number }>(list: T[]): T[] {
+/**
+ * Urutan pengurus: tingkatan (PD → PC → Permata), lalu tingkat jabatan sesuai
+ * bagan (Penasehat → Ketua → Wakil → Sekretaris → Bendahara → lainnya), lalu
+ * "Urutan Tampil", lalu nama.
+ *
+ * Sebelumnya hanya tingkatan dan Urutan Tampil, sehingga daftar admin tidak
+ * sama dengan bagan di situs, dan pengurus dengan Urutan Tampil yang sama
+ * (mis. semuanya 0) muncul dalam urutan acak yang bisa berubah setelah diedit.
+ */
+export function sortPengurus<T extends { tingkatan: string; urutan: number; jabatan?: string; nama?: string }>(
+  list: T[]
+): T[] {
   const ORDER: Record<string, number> = { PD: 0, PC: 1, Permata: 2 };
   return [...list].sort((a, b) => {
     const tA = ORDER[a.tingkatan] ?? 99;
     const tB = ORDER[b.tingkatan] ?? 99;
     if (tA !== tB) return tA - tB;
-    return a.urutan - b.urutan;
+    const jA = URUTAN_JENJANG[jenjangJabatan(a.jabatan ?? "")];
+    const jB = URUTAN_JENJANG[jenjangJabatan(b.jabatan ?? "")];
+    if (jA !== jB) return jA - jB;
+    if (a.urutan !== b.urutan) return a.urutan - b.urutan;
+    return (a.nama ?? "").localeCompare(b.nama ?? "", "id");
   });
 }
 

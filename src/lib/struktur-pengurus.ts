@@ -32,10 +32,25 @@ export function jenjangJabatan(jabatan: string): Jenjang {
   // Sekretaris, "sekretris", "sekertaris" — tetapi bukan "seksi".
   if (ada((k) => /^sek(r|ert)/.test(k))) return "sekretaris";
   if (ada((k) => k.startsWith("bendah"))) return "bendahara";
+  // "Ketua Bidang Dakwah", "Koordinator Seksi …" memimpin bidangnya, bukan
+  // organisasinya.
+  if (ada((k) => ["bidang", "seksi", "divisi", "departemen", "koordinator", "korwil"].includes(k))) {
+    return "lainnya";
+  }
   if (ada((k) => k === "wakil" || k === "waka") && ada((k) => k === "ketua")) return "wakil";
   if (ada((k) => k === "ketua")) return "ketua";
   return "lainnya";
 }
+
+/** Urutan tingkat dari atas ke bawah bagan. */
+export const URUTAN_JENJANG: Record<Jenjang, number> = {
+  penasehat: 0,
+  ketua: 1,
+  wakil: 2,
+  sekretaris: 3,
+  bendahara: 4,
+  lainnya: 5,
+};
 
 export type Struktur<T> = Record<Jenjang, T[]>;
 
