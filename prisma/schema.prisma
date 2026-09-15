@@ -463,6 +463,8 @@ model Pengurus {
   alamat    String?
   jabatan   String
   tingkatan String   @default("PD")
+  /// Cabang/wilayah untuk Pimpinan Cabang & Permata, mis. "Sungai Raya".
+  wilayah   String?
   periode   String?
   fotoUrl   String?
   urutan    Int      @default(0)

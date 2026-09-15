@@ -35,6 +35,8 @@ export interface PengurusPublic {
   nama: string;
   jabatan: string;
   tingkatan: "PD" | "PC" | "Permata";
+  /** Cabang/wilayah (Pimpinan Cabang & Permata). */
+  wilayah?: string | null;
   periode?: string | null;
   fotoUrl?: string | null;
   urutan: number;

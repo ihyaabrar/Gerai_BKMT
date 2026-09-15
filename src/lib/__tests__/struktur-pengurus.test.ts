@@ -82,3 +82,19 @@ describe("validasi form pengurus", () => {
     expect(() => parsePengurus({ nama: "A", jabatan: "B", tingkatan: "PW" })).toThrow(/Tingkatan/);
   });
 });
+
+describe("pengurus per cabang", () => {
+  it("pengurus satu cabang berkumpul, yang tanpa cabang di akhir", () => {
+    const data = [
+      { nama: "A", jabatan: "Sekretaris", tingkatan: "PC", urutan: 0, wilayah: "Sungai Raya" },
+      { nama: "B", jabatan: "Ketua PC", tingkatan: "PC", urutan: 0, wilayah: "Kubu" },
+      { nama: "C", jabatan: "Ketua PC", tingkatan: "PC", urutan: 0, wilayah: null },
+      { nama: "D", jabatan: "Ketua PC", tingkatan: "PC", urutan: 0, wilayah: "Sungai Raya" },
+    ];
+    expect(sortPengurus(data).map((p) => p.nama)).toEqual(["B", "D", "A", "C"]);
+  });
+
+  it("cabang ikut disimpan dari form", () => {
+    expect(parsePengurus({ nama: "A", jabatan: "Ketua", tingkatan: "PC", wilayah: " Kubu " }).wilayah).toBe("Kubu");
+  });
+});

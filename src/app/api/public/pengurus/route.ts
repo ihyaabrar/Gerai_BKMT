@@ -9,7 +9,7 @@ export async function GET() {
     const pengurus = await prisma.pengurus.findMany({
       where: { aktif: true },
       select: {
-        id: true, nama: true, jabatan: true, tingkatan: true,
+        id: true, nama: true, jabatan: true, tingkatan: true, wilayah: true,
         periode: true, fotoUrl: true, urutan: true,
       },
     });
