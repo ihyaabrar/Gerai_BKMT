@@ -16,6 +16,7 @@ import {
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
+import { CEK_INTERNET } from "@/lib/pesan";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 interface Berita {
@@ -70,7 +71,7 @@ export default function AdminBeritaPage() {
             fetchBerita();
           } else toast.error("Gagal menghapus");
         } catch {
-          toast.error("Terjadi kesalahan");
+          toast.error("Berita belum terhapus", { description: CEK_INTERNET });
         }
       },
     });
@@ -81,8 +82,8 @@ export default function AdminBeritaPage() {
 
   const tab: { id: Saringan; label: string; jumlah: number }[] = [
     { id: "semua", label: "Semua", jumlah: beritaList.length },
-    { id: "published", label: "Dipublikasikan", jumlah: published.length },
-    { id: "draft", label: "Draft", jumlah: draft.length },
+    { id: "published", label: "Terbit", jumlah: published.length },
+    { id: "draft", label: "Draf", jumlah: draft.length },
   ];
 
   const tersaring = useMemo(() => {
@@ -258,7 +259,7 @@ export default function AdminBeritaPage() {
                           ) : (
                             <EyeOff className="h-3 w-3" />
                           )}
-                          {b.status === "published" ? "Dipublikasikan" : "Draft"}
+                          {b.status === "published" ? "Terbit" : "Draf"}
                         </Badge>
                       </td>
                       <td className="py-3 pl-3">

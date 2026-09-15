@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { LABEL_JENJANG, jenjangJabatan } from "@/lib/struktur-pengurus";
 import { KECAMATAN_KUBU_RAYA } from "@/lib/wilayah";
 import { ImageUpload } from "@/components/ui/ImageUpload";
@@ -35,7 +36,7 @@ export default function PengurusBaruPage() {
       if (!res.ok) { toast.error(data.error || "Gagal menyimpan"); return; }
       toast.success("Pengurus berhasil ditambahkan");
       router.push("/admin/pengurus");
-    } catch { toast.error("Terjadi kesalahan"); }
+    } catch { toast.error("Pengurus belum tersimpan", { description: CEK_SEBELUM_ULANG }); }
     finally { setSaving(false); }
   };
 
@@ -70,13 +71,9 @@ export default function PengurusBaruPage() {
         <Card>
           <CardContent className="p-5 sm:p-6 pt-5 sm:pt-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div className="col-span-2">
+          <div className="sm:col-span-2">
             <label className="text-sm font-medium text-slate-700" htmlFor="nama-lengkap">Nama Lengkap *</label>
             <Input id="nama-lengkap" value={form.nama} onChange={(e) => setForm({ ...form, nama: e.target.value })} className="mt-1" />
-          </div>
-          <div>
-            <label className="text-sm font-medium text-slate-700" htmlFor="nik-opsional">NIK (Opsional)</label>
-            <Input id="nik-opsional" value={form.nik} onChange={(e) => setForm({ ...form, nik: e.target.value })} className="mt-1" />
           </div>
           <div>
             <label className="text-sm font-medium text-slate-700" htmlFor="jabatan">Jabatan *</label>
@@ -114,10 +111,22 @@ export default function PengurusBaruPage() {
             <label className="text-sm font-medium text-slate-700" htmlFor="urutan-tampil">Urutan Tampil</label>
             <Input id="urutan-tampil" type="number" value={form.urutan} onChange={(e) => setForm({ ...form, urutan: e.target.value })} className="mt-1" />
           </div>
-          <div className="col-span-2">
-            <label className="text-sm font-medium text-slate-700" htmlFor="alamat">Alamat</label>
-            <Input id="alamat" value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} className="mt-1" />
-          </div>
+          <details className="sm:col-span-2 rounded-lg border border-border bg-surface-muted/60 px-4 py-3">
+            <summary className="cursor-pointer text-sm font-medium text-slate-700">
+              Data pribadi <span className="font-normal text-slate-500">— tidak wajib, tidak tampil di situs</span>
+            </summary>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-3">
+              <div>
+                <label className="text-sm font-medium text-slate-700" htmlFor="nik-opsional">NIK</label>
+                <Input id="nik-opsional" inputMode="numeric" maxLength={16} value={form.nik} onChange={(e) => setForm({ ...form, nik: e.target.value.replace(/\D/g, "") })} className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700" htmlFor="alamat">Alamat</label>
+                <Input id="alamat" value={form.alamat} onChange={(e) => setForm({ ...form, alamat: e.target.value })} className="mt-1" />
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 mt-2">Hanya terlihat oleh admin. Kosongkan bila tidak diperlukan.</p>
+          </details>
         </div>
           </CardContent>
         </Card>

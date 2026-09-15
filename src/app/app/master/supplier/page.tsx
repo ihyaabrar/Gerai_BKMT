@@ -70,7 +70,7 @@ export default function SupplierPage() {
       setEditId(null);
       setForm({ nama: "", telepon: "", alamat: "" });
       fetchSupplier();
-      toast.success(editId ? "Supplier berhasil diupdate" : "Supplier berhasil ditambahkan");
+      toast.success(editId ? "Supplier berhasil diperbarui" : "Supplier berhasil ditambahkan");
     } catch {
       toast.error("Gagal menyimpan supplier");
     }
@@ -139,7 +139,7 @@ export default function SupplierPage() {
           <DialogContent>
             <DialogHeader>
               <DialogTitle>
-                {editId ? "Edit Supplier" : "Tambah Supplier"}
+                {editId ? "Ubah Data Supplier" : "Tambah Supplier"}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -176,7 +176,7 @@ export default function SupplierPage() {
                 type="submit"
                 className="w-full"
               >
-                {editId ? "Update" : "Simpan"}
+                {editId ? "Simpan Perubahan" : "Simpan"}
               </Button>
             </form>
           </DialogContent>
@@ -202,7 +202,39 @@ export default function SupplierPage() {
             // Disajikan sebagai tabel, sama seperti Member dan Nasabah.
             // Sebelumnya supplier memakai grid kartu, sehingga tiga halaman
             // data master yang setara punya tiga model tampilan berbeda.
-            <div className="overflow-x-auto">
+            <>
+            <ul className="md:hidden divide-y divide-border">
+              {supplier.map((s) => (
+                <li key={s.id} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm text-slate-900 break-words">{s.nama}</p>
+                    {s.telepon && (
+                      <p className="text-xs text-slate-500 mt-0.5 flex items-center gap-1">
+                        <Phone className="h-3 w-3" /> {s.telepon}
+                      </p>
+                    )}
+                    {s.alamat && (
+                      <p className="text-xs text-slate-500 mt-0.5 flex items-start gap-1 break-words">
+                        <MapPin className="h-3 w-3 mt-0.5 shrink-0" /> {s.alamat}
+                      </p>
+                    )}
+                  </div>
+                  <Button variant="ghost" size="icon" aria-label={`Ubah ${s.nama}`} onClick={() => handleEdit(s)} className="shrink-0">
+                    <Edit className="h-4 w-4 text-slate-500" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    aria-label={`Hapus ${s.nama}`}
+                    onClick={() => handleDelete(s.id, s.nama)}
+                    className="shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[640px]">
                 <thead>
                   <tr className="border-b">
@@ -246,6 +278,7 @@ export default function SupplierPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>

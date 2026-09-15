@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/auth";
-import { Lock, User, Loader2, LogIn, ArrowLeft } from "lucide-react";
+import { Lock, User, Loader2, LogIn, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
 
@@ -15,6 +15,7 @@ export default function LoginPage() {
   const login = useAuthStore((state) => state.login);
   const [form, setForm] = useState({ username: "", password: "" });
   const [loading, setLoading] = useState(false);
+  const [lihatSandi, setLihatSandi] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,10 +36,12 @@ export default function LoginPage() {
           next && next.startsWith("/") && !next.startsWith("//") ? next : "/app";
         router.replace(target);
       } else {
-        toast.error(data.error || "Login gagal");
+        toast.error(data.error || "Gagal masuk. Periksa nama pengguna dan kata sandi.");
       }
     } catch {
-      toast.error("Terjadi kesalahan saat login");
+      toast.error("Belum bisa masuk", {
+        description: "Periksa sambungan internet, lalu coba lagi.",
+      });
     } finally {
       setLoading(false);
     }
@@ -88,10 +91,10 @@ export default function LoginPage() {
 
           <ul className="mt-7 space-y-2.5">
             {[
-              "Manajemen stok real-time",
+              "Stok barang selalu terbaru",
               "Laporan keuangan otomatis",
               "Sistem bagi hasil nasabah",
-              "Hak akses per peran",
+              "Kasir dan pengurus punya menu sendiri",
             ].map((f) => (
               <li key={f} className="flex items-center gap-2.5 text-sm text-slate-600">
                 <span className="h-5 w-5 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center shrink-0 text-xs">
@@ -171,7 +174,7 @@ export default function LoginPage() {
                 htmlFor="login-username"
                 className="block text-sm font-medium text-slate-700 mb-1.5"
               >
-                Username
+                Nama pengguna
               </label>
               <div className="relative">
                 <User className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
@@ -180,7 +183,9 @@ export default function LoginPage() {
                   type="text"
                   value={form.username}
                   onChange={(e) => setForm({ ...form, username: e.target.value })}
-                  placeholder="Masukkan username"
+                  placeholder="Contoh: kasir1"
+                  autoComplete="username"
+                  autoCapitalize="none"
                   required
                   disabled={loading}
                   autoFocus
@@ -194,21 +199,34 @@ export default function LoginPage() {
                 htmlFor="login-password"
                 className="block text-sm font-medium text-slate-700 mb-1.5"
               >
-                Password
+                Kata sandi
               </label>
               <div className="relative">
                 <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   id="login-password"
-                  type="password"
+                  type={lihatSandi ? "text" : "password"}
                   value={form.password}
                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-                  placeholder="Masukkan password"
+                  placeholder="Masukkan kata sandi"
+                  autoComplete="current-password"
                   required
                   disabled={loading}
-                  className="pl-10 h-11"
+                  className="pl-10 pr-12 h-11"
                 />
+                <button
+                  type="button"
+                  onClick={() => setLihatSandi((v) => !v)}
+                  aria-label={lihatSandi ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                  aria-pressed={lihatSandi}
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-2 rounded-md text-slate-500 hover:text-slate-800 hover:bg-surface-sunken"
+                >
+                  {lihatSandi ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </button>
               </div>
+              <p className="text-xs text-slate-500 mt-1.5">
+                Lupa kata sandi? Minta pengurus utama menggantinya lewat menu Pengaturan → Pengguna.
+              </p>
             </div>
 
             <Button

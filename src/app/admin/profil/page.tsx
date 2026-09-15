@@ -11,6 +11,7 @@ import {
   Save, Info, Target, BookOpen, Phone, CheckCircle2, Circle,
 } from "lucide-react";
 import { toast } from "sonner";
+import { CEK_INTERNET } from "@/lib/pesan";
 
 type Bagian = "umum" | "visimisi" | "sejarah" | "kontak";
 
@@ -100,7 +101,7 @@ export default function AdminProfilPage() {
       }
       toast.success("Perubahan profil disimpan");
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Profil belum tersimpan", { description: CEK_INTERNET });
     } finally {
       setSaving(false);
     }

@@ -23,7 +23,7 @@ interface DashboardShellProps {
   sidebar: React.ReactNode;
   /** Judul singkat di header mobile. */
   brand: string;
-  /** Label kecil di atas judul, mis. "Admin Panel". */
+  /** Label kecil di atas judul, mis. "Kelola Situs Web". */
   brandLabel?: string;
   /** Kelas Tailwind untuk gradient kotak inisial. */
   brandAccent?: string;

@@ -96,7 +96,7 @@ export function HeroSection({ profil }: HeroSectionProps) {
                   className="inline-flex items-center gap-2 rounded-lg border border-border bg-white px-5 h-11 text-sm font-semibold text-slate-700 transition-colors hover:bg-surface-sunken focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
                 >
                   <LogIn className="h-4 w-4" />
-                  Login Kasir
+                  Masuk Pengurus
                 </Link>
               </div>
 

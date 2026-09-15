@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Settings, Save, Plus, Trash2, Tag } from "lucide-react";
 import { toast } from "sonner";
+import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { PageSkeleton } from "@/components/ui/skeleton";
 
@@ -152,7 +153,7 @@ export default function PengaturanPage() {
       setNewKategoriBarang("");
       fetchKategoriBarang();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Kategori belum tersimpan", { description: CEK_SEBELUM_ULANG });
     } finally {
       setAddingKB(false);
     }
@@ -202,7 +203,7 @@ export default function PengaturanPage() {
       setNewKategoriPengeluaran("");
       fetchKategoriPengeluaran();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Kategori belum tersimpan", { description: CEK_SEBELUM_ULANG });
     } finally {
       setAddingKP(false);
     }

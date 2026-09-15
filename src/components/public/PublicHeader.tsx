@@ -79,7 +79,7 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
             className="hidden sm:flex items-center gap-2 bg-brand-600 text-white px-4 h-10 rounded-lg text-sm font-semibold transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
           >
             <LogIn className="h-4 w-4" />
-            Login Kasir
+            Masuk Pengurus
           </Link>
           <button
             aria-label={menuOpen ? "Tutup menu" : "Buka menu"}
@@ -109,7 +109,7 @@ export function PublicHeader({ orgName, singkatan, logoUrl }: PublicHeaderProps)
             className="flex items-center gap-2 mt-2 bg-gradient-to-r from-emerald-500 to-teal-500 text-white px-4 py-3 rounded-xl text-sm font-semibold"
           >
             <LogIn className="h-4 w-4" />
-            Login ke Kasir
+            Masuk Pengurus
           </Link>
         </div>
       )}

@@ -101,7 +101,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
 
               <ul className="mt-5 space-y-2.5">
                 {[
-                  "Manajemen stok real-time",
+                  "Stok barang selalu terbaru",
                   "Laporan keuangan otomatis",
                   "Sistem bagi hasil nasabah",
                 ].map((f) => (
@@ -119,7 +119,7 @@ export function GeraiSection({ gerai }: GeraiSectionProps) {
                 className="mt-6 inline-flex items-center justify-center gap-2 w-full rounded-lg bg-brand-600 px-5 h-11 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
               >
                 <LogIn className="h-4 w-4" />
-                Login ke Sistem Kasir
+                Masuk ke Sistem Gerai
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

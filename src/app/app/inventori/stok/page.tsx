@@ -271,7 +271,51 @@ export default function StokPage() {
               <p>Tidak ada barang ditemukan</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <ul className="md:hidden divide-y divide-border -mx-1">
+              {filtered.map((b) => {
+                const status = getStatus(b);
+                return (
+                  <li key={b.id} className="flex items-center gap-3 px-1 py-3">
+                    <div className="h-11 w-11 rounded-lg bg-surface-sunken border border-border overflow-hidden shrink-0 flex items-center justify-center">
+                      {b.gambarUrl ? (
+                        <img
+                          src={gambarLebar(b.gambarUrl, LEBAR.ikon)}
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                          width={LEBAR.ikon}
+                          height={LEBAR.ikon}
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-bold text-brand-300">{b.nama.charAt(0).toUpperCase()}</span>
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-semibold text-sm text-slate-900 break-words">{b.nama}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        Jual {formatRupiah(b.hargaJual)} · Beli {formatRupiah(b.hargaBeli)}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="font-bold text-slate-900">
+                        {b.stok} <span className="text-xs font-normal text-slate-500">{b.satuan}</span>
+                      </p>
+                      <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-full text-xs font-medium ${status.color}`}>
+                        {status.label}
+                      </span>
+                    </div>
+                    {bolehEdit && (
+                      <Button variant="ghost" size="icon" aria-label={`Ubah ${b.nama}`} onClick={() => bukaEdit(b)} className="shrink-0">
+                        <Pencil className="h-4 w-4 text-brand-600" />
+                      </Button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[760px]">
                 <thead>
                   <tr className="border-b">
@@ -345,6 +389,7 @@ export default function StokPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -352,7 +397,7 @@ export default function StokPage() {
       <Dialog open={diedit !== null} onOpenChange={(buka) => !buka && tutupEdit()}>
         <DialogContent onClose={tutupEdit}>
           <DialogHeader>
-            <DialogTitle>Edit Barang</DialogTitle>
+            <DialogTitle>Ubah Data Barang</DialogTitle>
           </DialogHeader>
           {form && diedit && (
             <form onSubmit={simpanEdit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-1">

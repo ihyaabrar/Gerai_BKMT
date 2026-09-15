@@ -66,6 +66,7 @@ export async function GET(request: NextRequest) {
       prisma.penjualan.aggregate({
         where: { ...PENJUALAN_SAH, tanggal: { gte: today } },
         _sum: { total: true },
+        _count: { _all: true },
       }),
       // Satu query untuk 12 bulan, menggantikan 12 query berurutan di dalam loop.
       prisma.penjualan.findMany({
@@ -267,6 +268,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       penjualanHariIni: penjualanHariIni._sum.total || 0,
+      transaksiHariIni: penjualanHariIni._count._all,
       tren: {
         penjualan: persenSelisih(
           penjualanHariIni._sum.total || 0,

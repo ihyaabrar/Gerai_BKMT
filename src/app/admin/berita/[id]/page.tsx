@@ -8,8 +8,10 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
+import { CEK_INTERNET } from "@/lib/pesan";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { PageSkeleton } from "@/components/ui/skeleton";
+import { BarSimpanBerita, PilihanTerbit, labelSimpanBerita } from "@/components/admin/PilihanTerbit";
 
 export default function EditBeritaPage({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -28,7 +30,7 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.judul.trim()) { toast.error("Judul tidak boleh kosong"); return; }
-    if (!form.konten.trim()) { toast.error("Konten tidak boleh kosong"); return; }
+    if (!form.konten.trim()) { toast.error("Isi berita tidak boleh kosong"); return; }
     setSaving(true);
     try {
       const res = await fetch(`/api/admin/berita/${params.id}`, {
@@ -38,9 +40,9 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
       });
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Gagal menyimpan"); return; }
-      toast.success("Berita berhasil diupdate");
+      toast.success(form.status === "published" ? "Berita tersimpan dan tampil di situs" : "Draf berita disimpan");
       router.push("/admin/berita");
-    } catch { toast.error("Terjadi kesalahan"); }
+    } catch { toast.error("Perubahan belum tersimpan", { description: CEK_INTERNET }); }
     finally { setSaving(false); }
   };
 
@@ -57,16 +59,16 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
           </Link>
           <div className="min-w-0">
             <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
-              Edit Berita
+              Ubah Berita
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              Perbarui konten, lalu simpan sebagai draft atau terbitkan.
+              Perbarui isi, pilih simpan dulu atau terbitkan, lalu tekan tombol di bawah.
             </p>
           </div>
         </div>
-        <Button type="submit" disabled={saving} className="shrink-0">
+        <Button type="submit" disabled={saving} className="shrink-0 hidden lg:inline-flex">
           <Save className="h-4 w-4" />
-          {saving ? "Menyimpan..." : "Simpan Perubahan"}
+          {labelSimpanBerita(form.status, saving)}
         </Button>
       </div>
 
@@ -101,7 +103,7 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
 
             <div>
               <label htmlFor="konten" className="block text-sm font-medium text-slate-700">
-                Konten <span className="text-red-500">*</span>
+                Isi berita <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="konten"
@@ -111,7 +113,7 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
                 className="mt-1.5 flex w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               />
               <p className="text-xs text-slate-400 mt-1.5">
-                {form.konten.length} karakter
+                {form.konten.length} huruf
               </p>
             </div>
           </CardContent>
@@ -120,23 +122,10 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
         <div className="space-y-5 lg:sticky lg:top-24">
           <Card>
             <CardContent className="p-5 pt-5 space-y-4">
-              <p className="text-[15px] font-semibold text-slate-900">
-                Pengaturan Terbit
+              <PilihanTerbit status={form.status} onUbah={(status) => setForm({ ...form, status })} />
+              <p className="text-xs text-slate-500">
+                Tanggal terbit diisi otomatis saat berita diterbitkan.
               </p>
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-slate-700">
-                  Status
-                </label>
-                <select
-                  id="status"
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="mt-1.5 flex h-10 w-full rounded-lg border border-border bg-white px-3.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-                >
-                  <option value="draft">Draft — belum tampil publik</option>
-                  <option value="published">Dipublikasikan</option>
-                </select>
-              </div>
             </CardContent>
           </Card>
 
@@ -156,6 +145,8 @@ export default function EditBeritaPage({ params }: { params: { id: string } }) {
           </Card>
         </div>
       </div>
+
+      <BarSimpanBerita status={form.status} saving={saving} />
     </form>
   );
 }

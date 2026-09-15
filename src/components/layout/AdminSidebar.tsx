@@ -60,7 +60,7 @@ export function AdminSidebar() {
         {/* Header */}
         <div className="p-5 border-b border-border">
           <div className="flex items-start justify-between gap-2">
-            <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Admin Panel</p>
+            <p className="text-xs text-slate-500 uppercase tracking-widest mb-1">Kelola Situs Web</p>
             <button
               type="button"
               onClick={close}
@@ -130,20 +130,20 @@ export function AdminSidebar() {
 
       {/* Footer */}
       <div className="px-3 pb-4 space-y-0.5 border-t border-border pt-3">
-        <Link href="/app" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-slate-500 hover:bg-surface-sunken hover:text-slate-900 transition-colors">
+        <Link href="/app" title="Kasir, stok, keuangan, dan bagi hasil" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-slate-500 hover:bg-surface-sunken hover:text-slate-900 transition-colors">
           <ShoppingCart className="h-4 w-4" />
-          Ke Sistem Kasir
+          Kembali ke Sistem Gerai
         </Link>
         <Link href="/" className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-slate-500 hover:bg-surface-sunken hover:text-slate-900 transition-colors">
           <Globe className="h-4 w-4" />
-          Lihat Profil Publik
+          Lihat Situs Web
         </Link>
         <button
           onClick={handleLogout}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-xs text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
         >
           <LogOut className="h-4 w-4" />
-          Logout
+          Keluar
         </button>
       </div>
       </aside>

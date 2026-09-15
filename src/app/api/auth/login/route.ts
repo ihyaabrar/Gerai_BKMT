@@ -154,7 +154,7 @@ export async function POST(request: Request) {
     }
     console.error("Login error:", error);
     return NextResponse.json(
-      { error: "Terjadi kesalahan saat login" },
+      { error: "Server sedang bermasalah. Coba beberapa saat lagi." },
       { status: 500 }
     );
   }

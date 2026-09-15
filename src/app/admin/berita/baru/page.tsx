@@ -9,7 +9,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { ArrowLeft, Save } from "lucide-react";
 import { toast } from "sonner";
+import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { generateSlug } from "@/lib/utils";
+import { BarSimpanBerita, PilihanTerbit, labelSimpanBerita } from "@/components/admin/PilihanTerbit";
 
 export default function BeritaBaruPage() {
   const router = useRouter();
@@ -35,7 +37,7 @@ export default function BeritaBaruPage() {
       return;
     }
     if (!form.konten.trim()) {
-      toast.error("Konten tidak boleh kosong");
+      toast.error("Isi berita tidak boleh kosong");
       return;
     }
     setSaving(true);
@@ -50,10 +52,10 @@ export default function BeritaBaruPage() {
         toast.error(data.error || "Gagal menyimpan");
         return;
       }
-      toast.success("Berita berhasil dibuat");
+      toast.success(form.status === "published" ? "Berita diterbitkan" : "Draf berita disimpan");
       router.push("/admin/berita");
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Berita belum tersimpan", { description: CEK_SEBELUM_ULANG });
     } finally {
       setSaving(false);
     }
@@ -73,13 +75,13 @@ export default function BeritaBaruPage() {
               Tulis Berita
             </h1>
             <p className="text-sm text-slate-500 mt-0.5">
-              Isi konten berita, lalu simpan sebagai draft atau langsung terbitkan.
+              Tulis judul dan isi, pilih simpan dulu atau terbitkan, lalu tekan tombol di bawah.
             </p>
           </div>
         </div>
-        <Button type="submit" disabled={saving} className="shrink-0">
+        <Button type="submit" disabled={saving} className="shrink-0 hidden lg:inline-flex">
           <Save className="h-4 w-4" />
-          {saving ? "Menyimpan..." : "Simpan Berita"}
+          {labelSimpanBerita(form.status, saving)}
         </Button>
       </div>
 
@@ -132,7 +134,7 @@ export default function BeritaBaruPage() {
                 htmlFor="konten"
                 className="block text-sm font-medium text-slate-700"
               >
-                Konten <span className="text-red-500">*</span>
+                Isi berita <span className="text-red-500">*</span>
               </label>
               <textarea
                 id="konten"
@@ -143,8 +145,7 @@ export default function BeritaBaruPage() {
                 className="mt-1.5 flex w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               />
               <p className="text-xs text-slate-400 mt-1.5">
-                {form.konten.length} karakter · pemisah baris ikut tampil di
-                halaman publik
+                {form.konten.length} huruf · tekan Enter untuk paragraf baru
               </p>
             </div>
           </CardContent>
@@ -153,30 +154,10 @@ export default function BeritaBaruPage() {
         <div className="space-y-5 lg:sticky lg:top-24">
           <Card>
             <CardContent className="p-5 pt-5 space-y-4">
-              <p className="text-[15px] font-semibold text-slate-900">
-                Pengaturan Terbit
+              <PilihanTerbit status={form.status} onUbah={(status) => setForm({ ...form, status })} />
+              <p className="text-xs text-slate-500">
+                Tanggal terbit diisi otomatis saat berita diterbitkan.
               </p>
-              <div>
-                <label
-                  htmlFor="status"
-                  className="block text-sm font-medium text-slate-700"
-                >
-                  Status
-                </label>
-                <select
-                  id="status"
-                  value={form.status}
-                  onChange={(e) => setForm({ ...form, status: e.target.value })}
-                  className="mt-1.5 flex h-10 w-full rounded-lg border border-border bg-white px-3.5 text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
-                >
-                  <option value="draft">Draft — belum tampil publik</option>
-                  <option value="published">Dipublikasikan</option>
-                </select>
-                <p className="text-xs text-slate-400 mt-1.5">
-                  Tanggal terbit diisi otomatis saat status menjadi
-                  dipublikasikan.
-                </p>
-              </div>
             </CardContent>
           </Card>
 
@@ -200,6 +181,8 @@ export default function BeritaBaruPage() {
           </Card>
         </div>
       </div>
+
+      <BarSimpanBerita status={form.status} saving={saving} />
     </form>
   );
 }

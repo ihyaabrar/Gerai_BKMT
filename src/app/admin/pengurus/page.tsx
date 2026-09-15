@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { Plus, Edit, Trash2, Users, Search, MapPin } from "lucide-react";
 import { LABEL_JENJANG, jenjangJabatan } from "@/lib/struktur-pengurus";
 import { toast } from "sonner";
+import { CEK_INTERNET } from "@/lib/pesan";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
 
 interface Pengurus {
@@ -73,7 +74,7 @@ export default function AdminPengurusPage() {
             fetchData();
           } else toast.error("Gagal menghapus");
         } catch {
-          toast.error("Terjadi kesalahan");
+          toast.error("Pengurus belum terhapus", { description: CEK_INTERNET });
         }
       },
     });

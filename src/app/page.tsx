@@ -122,7 +122,7 @@ export default async function PublicProfilePage() {
               href="/login"
               className="text-gold-300 hover:text-gold-200 text-sm font-medium transition-colors"
             >
-              Login Kasir →
+              Masuk Pengurus →
             </a>
           </div>
         </div>

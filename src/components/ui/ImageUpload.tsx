@@ -24,7 +24,7 @@ export function ImageUpload({
   value,
   onChange,
   folder = "general",
-  label = "Upload Gambar",
+  label = "Pilih Gambar",
   shape = "square",
   previewSize = "md",
 }: ImageUploadProps) {
@@ -64,14 +64,14 @@ export function ImageUpload({
       const data = await res.json();
 
       if (!res.ok) {
-        toast.error(data.error || "Gagal mengupload gambar");
+        toast.error(data.error || "Gambar gagal diunggah");
         return;
       }
       onChange(data.url);
-      toast.success("Gambar berhasil diupload");
+      toast.success("Gambar berhasil diunggah");
     } catch (err) {
       console.error("Upload error:", err);
-      toast.error("Terjadi kesalahan saat upload. Coba lagi.");
+      toast.error("Gambar belum terunggah", { description: "Periksa sambungan internet, lalu coba lagi." });
     } finally {
       setUploading(false);
       if (inputRef.current) inputRef.current.value = "";

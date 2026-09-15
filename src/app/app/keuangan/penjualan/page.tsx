@@ -12,6 +12,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { CEK_INTERNET } from "@/lib/pesan";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -128,7 +129,7 @@ export default function PenjualanPage() {
       setAlasanBatal("");
       setVersi((v) => v + 1);
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Transaksi belum dibatalkan", { description: CEK_INTERNET });
     } finally {
       setMembatalkan(false);
     }
@@ -198,14 +199,14 @@ export default function PenjualanPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Riwayat Penjualan</h1>
-          <p className="text-slate-500">Data transaksi penjualan</p>
+          <p className="text-slate-500">Semua transaksi. Cetak ulang struk, retur, atau batalkan dari sini.</p>
         </div>
         <Button variant="outline"
           onClick={handleExportExcel}
           disabled={exporting || loading}
         >
           <Download className="h-4 w-4 mr-2" />
-          {exporting ? "Menyiapkan..." : "Export Excel"}
+          {exporting ? "Menyiapkan..." : "Unduh Excel"}
         </Button>
       </div>
 
@@ -216,7 +217,7 @@ export default function PenjualanPage() {
               <Receipt className="h-5 w-5" />
               Transaksi Terbaru
             </CardTitle>
-            <div className="relative w-64">
+            <div className="relative w-full sm:w-64">
               <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
               <Input aria-label="Cari transaksi..."
                 placeholder="Cari transaksi..."
@@ -236,7 +237,87 @@ export default function PenjualanPage() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              {/* HP: kartu dengan tombol berlabel — ikon saja sulit ditebak artinya. */}
+              <ul className="md:hidden space-y-3">
+                {penjualan.map((p) => {
+                  const batal = p.status === "batal";
+                  return (
+                    <li
+                      key={p.id}
+                      className={cn(
+                        "rounded-card border border-border p-3.5",
+                        batal ? "bg-rose-50/40" : "bg-white"
+                      )}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className={cn("font-semibold text-sm text-slate-900", batal && "line-through text-slate-400")}>
+                            {new Date(p.tanggal).toLocaleDateString("id-ID", {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}{" "}
+                            · {p.member?.nama || "Umum"}
+                          </p>
+                          <p className="text-xs text-slate-500 mt-0.5 break-all">
+                            {p.metodeBayar} · {p.nomorTransaksi}
+                          </p>
+                        </div>
+                        <p className={cn("font-bold text-brand-700 shrink-0", batal && "line-through text-slate-400")}>
+                          {formatRupiah(p.total)}
+                        </p>
+                      </div>
+                      {p.diskon > 0 && (
+                        <p className="text-xs text-brand-600 mt-1">Diskon member −{formatRupiah(p.diskon)}</p>
+                      )}
+                      {batal && (
+                        <p className="text-xs text-rose-700 mt-1.5">
+                          Dibatalkan{p.dibatalkanOleh?.nama ? ` oleh ${p.dibatalkanOleh.nama}` : ""}
+                          {p.alasanBatal ? ` — ${p.alasanBatal}` : ""}
+                        </p>
+                      )}
+                      {!batal && (p.retur?.length ?? 0) > 0 && (
+                        <Badge variant="warning" className="mt-1.5">
+                          Retur {formatRupiah(p.retur!.reduce((s, r) => s + r.totalRefund, 0))}
+                        </Badge>
+                      )}
+                      {!batal && (
+                        <div className="flex flex-wrap gap-2 mt-3">
+                          <Button variant="outline" size="sm" onClick={() => setTargetStruk(p)}>
+                            <Printer className="h-4 w-4 mr-1.5" /> Struk
+                          </Button>
+                          {bolehBatalkan && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-amber-700"
+                              onClick={() => setTargetRetur(p.id)}
+                            >
+                              <Undo2 className="h-4 w-4 mr-1.5" /> Retur
+                            </Button>
+                          )}
+                          {bolehBatalkan && !(p.retur?.length) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="text-rose-600"
+                              onClick={() => {
+                                setTargetBatal(p);
+                                setAlasanBatal("");
+                              }}
+                            >
+                              <Ban className="h-4 w-4 mr-1.5" /> Batalkan
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full min-w-[760px]">
                   <thead>
                     <tr className="border-b">

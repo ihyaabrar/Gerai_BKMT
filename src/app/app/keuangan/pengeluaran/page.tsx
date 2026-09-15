@@ -11,6 +11,7 @@ import { format } from "date-fns";
 import { Pagination } from "@/components/ui/pagination";
 import * as XLSX from "xlsx";
 import { toast } from "sonner";
+import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { TableSkeleton } from "@/components/ui/skeleton";
 
@@ -115,7 +116,7 @@ export default function PengeluaranPage() {
         toast.error("Gagal menyimpan pengeluaran");
       }
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Pengeluaran belum tercatat", { description: CEK_SEBELUM_ULANG });
     }
   };
 
@@ -169,7 +170,7 @@ export default function PengeluaranPage() {
         <div className="flex flex-wrap gap-2 w-full sm:w-auto">
           <Button onClick={handleExportExcel} variant="outline" className="flex-1 sm:flex-none">
             <Download className="h-4 w-4" />
-            Export Excel
+            Unduh Excel
           </Button>
           <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>
@@ -276,7 +277,29 @@ export default function PengeluaranPage() {
             </div>
           ) : (
             <>
-              <div className="overflow-x-auto">
+              <ul className="md:hidden divide-y divide-border">
+                {paginatedData.map((p) => (
+                  <li key={p.id} className="flex items-start gap-3 py-3">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium text-slate-900 break-words">{p.keterangan}</p>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {format(new Date(p.tanggal), "dd/MM/yyyy")} · {p.kategori}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-red-600 shrink-0">{formatRupiah(p.jumlah)}</p>
+                    <Button
+                      aria-label={`Hapus ${p.keterangan}`}
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(p.id, p.keterangan)}
+                      className="shrink-0 -mt-1 text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+              <div className="hidden md:block overflow-x-auto">
                 <table className="w-full min-w-[640px]">
                   <thead>
                     <tr className="border-b">

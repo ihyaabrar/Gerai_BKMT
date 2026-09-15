@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Save, Store } from "lucide-react";
 import { toast } from "sonner";
+import { CEK_INTERNET } from "@/lib/pesan";
 import { PageSkeleton } from "@/components/ui/skeleton";
 
 export default function AdminGeraiPage() {
@@ -35,7 +36,7 @@ export default function AdminGeraiPage() {
       const data = await res.json();
       if (!res.ok) { toast.error(data.error || "Gagal menyimpan"); return; }
       toast.success("Informasi gerai berhasil disimpan");
-    } catch { toast.error("Terjadi kesalahan"); }
+    } catch { toast.error("Informasi gerai belum tersimpan", { description: CEK_INTERNET }); }
     finally { setSaving(false); }
   };
 

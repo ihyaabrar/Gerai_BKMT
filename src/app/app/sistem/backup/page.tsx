@@ -101,7 +101,7 @@ export default function EksporPage() {
 
       toast.success(`${filename} diunduh`);
     } catch {
-      toast.error("Terjadi kesalahan saat mengekspor");
+      toast.error("File belum terunduh", { description: "Periksa sambungan internet, lalu coba lagi." });
     } finally {
       setMengunduh(false);
     }
