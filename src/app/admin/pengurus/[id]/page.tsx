@@ -154,7 +154,6 @@ export default function EditPengurusPage({ params }: { params: { id: string } })
               shape="circle"
               previewSize="md"
             />
-            <p className="text-xs text-slate-400">JPG, PNG, WebP (maks. 5 MB)</p>
           </CardContent>
         </Card>
       </div>

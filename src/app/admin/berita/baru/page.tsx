@@ -174,9 +174,6 @@ export default function BeritaBaruPage() {
                 shape="square"
                 previewSize="lg"
               />
-              <p className="text-xs text-slate-400">
-                JPG, PNG, WebP (maks. 5 MB)
-              </p>
             </CardContent>
           </Card>
         </div>

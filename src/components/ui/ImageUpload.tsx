@@ -106,38 +106,38 @@ export function ImageUpload({
       />
 
       {value ? (
-        // Preview gambar yang sudah diupload
-        <div className="flex items-start gap-4">
-          <div className={`relative ${sizeClass} shrink-0`}>
-            <img
-              src={gambarLebar(value, LEBAR.pratinjau)}
-              alt="Preview"
-              decoding="async"
-              className={`${sizeClass} ${shapeClass} object-cover border-2 border-gray-200`}
-            />
+        // Pratinjau gambar yang sudah diunggah. Tombol ditaruh di bawah
+        // gambar dengan label jelas: di kolom sempit, tombol di samping gambar
+        // terlipat dua baris dan tanda silang merah mudah tertekan tanpa sengaja.
+        <div className="space-y-3">
+          <img
+            src={gambarLebar(value, LEBAR.pratinjau)}
+            alt="Pratinjau gambar"
+            decoding="async"
+            className={`${sizeClass} ${shapeClass} object-cover border-2 border-gray-200`}
+          />
+          <div className="flex flex-wrap gap-2">
+            <label
+              htmlFor={inputId}
+              onClick={handleLabelClick}
+              className={`inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
+            >
+              {uploading ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Mengunggah...</>
+              ) : (
+                <><Upload className="h-4 w-4" /> Ganti</>
+              )}
+            </label>
             <button
               type="button"
               onClick={handleRemove}
               disabled={uploading}
-              className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-0.5 hover:bg-red-600 transition-colors shadow-md disabled:opacity-50"
+              className="inline-flex items-center gap-2 whitespace-nowrap px-3 py-2 rounded-lg border border-red-200 bg-white text-sm font-medium text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
             >
-              <X className="h-3.5 w-3.5" />
+              <X className="h-4 w-4" /> Hapus
             </button>
           </div>
-          <div className="flex flex-col gap-2 justify-center">
-            <label
-              htmlFor={inputId}
-              onClick={handleLabelClick}
-              className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-gray-300 text-sm text-gray-700 cursor-pointer hover:bg-gray-50 transition-colors select-none ${uploading ? "opacity-50 cursor-not-allowed pointer-events-none" : ""}`}
-            >
-              {uploading ? (
-                <><Loader2 className="h-4 w-4 animate-spin" /> Mengupload...</>
-              ) : (
-                <><Upload className="h-4 w-4" /> Ganti Gambar</>
-              )}
-            </label>
-            <p className="text-xs text-slate-400">JPG, PNG, WebP · Maks 5MB</p>
-          </div>
+          <p className="text-xs text-slate-500">JPG, PNG, WebP · Maks 5 MB</p>
         </div>
       ) : (
         // Area upload kosong
@@ -149,7 +149,7 @@ export function ImageUpload({
           {uploading ? (
             <>
               <Loader2 className="h-8 w-8 text-emerald-500 animate-spin" />
-              <p className="text-sm text-slate-500">Mengupload gambar...</p>
+              <p className="text-sm text-slate-500">Mengunggah gambar...</p>
             </>
           ) : (
             <>
@@ -158,7 +158,7 @@ export function ImageUpload({
               </div>
               <div className="text-center">
                 <p className="text-sm font-medium text-slate-700">{label}</p>
-                <p className="text-xs text-slate-400 mt-1">JPG, PNG, WebP · Maks 5MB</p>
+                <p className="text-xs text-slate-500 mt-1">JPG, PNG, WebP · Maks 5 MB</p>
               </div>
             </>
           )}
