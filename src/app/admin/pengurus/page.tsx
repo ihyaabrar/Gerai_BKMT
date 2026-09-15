@@ -22,6 +22,7 @@ interface Pengurus {
   tingkatan: string;
   periode: string | null;
   alamat: string | null;
+  wilayah: string | null;
   nik: string | null;
   fotoUrl: string | null;
   urutan: number;
@@ -95,7 +96,9 @@ export default function AdminPengurusPage() {
     if (q) {
       hasil = hasil.filter(
         (p) =>
-          p.nama.toLowerCase().includes(q) || p.jabatan.toLowerCase().includes(q)
+          p.nama.toLowerCase().includes(q) ||
+          p.jabatan.toLowerCase().includes(q) ||
+          (p.wilayah ?? "").toLowerCase().includes(q)
       );
     }
     // Yang aktif lebih dulu; urutan dari server (sesuai bagan) tetap terjaga.
@@ -153,7 +156,7 @@ export default function AdminPengurusPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
               <Input
                 aria-label="Cari nama pengurus"
-                placeholder="Cari nama atau jabatan..."
+                placeholder="Cari nama, jabatan, cabang..."
                 value={cari}
                 onChange={(e) => {
                   setCari(e.target.value);
@@ -222,6 +225,7 @@ export default function AdminPengurusPage() {
                             </p>
                             <p className="text-xs text-slate-400 mt-0.5">
                               {LABEL_TINGKATAN[p.tingkatan] ?? p.tingkatan}
+                              {p.wilayah ? ` · ${p.wilayah}` : ""}
                             </p>
                           </div>
                         </div>

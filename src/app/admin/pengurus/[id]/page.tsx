@@ -9,6 +9,7 @@ import { ArrowLeft, Save } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { LABEL_JENJANG, jenjangJabatan } from "@/lib/struktur-pengurus";
+import { KECAMATAN_KUBU_RAYA } from "@/lib/wilayah";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { PageSkeleton } from "@/components/ui/skeleton";
 
@@ -17,13 +18,13 @@ export default function EditPengurusPage({ params }: { params: { id: string } })
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
-    nama: "", nik: "", alamat: "", jabatan: "", tingkatan: "PD",
+    nama: "", nik: "", alamat: "", jabatan: "", tingkatan: "PD", wilayah: "",
     periode: "", fotoUrl: "", urutan: "0", aktif: true,
   });
 
   useEffect(() => {
     fetch(`/api/admin/pengurus/${params.id}`).then((r) => r.json()).then((res) => {
-      if (res.data) setForm({ ...res.data, urutan: String(res.data.urutan ?? 0), nik: res.data.nik || "", alamat: res.data.alamat || "", periode: res.data.periode || "", fotoUrl: res.data.fotoUrl || "" });
+      if (res.data) setForm({ ...res.data, urutan: String(res.data.urutan ?? 0), nik: res.data.nik || "", alamat: res.data.alamat || "", wilayah: res.data.wilayah || "", periode: res.data.periode || "", fotoUrl: res.data.fotoUrl || "" });
     }).finally(() => setLoading(false));
   }, [params.id]);
 
@@ -107,6 +108,16 @@ export default function EditPengurusPage({ params }: { params: { id: string } })
               <option value="Permata">Permata BKMT</option>
             </select>
           </div>
+          {form.tingkatan !== "PD" && (
+            <div>
+              <label className="text-sm font-medium text-slate-700" htmlFor="wilayah">Cabang / Wilayah</label>
+              <Input id="wilayah" list="daftar-kecamatan" value={form.wilayah} onChange={(e) => setForm({ ...form, wilayah: e.target.value })} placeholder="mis. Sungai Raya" className="mt-1" />
+              <datalist id="daftar-kecamatan">
+                {KECAMATAN_KUBU_RAYA.map((k) => <option key={k} value={k} />)}
+              </datalist>
+              <p className="text-xs text-slate-500 mt-1.5">Pilih kecamatan, atau ketik nama kelurahan/desa. Di situs, pengurus dikelompokkan per cabang.</p>
+            </div>
+          )}
           <div>
             <label className="text-sm font-medium text-slate-700" htmlFor="periode">Periode</label>
             <Input id="periode" value={form.periode} onChange={(e) => setForm({ ...form, periode: e.target.value })} className="mt-1" />

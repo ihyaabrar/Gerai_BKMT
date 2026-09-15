@@ -29,6 +29,7 @@ export function parsePengurus(body: Record<string, unknown> | null, { sebagian =
     data.tingkatan = t;
   }
   if (ada("periode")) data.periode = optionalString(body?.periode, "Periode", { max: 20 });
+  if (ada("wilayah")) data.wilayah = optionalString(body?.wilayah, "Cabang / wilayah", { max: 100 });
   if (ada("alamat")) data.alamat = optionalString(body?.alamat, "Alamat", { max: 300 });
   if (ada("nik")) data.nik = optionalString(body?.nik, "NIK", { max: 20 });
   if (ada("fotoUrl")) data.fotoUrl = optionalString(body?.fotoUrl, "Foto", { max: 500 });

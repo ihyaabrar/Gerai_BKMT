@@ -45,7 +45,7 @@ export function ensureUniqueSlug(baseSlug: string, existingSlugs: string[]): str
 }
 
 /**
- * Urutan pengurus: tingkatan (PD → PC → Permata), lalu tingkat jabatan sesuai
+ * Urutan pengurus: tingkatan (PD → PC → Permata), lalu cabang, lalu tingkat jabatan sesuai
  * bagan (Penasehat → Ketua → Wakil → Sekretaris → Bendahara → lainnya), lalu
  * "Urutan Tampil", lalu nama.
  *
@@ -53,14 +53,22 @@ export function ensureUniqueSlug(baseSlug: string, existingSlugs: string[]): str
  * sama dengan bagan di situs, dan pengurus dengan Urutan Tampil yang sama
  * (mis. semuanya 0) muncul dalam urutan acak yang bisa berubah setelah diedit.
  */
-export function sortPengurus<T extends { tingkatan: string; urutan: number; jabatan?: string; nama?: string }>(
-  list: T[]
-): T[] {
+export function sortPengurus<
+  T extends { tingkatan: string; urutan: number; jabatan?: string; nama?: string; wilayah?: string | null }
+>(list: T[]): T[] {
   const ORDER: Record<string, number> = { PD: 0, PC: 1, Permata: 2 };
   return [...list].sort((a, b) => {
     const tA = ORDER[a.tingkatan] ?? 99;
     const tB = ORDER[b.tingkatan] ?? 99;
     if (tA !== tB) return tA - tB;
+    // Per cabang: pengurus satu cabang berkumpul; yang belum diisi cabangnya di akhir.
+    const wA = a.wilayah?.trim() ?? "";
+    const wB = b.wilayah?.trim() ?? "";
+    if (wA !== wB) {
+      if (!wA) return 1;
+      if (!wB) return -1;
+      return wA.localeCompare(wB, "id");
+    }
     const jA = URUTAN_JENJANG[jenjangJabatan(a.jabatan ?? "")];
     const jB = URUTAN_JENJANG[jenjangJabatan(b.jabatan ?? "")];
     if (jA !== jB) return jA - jB;
