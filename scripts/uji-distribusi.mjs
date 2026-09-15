@@ -162,6 +162,24 @@ async function main() {
     !(s?.detail ?? []).some((d) => d.namaNasabah === "Uji Maryam"));
   cek("dicatat siapa yang menutup", Boolean(s?.dibuatOleh?.nama), s?.dibuatOleh?.nama ?? "kosong");
 
+  // ── Slip bagi hasil dari rekaman yang dibekukan ──
+  const slip = await api(`/api/distribusi/slip?periode=${PERIODE}`);
+  cek("slip periode yang ditutup tersedia", slip.status === 200, slip.teks.slice(0, 100));
+  cek("satu slip untuk setiap nasabah dalam rekaman", slip.json?.slips?.length === 3,
+    `${slip.json?.slips?.length}`);
+  const slipAminah = (slip.json?.slips ?? []).find((x) => x.nasabah.nama === "Uji Aminah");
+  const barisAminah = (s?.detail ?? []).find((d) => d.namaNasabah === "Uji Aminah");
+  cek("bagian di slip sama dengan rekaman", slipAminah?.nasabah?.bagian === barisAminah?.bagian,
+    `${slipAminah?.nasabah?.bagian} vs ${barisAminah?.bagian}`);
+  cek("slip memuat laba dan bagian seluruh nasabah yang dibekukan",
+    slipAminah?.labaKotor === 350_000 && slipAminah?.bagianNasabah === 105_000);
+  cek("slip tidak memuat nasabah yang bergabung setelah penutupan",
+    !(slip.json?.slips ?? []).some((x) => x.nasabah.nama === "Uji Maryam"));
+
+  const slipPratinjau = await api(`/api/distribusi/slip?periode=2099-01`);
+  cek("slip periode yang belum ditutup ditolak (400)", slipPratinjau.status === 400,
+    slipPratinjau.json?.error ?? `status ${slipPratinjau.status}`);
+
   // Kasir tidak boleh mengakses sama sekali.
   cookie = "";
   const loginKasir = await api("/api/auth/login", {
@@ -170,6 +188,8 @@ async function main() {
   if (loginKasir.status === 200) {
     const akses = await api(`/api/distribusi?periode=${PERIODE}`);
     cek("kasir ditolak dari /api/distribusi", akses.status === 401 || akses.status === 403, `status ${akses.status}`);
+    const aksesSlip = await api(`/api/distribusi/slip?periode=${PERIODE}`);
+    cek("kasir ditolak dari slip bagi hasil", aksesSlip.status === 401 || aksesSlip.status === 403, `status ${aksesSlip.status}`);
   } else {
     console.log("  (akun kasir tidak ada di seed — lewati uji akses)");
   }

@@ -70,6 +70,24 @@ Yang disimpan: laba, harga pokok, diskon, rasio bagi hasil, total investasi,
 serta **nama, modal, persentase, dan bagian setiap nasabah saat itu**. Nama ikut
 disalin supaya rekaman tetap terbaca walau nasabahnya kemudian keluar.
 
+### Slip bagi hasil untuk nasabah
+
+Setelah periode ditutup, setiap baris nasabah di halaman Distribusi Laba punya
+tombol **Slip**:
+
+- **Cetak / Simpan PDF** — slip A5 berisi modal, porsi, asal angka laba (penjualan,
+  harga pokok, retur, barang rusak), bagian seluruh nasabah, dan bagian nasabah
+  itu, lengkap dengan kolom tanda tangan bendahara dan nasabah.
+- **Kirim lewat WhatsApp** — membuka WhatsApp dengan ringkasan slip yang sudah
+  terisi ke nomor nasabah (dari Master Data → Nasabah). Pengurus memeriksa lalu
+  menekan kirim sendiri.
+- **Semua slip** (di atas halaman) — mencetak seluruh slip periode itu, satu
+  halaman per nasabah.
+
+Slip hanya tersedia untuk periode yang **sudah ditutup** dan seluruh angkanya
+diambil dari rekaman yang dibekukan, termasuk nama nasabah saat itu. Slip bulan
+Juli yang dicetak ulang tahun depan akan sama persis.
+
 ### Kenapa ini penting
 
 Kalau ada anggota bertanya *"kenapa bagian saya bulan Juli segini?"*, jawabannya
@@ -413,9 +431,9 @@ Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 ## 13. Menjalankan pengujian
 
 ```bash
-npm test                          # 75 uji perhitungan, periode WIB, sesi, hak akses, modal, retur, struk thermal
+npm test                          # 81 uji perhitungan, periode WIB, sesi, hak akses, modal, retur, struk, slip
 bash scripts/smoke-test.sh        # 76 uji hak akses, pencabutan sesi, bypass middleware, header
-node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
+node scripts/uji-distribusi.mjs   # 29 uji rekaman bagi hasil & slip
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
 node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
 node scripts/uji-penguncian.mjs   # 36 uji kunci persentase, arsip, shift beku
@@ -425,7 +443,7 @@ node scripts/uji-nasabah.mjs      # 23 uji modal nasabah per bulan
 node scripts/uji-retur.mjs        # 27 uji retur pembeli
 ```
 
-Totalnya 364 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+Totalnya 377 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
 56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
 Skrip `uji-*` butuh server berjalan (`npm run build && npm start`) dan
