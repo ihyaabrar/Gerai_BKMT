@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { gambarLebar, LEBAR } from "../gambar";
+import { gambarKotak, gambarLebar, LEBAR } from "../gambar";
 
 const ASLI =
   "https://res.cloudinary.com/demo-bkmt/image/upload/v1789012345/bkmt/produk/madu.jpg";
@@ -45,5 +45,23 @@ describe("gambarLebar", () => {
   it("ukuran baku tersusun dari kecil ke besar", () => {
     const urut = [LEBAR.ikon, LEBAR.kartu, LEBAR.pratinjau, LEBAR.sedang, LEBAR.besar];
     expect(urut).toEqual([...urut].sort((a, b) => a - b));
+  });
+});
+
+describe("gambarKotak", () => {
+  const asli = "https://res.cloudinary.com/demo/image/upload/v1712/logo/bkmt.png";
+
+  it("membuat PNG persegi tanpa memotong logo", () => {
+    expect(gambarKotak(asli, 64)).toBe(
+      "https://res.cloudinary.com/demo/image/upload/w_64,h_64,c_pad,b_transparent,f_png/v1712/logo/bkmt.png"
+    );
+    expect(gambarKotak(asli, 180, "white")).toContain("w_180,h_180,c_pad,b_white,f_png/");
+  });
+
+  it("tidak menumpuk transformasi dan membiarkan URL lain", () => {
+    const sudah = "https://res.cloudinary.com/demo/image/upload/w_64,h_64,c_pad/v1/a.png";
+    expect(gambarKotak(sudah, 32)).toBe(sudah);
+    expect(gambarKotak("/images/masjid.webp", 32)).toBe("/images/masjid.webp");
+    expect(gambarKotak(null, 32)).toBe("");
   });
 });

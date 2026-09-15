@@ -48,3 +48,22 @@ export const LEBAR = {
   /** Gambar utama pada halaman detail. */
   besar: 1200,
 } as const;
+
+/**
+ * Versi persegi untuk ikon tab browser dan ikon layar utama HP. Logo yang
+ * tidak persegi diberi ruang kosong (bukan dipotong), dan dijadikan PNG
+ * supaya latar transparan tetap transparan.
+ *
+ * URL non-Cloudinary dikembalikan tanpa diubah.
+ */
+export function gambarKotak(url: string | null | undefined, sisi: number, latar = "transparent"): string {
+  if (!url) return "";
+
+  const cocok = url.match(POLA_UPLOAD);
+  if (!cocok) return url;
+
+  const [, awalan, sisa] = cocok;
+  if (/(^|,)(w_\d+|h_\d+|c_[a-z]+)/.test(sisa.split("/")[0])) return url;
+
+  return `${awalan}/w_${sisi},h_${sisi},c_pad,b_${latar},f_png/${sisa}`;
+}

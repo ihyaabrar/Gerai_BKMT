@@ -33,6 +33,11 @@ export const metadata: Metadata = {
   title: "PD BKMT Kubu Raya",
   description:
     "Badan Kontak Majelis Taklim Kabupaten Kubu Raya — Bersama Umat, Membangun Masyarakat",
+  // Mengikuti logo di Kelola Situs Web; lihat src/app/api/public/ikon/route.ts.
+  icons: {
+    icon: "/api/public/ikon",
+    apple: "/api/public/ikon?ukuran=180",
+  },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
