@@ -40,7 +40,7 @@ chk "401 bypass middleware rantai" 401 "$(code -H 'x-middleware-subrequest: midd
 chk "307 bypass middleware pada halaman" 307 "$(code -H 'x-middleware-subrequest: middleware' $B/app/keuangan/laporan)"
 
 echo "[Header keamanan]"
-hdr() { curl -sI "$B$1" | tr -d '' | grep -i "^$2:" | cut -d' ' -f2-; }
+hdr() { curl -sI "$B$1" | tr -d '\r' | grep -i "^$2:" | cut -d' ' -f2-; }
 chk "X-Frame-Options halaman kasir" SAMEORIGIN "$(hdr /app/kasir X-Frame-Options)"
 chk "X-Content-Type-Options" nosniff "$(hdr /login X-Content-Type-Options)"
 chk "Referrer-Policy" strict-origin-when-cross-origin "$(hdr /api/public/profil Referrer-Policy)"
@@ -55,6 +55,7 @@ for ep in /api/laporan /api/nasabah /api/backup /api/user /api/admin/galeri /api
 chk "403 kasir buat pengguna" 403 "$(code -b "$k_txt" -X POST $B/api/user -H 'Content-Type: application/json' -d '{}')"
 chk "307 kasir buka /app/sistem/pengguna" 307 "$(code -b "$k_txt" $B/app/sistem/pengguna)"
 chk "200 kasir buka /app/akun (ganti password)" 200 "$(code -b "$k_txt" $B/app/akun)"
+chk "200 kasir buka /app/sistem/printer" 200 "$(code -b "$k_txt" $B/app/sistem/printer)"
 chk "200 kasir ganti password sendiri" 400 "$(code -b "$k_txt" -X POST $B/api/auth/password -H 'Content-Type: application/json' -d '{}')"
 for ep in /api/barang /api/pengaturan /api/member /api/shift; do chk "200 kasir $ep" 200 "$(code -b "$k_txt" $B$ep)"; done
 chk "403 kasir ubah pengaturan" 403 "$(code -b "$k_txt" -X POST $B/api/pengaturan -H 'Content-Type: application/json' -d '{}')"
