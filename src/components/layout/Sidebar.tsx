@@ -196,7 +196,7 @@ export function Sidebar() {
         </div>
 
         {/* Navigasi */}
-        <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto">
+        <nav className="scroll-gelap flex-1 px-3 pb-4 space-y-1 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;

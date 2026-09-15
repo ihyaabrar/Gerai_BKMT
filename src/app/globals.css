@@ -35,6 +35,34 @@
   body {
     @apply bg-surface-muted text-foreground;
   }
+  /*
+    Batang gulir tipis dan membulat. Bawaan browser (abu-abu tebal dengan
+    lajur putih) terlihat mencolok, terutama di menu samping yang hijau tua.
+    scrollbar-width/scrollbar-color untuk Chrome, Edge, dan Firefox;
+    ::-webkit-scrollbar untuk Safari (Chrome baru mengabaikannya bila dua
+    properti di atas sudah diisi).
+  */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(148 163 184 / 0.55) transparent;
+  }
+  *::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  *::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  *::-webkit-scrollbar-thumb {
+    background-color: rgb(148 163 184 / 0.55);
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: content-box;
+  }
+  *::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(100 116 139 / 0.8);
+  }
+
   /* Judul halaman publik memakai serif; antarmuka aplikasi tetap sans. */
   .font-display {
     letter-spacing: -0.015em;
@@ -214,4 +242,18 @@ html {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Batang gulir untuk latar gelap (menu samping aplikasi): samar, lebih jelas saat disentuh. */
+.scroll-gelap {
+  scrollbar-color: rgb(255 255 255 / 0.16) transparent;
+}
+.scroll-gelap:hover {
+  scrollbar-color: rgb(255 255 255 / 0.32) transparent;
+}
+.scroll-gelap::-webkit-scrollbar-thumb {
+  background-color: rgb(255 255 255 / 0.16);
+}
+.scroll-gelap::-webkit-scrollbar-thumb:hover {
+  background-color: rgb(255 255 255 / 0.32);
 }
