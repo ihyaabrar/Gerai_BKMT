@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
   Settings, Clock, DatabaseBackup, ArrowRight, Store, Tags,
-  Percent, ShieldCheck, CircleDot, Users, KeyRound,
+  Percent, ShieldCheck, CircleDot, Users, KeyRound, Printer,
 } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
@@ -88,6 +88,13 @@ export default function SistemPage() {
       icon: DatabaseBackup,
       warna: "bg-sky-50 text-sky-600",
       adminSaja: true,
+    },
+    {
+      href: "/app/sistem/printer",
+      label: "Printer",
+      desc: "Printer thermal Bluetooth atau printer sistem, lebar kertas",
+      icon: Printer,
+      warna: "bg-slate-100 text-slate-600",
     },
     {
       href: "/app/akun",

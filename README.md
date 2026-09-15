@@ -44,7 +44,7 @@ PD BKMT Kubu Raya adalah organisasi kemasyarakatan Islam dengan sekitar **20 cab
 - Pencarian cepat & pemindai barcode
 - Diskon member otomatis
 - **Aman dari transaksi ganda** saat koneksi putus
-- Cetak struk, dan cetak ulang dari riwayat penjualan
+- Cetak struk ke **printer thermal Bluetooth** atau printer sistem (58/80 mm), cetak ulang dari riwayat
 - Shift buka/tutup dengan rekap kas
 
 </td>
@@ -224,11 +224,24 @@ DATABASE_URL="<url-produksi>" SEED_ADMIN_PASSWORD="..." SEED_KASIR_PASSWORD="...
 
 ---
 
+## 🖨️ Printer Struk
+
+Diatur per perangkat di **Sistem → Printer** — HP kasir dan komputer di gudang boleh berbeda.
+
+| Metode | Untuk | Catatan |
+|---|---|---|
+| **Printer thermal Bluetooth** | Printer thermal BLE 58/80 mm | Langsung tanpa dialog cetak. Chrome/Edge di Android, Windows, Mac. **Tidak** di iPhone/iPad |
+| **Printer sistem** | Printer USB, WiFi, atau Bluetooth yang sudah terpasang di perangkat | Lewat dialog cetak; ukuran halaman mengikuti lebar kertas |
+
+Pilih lebar kertas, aktifkan *cetak otomatis setelah transaksi* bila perlu, lalu tekan **Cetak uji**. Printer Bluetooth dipilih sekali per tab dengan satu klik (aturan browser); setelah itu struk langsung terkirim.
+
+---
+
 ## 🧪 Pengujian
 
 ```bash
-npm test                          # 66  perhitungan laba, periode WIB, sesi, modal, retur, struk
-bash scripts/smoke-test.sh        # 75  hak akses, pencabutan sesi, header keamanan
+npm test                          # 75  perhitungan laba, periode WIB, sesi, modal, retur, struk thermal
+bash scripts/smoke-test.sh        # 76  hak akses, pencabutan sesi, header keamanan
 node scripts/uji-distribusi.mjs   # 22  rekaman bagi hasil kebal perubahan
 node scripts/uji-idempotensi.mjs  # 17  transaksi ganda & stok negatif
 node scripts/uji-pembatalan.mjs   # 32  pembatalan penjualan
@@ -238,7 +251,7 @@ node scripts/uji-sesi.mjs         # 19  ganti password mengeluarkan perangkat la
 node scripts/uji-nasabah.mjs      # 23  modal nasabah berlaku bulan berikutnya
 node scripts/uji-retur.mjs        # 27  retur pembeli, uang kembali, kas shift
                                   # ───
-                                  # 354 pemeriksaan
+                                  # 364 pemeriksaan
 ```
 
 Skrip `uji-*` butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.

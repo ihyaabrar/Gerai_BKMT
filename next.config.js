@@ -25,8 +25,9 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           // Alamat lengkap halaman internal tidak dikirim ke situs luar.
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          // Kamera tetap diizinkan untuk pemindai barcode di halaman sendiri.
-          { key: "Permissions-Policy", value: "camera=(self), microphone=(), geolocation=()" },
+          // Kamera untuk pemindai barcode dan Bluetooth untuk printer thermal
+          // tetap diizinkan di halaman sendiri.
+          { key: "Permissions-Policy", value: "camera=(self), bluetooth=(self), microphone=(), geolocation=()" },
         ],
       },
     ];

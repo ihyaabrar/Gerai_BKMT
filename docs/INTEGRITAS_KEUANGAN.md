@@ -413,8 +413,8 @@ Beberapa hal sengaja **tidak** dikerjakan, dengan alasannya:
 ## 13. Menjalankan pengujian
 
 ```bash
-npm test                          # 66 uji perhitungan, periode WIB, sesi, hak akses, modal, retur, struk
-bash scripts/smoke-test.sh        # 75 uji hak akses, pencabutan sesi, bypass middleware, header
+npm test                          # 75 uji perhitungan, periode WIB, sesi, hak akses, modal, retur, struk thermal
+bash scripts/smoke-test.sh        # 76 uji hak akses, pencabutan sesi, bypass middleware, header
 node scripts/uji-distribusi.mjs   # 22 uji rekaman bagi hasil
 node scripts/uji-idempotensi.mjs  # 17 uji transaksi ganda & stok
 node scripts/uji-pembatalan.mjs   # 32 uji pembatalan penjualan
@@ -425,7 +425,7 @@ node scripts/uji-nasabah.mjs      # 23 uji modal nasabah per bulan
 node scripts/uji-retur.mjs        # 27 uji retur pembeli
 ```
 
-Totalnya 354 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
+Totalnya 364 pemeriksaan otomatis. Sebelum perbaikan September 2026 hanya ada
 56, dan semuanya tentang hak akses — tidak satu pun menyentuh perhitungan uang.
 
 Skrip `uji-*` butuh server berjalan (`npm run build && npm start`) dan

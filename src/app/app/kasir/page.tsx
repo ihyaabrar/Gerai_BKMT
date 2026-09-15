@@ -626,7 +626,7 @@ export default function KasirPage() {
           <DialogHeader>
             <DialogTitle>Transaksi Berhasil</DialogTitle>
           </DialogHeader>
-          {receiptData && <PrintReceipt data={receiptData} />}
+          {receiptData && <PrintReceipt data={receiptData} otomatis />}
           <Button onClick={() => setShowReceipt(false)} className="w-full">
             Selesai
           </Button>

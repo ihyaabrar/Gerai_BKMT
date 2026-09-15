@@ -53,6 +53,7 @@ const menuItems = [
     submenu: [
       { label: "Ringkasan", href: "/app/sistem" },
       { label: "Shift Kasir", href: "/app/sistem/shift" },
+      { label: "Printer", href: "/app/sistem/printer" },
       { label: "Pengguna", href: "/app/sistem/pengguna", restricted: true },
       { label: "Pengaturan", href: "/app/sistem/pengaturan", restricted: true },
       { label: "Ekspor Data", href: "/app/sistem/backup", restricted: true },
