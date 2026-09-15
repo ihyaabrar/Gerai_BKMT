@@ -122,7 +122,7 @@ export default function AdminDashboard() {
       ...berita.map((b) => ({
         waktu: b.updatedAt,
         judul: b.judul,
-        jenis: b.status === "published" ? "Berita diterbitkan" : "Draft berita disimpan",
+        jenis: b.status === "published" ? "Berita diterbitkan" : "Draf berita disimpan",
         icon: FileText,
         warna: "bg-brand-50 text-brand-600",
       })),

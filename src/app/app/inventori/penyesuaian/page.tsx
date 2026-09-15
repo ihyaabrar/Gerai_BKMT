@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ClipboardList, History, Trash2 } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
 import { toast } from "sonner";
+import { CEK_INTERNET, CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { useAuthStore } from "@/store/auth";
 import { format } from "date-fns";
 
@@ -82,7 +83,7 @@ export default function PenyesuaianPage() {
       setConfirmHapus(false);
       fetchBarang();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Barang belum terhapus", { description: CEK_INTERNET });
     } finally {
       setLoading(false);
     }
@@ -115,7 +116,7 @@ export default function PenyesuaianPage() {
       fetchBarang();
       fetchHistory();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Perubahan stok belum tercatat", { description: CEK_SEBELUM_ULANG });
     } finally {
       setLoading(false);
     }
@@ -223,7 +224,7 @@ export default function PenyesuaianPage() {
                       required
                       value={form.alasan}
                       onChange={(e) => setForm({ ...form, alasan: e.target.value })}
-                      placeholder="Rusak, hilang, stock opname, dll"
+                      placeholder="Mis. rusak, hilang, kedaluwarsa, salah hitung"
                       className="mt-1"
                     />
                     {/* Dampaknya ke uang dijelaskan di tempat keputusan dibuat. */}
@@ -240,7 +241,7 @@ export default function PenyesuaianPage() {
                         ? "bg-red-50 border-red-200"
                         : "bg-blue-50 border-blue-200"
                     }`}>
-                      <p className="text-sm font-medium text-slate-700">Preview Stok</p>
+                      <p className="text-sm font-medium text-slate-700">Stok setelah disimpan</p>
                       <div className="flex justify-between mt-1 text-sm">
                         <span className="text-slate-600">Stok saat ini: <strong>{selectedBarang.stok}</strong></span>
                         <span className={stokSetelah !== null && stokSetelah < 0 ? "text-red-600 font-bold" : "text-blue-700 font-bold"}>

@@ -110,7 +110,7 @@ export default function SistemPage() {
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Pengaturan</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Pengaturan toko, shift kasir, backup, dan informasi sistem
+          Pengaturan toko, buka/tutup kasir, printer, dan unduh data
         </p>
       </div>
 

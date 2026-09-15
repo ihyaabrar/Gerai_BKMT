@@ -14,6 +14,7 @@ import {
   Users, Plus, Edit, Ban, Search, KeyRound, ShieldCheck, ShieldAlert,
 } from "lucide-react";
 import { toast } from "sonner";
+import { CEK_INTERNET, CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { useAuthStore } from "@/store/auth";
 
 interface Pengguna {
@@ -115,7 +116,7 @@ export default function PenggunaPage() {
       setFormTerbuka(false);
       ambil();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Pengguna belum tersimpan", { description: CEK_SEBELUM_ULANG });
     } finally {
       setMenyimpan(false);
     }
@@ -191,7 +192,7 @@ export default function PenggunaPage() {
       setGantiTerbuka(false);
       setFormGanti({ passwordLama: "", passwordBaru: "" });
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Password belum berganti", { description: CEK_INTERNET });
     } finally {
       setMenggantiSandi(false);
     }
@@ -396,7 +397,7 @@ export default function PenggunaPage() {
       <Dialog open={formTerbuka} onOpenChange={setFormTerbuka}>
         <DialogContent onClose={() => setFormTerbuka(false)}>
           <DialogHeader>
-            <DialogTitle>{editId ? "Edit Pengguna" : "Tambah Pengguna"}</DialogTitle>
+            <DialogTitle>{editId ? "Ubah Pengguna" : "Tambah Pengguna"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={simpan} className="space-y-4">
             <div>

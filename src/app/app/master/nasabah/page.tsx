@@ -347,7 +347,7 @@ export default function NasabahPage() {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-md" onClose={() => setShowForm(false)}>
           <DialogHeader>
-            <DialogTitle>{editId ? "Edit Nasabah" : "Tambah Nasabah Baru"}</DialogTitle>
+            <DialogTitle>{editId ? "Ubah Data Nasabah" : "Tambah Nasabah Baru"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -405,7 +405,7 @@ export default function NasabahPage() {
             )}
 
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Menyimpan..." : editId ? "Update Nasabah" : "Simpan Nasabah"}
+              {loading ? "Menyimpan..." : editId ? "Simpan Perubahan" : "Simpan Nasabah"}
             </Button>
           </form>
         </DialogContent>

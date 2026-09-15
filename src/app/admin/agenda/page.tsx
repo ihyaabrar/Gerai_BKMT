@@ -14,6 +14,7 @@ import { Plus, Edit, Trash2, CalendarDays, Search, MapPin, Clock } from "lucide-
 import { format } from "date-fns";
 import { id as localeId } from "date-fns/locale";
 import { toast } from "sonner";
+import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 
 interface Agenda {
   id: string;
@@ -116,7 +117,7 @@ export default function AdminAgendaPage() {
       setTerbuka(false);
       ambil();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Agenda belum tersimpan", { description: CEK_SEBELUM_ULANG });
     } finally {
       setMenyimpan(false);
     }
@@ -296,7 +297,7 @@ export default function AdminAgendaPage() {
       <Dialog open={terbuka} onOpenChange={setTerbuka}>
         <DialogContent onClose={() => setTerbuka(false)}>
           <DialogHeader>
-            <DialogTitle>{editId ? "Edit Agenda" : "Tambah Agenda"}</DialogTitle>
+            <DialogTitle>{editId ? "Ubah Agenda" : "Tambah Agenda"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={simpan} className="space-y-4">
             <div>

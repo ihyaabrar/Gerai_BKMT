@@ -118,9 +118,9 @@ export default function LaporanPage() {
         `Laporan_Penjualan_${form.startDate}_${form.endDate}.xlsx`
       );
       
-      toast.success("Laporan berhasil di-export ke Excel!");
+      toast.success("Laporan diunduh sebagai file Excel");
     } catch (error) {
-      toast.error("Gagal export Excel");
+      toast.error("File Excel gagal dibuat");
     }
   };
 
@@ -175,7 +175,7 @@ export default function LaporanPage() {
               ) : (
                 <>
                   <BarChart3 className="h-4 w-4 mr-2" />
-                  Generate Laporan
+                  Tampilkan Laporan
                 </>
               )}
             </Button>
@@ -191,11 +191,11 @@ export default function LaporanPage() {
               variant="outline"
             >
               <Download className="h-4 w-4 mr-2" />
-              Export Excel
+              Unduh Excel
             </Button>
             <Button onClick={handlePrint} variant="outline" className="hover-lift">
               <FileText className="h-4 w-4 mr-2" />
-              Print / PDF
+              Cetak / PDF
             </Button>
           </div>
 
@@ -394,7 +394,7 @@ export default function LaporanPage() {
                 <BarChart3 className="h-10 w-10 text-white" />
               </div>
               <p className="text-lg font-medium text-slate-700 mb-2">Belum Ada Laporan</p>
-              <p className="text-slate-500">Pilih periode dan klik "Generate Laporan" untuk melihat data</p>
+              <p className="text-slate-500">Pilih periode lalu tekan "Tampilkan Laporan"</p>
             </div>
           </CardContent>
         </Card>

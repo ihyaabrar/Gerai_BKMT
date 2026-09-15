@@ -79,7 +79,7 @@ export default function MemberPage() {
         toast.error(data?.error || "Gagal menyimpan member");
         return;
       }
-      toast.success(editId ? "Member berhasil diupdate" : "Member berhasil ditambahkan");
+      toast.success(editId ? "Member berhasil diperbarui" : "Member berhasil ditambahkan");
       setShowForm(false);
       fetchMembers();
     } catch {
@@ -150,7 +150,27 @@ export default function MemberPage() {
               <p>{search ? "Member tidak ditemukan" : "Belum ada member"}</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            <ul className="md:hidden divide-y divide-border">
+              {filtered.map((m) => (
+                <li key={m.id} className="flex items-center gap-3 py-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold text-sm text-slate-900 break-words">{m.nama}</p>
+                    <p className="text-xs text-slate-500 mt-0.5 break-words">
+                      {m.kode}
+                      {m.telepon ? ` · ${m.telepon}` : ""} · {m.poin} poin
+                    </p>
+                  </div>
+                  <Button aria-label={`Ubah ${m.nama}`} variant="ghost" size="icon" onClick={() => openEdit(m)} className="shrink-0">
+                    <Edit className="h-4 w-4 text-brand-600" />
+                  </Button>
+                  <Button aria-label={`Hapus ${m.nama}`} variant="ghost" size="icon" onClick={() => handleDelete(m.id, m.nama)} className="shrink-0">
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </li>
+              ))}
+            </ul>
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full min-w-[700px]">
                 <thead>
                   <tr className="border-b">
@@ -189,6 +209,7 @@ export default function MemberPage() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </CardContent>
       </Card>
@@ -196,7 +217,7 @@ export default function MemberPage() {
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-md" onClose={() => setShowForm(false)}>
           <DialogHeader>
-            <DialogTitle>{editId ? "Edit Member" : "Tambah Member Baru"}</DialogTitle>
+            <DialogTitle>{editId ? "Ubah Data Member" : "Tambah Member Baru"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
@@ -228,7 +249,7 @@ export default function MemberPage() {
               />
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Menyimpan..." : editId ? "Update Member" : "Simpan Member"}
+              {loading ? "Menyimpan..." : editId ? "Simpan Perubahan" : "Simpan Member"}
             </Button>
           </form>
         </DialogContent>

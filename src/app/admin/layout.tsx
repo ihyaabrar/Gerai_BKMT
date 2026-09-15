@@ -8,7 +8,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     <AuthProvider>
       <DashboardShell
         brand="BKMT Kubu Raya"
-        brandLabel="Admin Panel"
+        brandLabel="Kelola Situs Web"
         brandAccent="bg-gold-400"
         sidebar={<AdminSidebar />}
         topbar={<AdminTopbar />}

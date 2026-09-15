@@ -9,6 +9,7 @@ import { generateBarcode, formatRupiah } from "@/lib/utils";
 import { hargaBeliRataRata } from "@/lib/keuangan";
 import { PackagePlus, Package, Search, Plus, RefreshCw, DollarSign } from "lucide-react";
 import { toast } from "sonner";
+import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { ImageUpload } from "@/components/ui/ImageUpload";
 import { useAuthStore } from "@/store/auth";
 
@@ -139,7 +140,7 @@ export default function BarangMasukPage() {
       setHargaBeliBaru("");
       fetchBarang();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Barang masuk belum tercatat", { description: CEK_SEBELUM_ULANG });
     } finally {
       setSubmitting(false);
     }
@@ -188,7 +189,7 @@ export default function BarangMasukPage() {
       });
       fetchBarang();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Barang baru belum tersimpan", { description: CEK_SEBELUM_ULANG });
     } finally {
       setSubmitting(false);
     }
@@ -437,7 +438,7 @@ export default function BarangMasukPage() {
                     disabled={submitting || !jumlahMasuk || parseInt(jumlahMasuk) <= 0}
                   >
                     <RefreshCw className="h-4 w-4 mr-2" />
-                    {submitting ? "Menyimpan..." : "Update Stok & Catat Pengeluaran"}
+                    {submitting ? "Menyimpan..." : "Tambah Stok & Catat Pengeluaran"}
                   </Button>
                 </div>
               ) : (
@@ -485,7 +486,7 @@ export default function BarangMasukPage() {
                       placeholder="Auto generate"
                     />
                     <Button type="button" onClick={handleGenerateBarcode} variant="outline">
-                      Generate
+                      Buat Otomatis
                     </Button>
                   </div>
                 </div>

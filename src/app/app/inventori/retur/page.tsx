@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { RotateCcw, Plus, Package } from "lucide-react";
 import { format } from "date-fns";
 import { toast } from "sonner";
+import { CEK_INTERNET, CEK_SEBELUM_ULANG } from "@/lib/pesan";
 import { TableSkeleton } from "@/components/ui/skeleton";
 
 interface Retur {
@@ -87,7 +88,7 @@ export default function ReturPage() {
       setForm({ barangId: "", qty: "", alasan: "" });
       fetchData();
     } catch (error) {
-      toast.error("Terjadi kesalahan");
+      toast.error("Retur belum tercatat", { description: CEK_SEBELUM_ULANG });
     }
   };
 
@@ -108,7 +109,7 @@ export default function ReturPage() {
       toast.success(status === "selesai" ? "Retur selesai — stok dikurangi" : "Status diperbarui");
       fetchData();
     } catch (error) {
-      toast.error("Terjadi kesalahan");
+      toast.error("Status retur belum berubah", { description: CEK_INTERNET });
     }
   };
 

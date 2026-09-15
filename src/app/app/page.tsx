@@ -8,7 +8,7 @@ import { cn, formatRupiah } from "@/lib/utils";
 import {
   DollarSign, TrendingUp, TrendingDown, Package, AlertTriangle, Clock,
   Award, BarChart3, Boxes, ArrowRight, Receipt, RefreshCw, Undo2,
-  Wallet, UserPlus, Minus,
+  Wallet, UserPlus, Minus, ShoppingCart, PackagePlus,
 } from "lucide-react";
 import { SalesChart } from "@/components/SalesChart";
 import { Skeleton, StatsSkeleton } from "@/components/ui/skeleton";
@@ -106,12 +106,12 @@ export default function Dashboard() {
         }
       : {
           title: "Transaksi Hari Ini",
-          value: `${data.transaksiTerbaru?.length ?? 0} terbaru`,
+          value: `${data.transaksiHariIni ?? 0} transaksi`,
           icon: Receipt,
           warna: "bg-gold-50 text-gold-600",
           latar: "bg-gold-50/40",
           tren: null,
-          satuan: "Lihat riwayat penjualan",
+          satuan: "Sejak pukul 00.00",
         },
     {
       title: "Stok Rendah",
@@ -120,11 +120,11 @@ export default function Dashboard() {
       warna: "bg-rose-50 text-rose-600",
       latar: "bg-rose-50/40",
       tren: null,
-      satuan: data.stokRendah > 0 ? "Perlu restock segera" : "Semua stok aman",
+      satuan: data.stokRendah > 0 ? "Perlu segera diisi" : "Semua stok aman",
     },
     {
-      title: "Produk Aktif",
-      value: `${data.totalBarang} produk`,
+      title: "Jumlah Barang",
+      value: `${data.totalBarang} barang`,
       icon: Package,
       warna: "bg-sky-50 text-sky-600",
       latar: "bg-sky-50/40",
@@ -148,6 +148,30 @@ export default function Dashboard() {
         <p className="hidden sm:block font-script text-xl text-brand-600">
           Bersama Umat, Membangun Masyarakat
         </p>
+      </div>
+
+      {/* Pintasan pekerjaan harian — tombol besar, langsung ke tujuan */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {[
+          { href: "/app/kasir", label: "Mulai Jualan", icon: ShoppingCart, utama: true },
+          { href: "/app/sistem/shift", label: "Buka / Tutup Kasir", icon: Clock },
+          { href: "/app/inventori/barang-masuk", label: "Barang Masuk", icon: PackagePlus },
+          { href: "/app/inventori/stok", label: "Cek Stok", icon: Boxes },
+        ].map((p) => (
+          <Link
+            key={p.href}
+            href={p.href}
+            className={cn(
+              "flex items-center gap-3 rounded-card border px-4 py-3.5 font-semibold text-sm transition-colors min-h-[56px]",
+              p.utama
+                ? "bg-brand-600 border-brand-600 text-white hover:bg-brand-700"
+                : "bg-white border-border text-slate-800 hover:border-brand-300 hover:bg-brand-50/50"
+            )}
+          >
+            <p.icon className={cn("h-5 w-5 shrink-0", p.utama ? "text-white" : "text-brand-600")} />
+            <span className="min-w-0">{p.label}</span>
+          </Link>
+        ))}
       </div>
 
       {/* Ringkasan */}
@@ -189,7 +213,7 @@ export default function Dashboard() {
                 <span className="h-8 w-8 rounded-lg bg-brand-50 text-brand-600 flex items-center justify-center">
                   <BarChart3 className="h-[18px] w-[18px]" />
                 </span>
-                Grafik Penjualan &amp; Laba
+                {typeof data.labaKotor === "number" ? "Grafik Penjualan & Laba" : "Grafik Penjualan"}
               </CardTitle>
               <span className="text-xs text-slate-500">12 bulan terakhir</span>
             </div>
@@ -197,9 +221,11 @@ export default function Dashboard() {
               <span className="flex items-center gap-1.5 text-xs text-slate-500">
                 <span className="w-3 h-3 rounded-sm bg-brand-500" /> Penjualan
               </span>
-              <span className="flex items-center gap-1.5 text-xs text-slate-500">
-                <span className="w-3 h-3 rounded-sm bg-gold-400" /> Laba
-              </span>
+              {typeof data.labaKotor === "number" && (
+                <span className="flex items-center gap-1.5 text-xs text-slate-500">
+                  <span className="w-3 h-3 rounded-sm bg-gold-400" /> Laba
+                </span>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -214,7 +240,7 @@ export default function Dashboard() {
                 <span className="h-8 w-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center">
                   <Clock className="h-[18px] w-[18px]" />
                 </span>
-                Transaksi Terbaru
+                5 Transaksi Terakhir
               </CardTitle>
               <Link
                 href="/app/keuangan/penjualan"
@@ -270,7 +296,7 @@ export default function Dashboard() {
               <span className="h-8 w-8 rounded-lg bg-gold-50 text-gold-600 flex items-center justify-center">
                 <Award className="h-[18px] w-[18px]" />
               </span>
-              Produk Terlaris
+              Barang Paling Laku
             </CardTitle>
           </CardHeader>
           <CardContent>

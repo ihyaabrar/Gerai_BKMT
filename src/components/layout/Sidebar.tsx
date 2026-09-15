@@ -305,11 +305,12 @@ export function Sidebar() {
             className="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs text-brand-300 hover:bg-white/5 hover:text-white transition-colors"
           >
             <Globe className="h-4 w-4" />
-            Lihat Profil Publik
+            Lihat Situs Web
           </Link>
           {isAdmin && (
             <Link
               href="/admin"
+              title="Ubah berita, pengurus, galeri, dan agenda di situs web"
               className={cn(
                 "flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs transition-colors",
                 pathname.startsWith("/admin")
@@ -318,7 +319,7 @@ export function Sidebar() {
               )}
             >
               <Shield className="h-4 w-4" />
-              Admin Panel
+              Kelola Situs Web
             </Link>
           )}
           <button

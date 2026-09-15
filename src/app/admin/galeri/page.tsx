@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { Plus, Edit, Trash2, ImageIcon, Search, EyeOff, Eye } from "lucide-react";
 import { toast } from "sonner";
+import { CEK_SEBELUM_ULANG } from "@/lib/pesan";
 
 interface Foto {
   id: string;
@@ -101,7 +102,7 @@ export default function AdminGaleriPage() {
       setTerbuka(false);
       ambil();
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Foto belum tersimpan", { description: CEK_SEBELUM_ULANG });
     } finally {
       setMenyimpan(false);
     }
@@ -268,7 +269,7 @@ export default function AdminGaleriPage() {
       <Dialog open={terbuka} onOpenChange={setTerbuka}>
         <DialogContent onClose={() => setTerbuka(false)}>
           <DialogHeader>
-            <DialogTitle>{editId ? "Edit Foto" : "Tambah Foto"}</DialogTitle>
+            <DialogTitle>{editId ? "Ubah Foto" : "Tambah Foto"}</DialogTitle>
           </DialogHeader>
           <form onSubmit={simpan} className="space-y-4">
             <div>

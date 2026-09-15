@@ -31,13 +31,13 @@ export function AdminTopbar() {
     Object.entries(JUDUL).find(
       ([href]) => href !== "/admin" && pathname.startsWith(href)
     )?.[1] ??
-    "Admin Panel";
+    "Kelola Situs Web";
 
   return (
     <header className="hidden lg:flex sticky top-0 z-20 items-center gap-4 border-b border-border bg-white/85 backdrop-blur px-8 h-16">
       <div className="min-w-0">
-        <p className="text-[11px] uppercase tracking-widest text-slate-400">
-          Admin Panel
+        <p className="text-xs uppercase tracking-widest text-slate-500">
+          Kelola Situs Web
         </p>
         <p className="font-semibold text-slate-900 truncate leading-tight">{judul}</p>
       </div>
