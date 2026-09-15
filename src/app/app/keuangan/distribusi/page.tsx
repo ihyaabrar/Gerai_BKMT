@@ -11,10 +11,12 @@ import { cn, formatRupiah } from "@/lib/utils";
 import { bagiRata } from "@/lib/keuangan";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useAuthStore } from "@/store/auth";
+import { DialogSlip, cetakSemuaSlip, useSlipPeriode } from "@/components/SlipBagiHasil";
 import {
   AlertTriangle,
   Building,
   Download,
+  FileText,
   Lock,
   Unlock,
   Printer,
@@ -285,6 +287,10 @@ export default function DistribusiPage() {
   const d = data?.distribusi;
   const sudahDitutup = data?.status === "ditutup";
 
+  // Slip hanya untuk periode yang sudah ditutup — angkanya tidak berubah lagi.
+  const [slipNasabah, setSlipNasabah] = useState<string | null>(null);
+  const dataSlip = useSlipPeriode(d?.periode ?? null, sudahDitutup);
+
   return (
     <>
       <style jsx global>{`
@@ -324,6 +330,17 @@ export default function DistribusiPage() {
             <Button variant="outline" size="sm" onClick={() => window.print()} disabled={!d}>
               <Printer className="h-4 w-4" /> Cetak
             </Button>
+            {sudahDitutup && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!dataSlip}
+                onClick={() => dataSlip && cetakSemuaSlip(dataSlip)}
+                title="Cetak slip seluruh nasabah, satu halaman per nasabah"
+              >
+                <FileText className="h-4 w-4" /> Semua slip
+              </Button>
+            )}
           </div>
         </div>
 
@@ -621,6 +638,7 @@ export default function DistribusiPage() {
                           <th className="py-2.5 font-medium text-right">Investasi</th>
                           <th className="py-2.5 font-medium text-right">Porsi</th>
                           <th className="py-2.5 font-medium text-right">Bagi Hasil</th>
+                          {sudahDitutup && <th className="py-2.5 w-20 no-print" />}
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
@@ -638,6 +656,18 @@ export default function DistribusiPage() {
                             <td className="py-2.5 text-right tabular-nums font-semibold text-brand-700">
                               {formatRupiah(n.bagian)}
                             </td>
+                            {sudahDitutup && (
+                              <td className="py-2.5 text-right no-print">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  aria-label={`Slip ${n.namaNasabah}`}
+                                  onClick={() => n.nasabahId && setSlipNasabah(n.nasabahId)}
+                                >
+                                  <FileText className="h-4 w-4 mr-1" /> Slip
+                                </Button>
+                              </td>
+                            )}
                           </tr>
                         ))}
                       </tbody>
@@ -653,6 +683,7 @@ export default function DistribusiPage() {
                               d.detail.reduce((s, n) => s + n.bagian, 0)
                             )}
                           </td>
+                          {sudahDitutup && <td className="no-print" />}
                         </tr>
                       </tfoot>
                     </table>
@@ -696,6 +727,7 @@ export default function DistribusiPage() {
         )}
       </div>
 
+      <DialogSlip data={dataSlip} nasabahId={slipNasabah} onTutup={() => setSlipNasabah(null)} />
       {dialog}
 
       <Dialog

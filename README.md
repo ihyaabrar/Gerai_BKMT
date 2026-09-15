@@ -240,9 +240,9 @@ Pilih lebar kertas, aktifkan *cetak otomatis setelah transaksi* bila perlu, lalu
 ## 🧪 Pengujian
 
 ```bash
-npm test                          # 75  perhitungan laba, periode WIB, sesi, modal, retur, struk thermal
+npm test                          # 81  perhitungan laba, periode WIB, sesi, modal, retur, struk, slip
 bash scripts/smoke-test.sh        # 76  hak akses, pencabutan sesi, header keamanan
-node scripts/uji-distribusi.mjs   # 22  rekaman bagi hasil kebal perubahan
+node scripts/uji-distribusi.mjs   # 29  rekaman bagi hasil kebal perubahan, slip nasabah
 node scripts/uji-idempotensi.mjs  # 17  transaksi ganda & stok negatif
 node scripts/uji-pembatalan.mjs   # 32  pembatalan penjualan
 node scripts/uji-penguncian.mjs   # 36  kunci persentase, arsip buka-kembali, shift beku
@@ -251,7 +251,7 @@ node scripts/uji-sesi.mjs         # 19  ganti password mengeluarkan perangkat la
 node scripts/uji-nasabah.mjs      # 23  modal nasabah berlaku bulan berikutnya
 node scripts/uji-retur.mjs        # 27  retur pembeli, uang kembali, kas shift
                                   # ───
-                                  # 364 pemeriksaan
+                                  # 377 pemeriksaan
 ```
 
 Skrip `uji-*` butuh server berjalan dan **menulis ke database** — jalankan hanya terhadap database uji.
