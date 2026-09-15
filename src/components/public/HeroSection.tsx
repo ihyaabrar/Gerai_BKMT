@@ -101,7 +101,7 @@ export function HeroSection({ profil }: HeroSectionProps) {
               </div>
 
               <p className="mt-7 font-script text-2xl text-brand-600">
-                Bersama Umat, Membangun Masyarakat
+                {profil?.slogan?.trim() || "Bersama Umat, Membangun Masyarakat"}
               </p>
             </div>
 

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowLeft, Calendar, User } from "lucide-react";
 import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { ambilIdentitas } from "@/lib/identitas";
+import { PublicFooter } from "@/components/public/PublicFooter";
 
 export const dynamic = "force-dynamic";
 
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export default async function BeritaDetailPage({ params }: Props) {
-  const [berita, identitas] = await Promise.all([
+  const [berita, identitas, profil] = await Promise.all([
     prisma.berita
       .findFirst({
         where: { slug: params.slug, status: "published" },
@@ -22,6 +23,7 @@ export default async function BeritaDetailPage({ params }: Props) {
       })
       .catch(() => null),
     ambilIdentitas(),
+    prisma.profilOrganisasi.findFirst().catch(() => null),
   ]);
 
   if (!berita) notFound();
@@ -103,6 +105,8 @@ export default async function BeritaDetailPage({ params }: Props) {
           </Link>
         </div>
       </main>
+
+      <PublicFooter profil={profil} />
     </div>
   );
 }

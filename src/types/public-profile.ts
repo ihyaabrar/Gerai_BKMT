@@ -14,6 +14,9 @@ export interface ProfilOrganisasiPublic {
   instagram?: string | null;
   youtube?: string | null;
   website?: string | null;
+  whatsapp?: string | null;
+  tiktok?: string | null;
+  slogan?: string | null;
 }
 
 export interface BeritaPublic {
