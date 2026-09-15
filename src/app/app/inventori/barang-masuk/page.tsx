@@ -221,7 +221,7 @@ export default function BarangMasukPage() {
       </div>
 
       {/* Mode Selector */}
-      <div className="flex gap-3">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:gap-3">
         <Button
           onClick={() => {
             setMode("pilih");
@@ -233,8 +233,8 @@ export default function BarangMasukPage() {
           variant={mode === "pilih" ? "default" : "outline"}
           className={mode === "pilih" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
         >
-          <Package className="h-4 w-4 mr-2" />
-          Update Stok Barang
+          <Package className="h-4 w-4" />
+          Tambah Stok
         </Button>
         {bolehUbahHarga && (
           <Button
@@ -242,8 +242,8 @@ export default function BarangMasukPage() {
             variant={mode === "baru" ? "default" : "outline"}
             className={mode === "baru" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
           >
-            <Plus className="h-4 w-4 mr-2" />
-            Tambah Barang Baru
+            <Plus className="h-4 w-4" />
+            Barang Baru
           </Button>
         )}
       </div>

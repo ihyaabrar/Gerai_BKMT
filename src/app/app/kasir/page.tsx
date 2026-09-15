@@ -324,17 +324,17 @@ export default function KasirPage() {
                       )}
                     </div>
 
-                    <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-sm leading-snug text-slate-900 break-words">
-                        {barang.nama}
-                      </p>
+                    <p className="font-semibold text-sm leading-snug text-slate-900 break-words">
+                      {barang.nama}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      <span className="text-[11px] text-slate-400">{barang.kode}</span>
                       {habis ? (
-                        <Badge variant="destructive" className="shrink-0">Habis</Badge>
+                        <Badge variant="destructive">Habis</Badge>
                       ) : menipis ? (
-                        <Badge variant="warning" className="shrink-0">Menipis</Badge>
+                        <Badge variant="warning">Menipis</Badge>
                       ) : null}
                     </div>
-                    <p className="text-[11px] text-slate-400 mt-1">{barang.kode}</p>
                     <div className="mt-3 flex items-end justify-between gap-2">
                       <div className="min-w-0">
                         <p className="text-[15px] font-bold text-slate-900 break-words">
@@ -477,7 +477,7 @@ export default function KasirPage() {
         melewati seluruh katalog setiap kali ingin menyelesaikan transaksi.
       */}
       {items.length > 0 && (
-        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-border shadow-[0_-6px_20px_-8px_rgba(14,59,38,0.25)] px-4 py-3">
+        <div className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white border-t border-border shadow-[0_-6px_20px_-8px_rgba(14,59,38,0.25)] px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
           <div className="flex items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="text-xs text-slate-500">

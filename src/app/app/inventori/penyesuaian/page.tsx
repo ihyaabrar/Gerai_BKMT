@@ -176,7 +176,7 @@ export default function PenyesuaianPage() {
                     className={form.jenis === "masuk" ? "bg-emerald-600 hover:bg-emerald-700" : ""}
                     onClick={() => setForm({ ...form, jenis: "masuk" })}
                   >
-                    + Tambah Stok
+                    + Tambah
                   </Button>
                   <Button
                     type="button"
@@ -184,7 +184,7 @@ export default function PenyesuaianPage() {
                     className={form.jenis === "keluar" ? "bg-red-600 hover:bg-red-700" : ""}
                     onClick={() => setForm({ ...form, jenis: "keluar" })}
                   >
-                    − Kurangi Stok
+                    − Kurangi
                   </Button>
                   {bolehHapusBarang && (
                     <Button
@@ -193,8 +193,8 @@ export default function PenyesuaianPage() {
                       className={form.jenis === "hapus" ? "bg-gray-800 hover:bg-gray-900" : ""}
                       onClick={() => setForm({ ...form, jenis: "hapus" })}
                     >
-                      <Trash2 className="h-4 w-4 mr-1" />
-                      Hapus Barang
+                      <Trash2 className="h-4 w-4" />
+                      Hapus
                     </Button>
                   )}
                 </div>

@@ -231,12 +231,12 @@ export default function PenggunaPage() {
             Kelola akun dan hak akses pengguna sistem.
           </p>
         </div>
-        <div className="flex flex-wrap gap-2 shrink-0">
-          <Button variant="outline" onClick={() => setGantiTerbuka(true)}>
+        <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+          <Button variant="outline" className="flex-1 sm:flex-none" onClick={() => setGantiTerbuka(true)}>
             <KeyRound className="h-4 w-4" />
             Ganti Password Saya
           </Button>
-          <Button onClick={bukaTambah}>
+          <Button className="flex-1 sm:flex-none" onClick={bukaTambah}>
             <Plus className="h-4 w-4" /> Tambah Pengguna
           </Button>
         </div>

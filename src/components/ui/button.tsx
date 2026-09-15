@@ -9,7 +9,9 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = "default", size = "default", ...props }, ref) => {
     const baseStyles =
-      "inline-flex items-center justify-center gap-2 rounded-lg font-semibold " +
+      // whitespace-nowrap: tinggi tombol tetap, jadi teks yang terlipat dua baris
+      // terpotong atas-bawah. Baris tombol yang sempit harus ditata ulang.
+      "inline-flex items-center justify-center gap-2 rounded-lg font-semibold whitespace-nowrap " +
       "transition-colors duration-150 " +
       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 " +
       "focus-visible:ring-offset-2 focus-visible:ring-offset-white " +
