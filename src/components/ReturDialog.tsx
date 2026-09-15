@@ -221,7 +221,7 @@ export function ReturDialog({
                 <p className="text-xs text-slate-500 mt-1 leading-relaxed">
                   {data.diskon > 0 && "Sudah dipotong diskon member transaksi ini. "}
                   {data.metodeBayar === "Tunai"
-                    ? "Diambil dari laci shift yang sedang buka."
+                    ? "Diambil dari laci kasir yang sedang buka."
                     : `Dikembalikan lewat ${data.metodeBayar}, tidak dari laci.`}{" "}
                   Laba bulan ini berkurang sesuai retur ini.
                 </p>

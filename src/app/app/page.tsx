@@ -144,6 +144,12 @@ export default function Dashboard() {
           <p className="text-sm text-slate-500 mt-1">
             Mari bersama membangun ekonomi umat melalui Gerai BKMT.
           </p>
+          <Link
+            href="/app/panduan"
+            className="inline-flex items-center gap-1 mt-2 text-sm font-semibold text-brand-700 hover:text-brand-800"
+          >
+            Baru pertama kali? Baca Cara Pakai <ArrowRight className="h-4 w-4" />
+          </Link>
         </div>
         <p className="hidden sm:block font-script text-xl text-brand-600">
           Bersama Umat, Membangun Masyarakat

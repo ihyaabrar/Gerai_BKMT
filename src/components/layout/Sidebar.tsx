@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { useIdentitasStore } from "@/store/identitas";
 import {
   Home, ShoppingCart, Package, Wallet, Contact, Settings, Clock, History,
-  PackagePlus, Boxes, PackageX, Printer, MoreHorizontal,
+  PackagePlus, Boxes, PackageX, Printer, MoreHorizontal, HelpCircle,
   ChevronDown, LogOut, Globe, Shield, X, type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -68,6 +68,7 @@ const menuPengurus: MenuItem[] = [
       { label: "Unduh Data (Excel)", href: "/app/sistem/backup" },
     ],
   },
+  { icon: HelpCircle, label: "Cara Pakai", href: "/app/panduan" },
 ];
 
 /**
@@ -94,6 +95,7 @@ const menuKasir: MenuItem[] = [
       { label: "Supplier (Pemasok)", href: "/app/master/supplier" },
     ],
   },
+  { icon: HelpCircle, label: "Cara Pakai", href: "/app/panduan" },
 ];
 
 export function Sidebar() {
