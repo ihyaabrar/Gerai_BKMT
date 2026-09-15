@@ -118,7 +118,7 @@ export default function SupplierPage() {
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Supplier</h1>
-          <p className="text-slate-500">Manajemen data pemasok barang</p>
+          <p className="text-slate-500">Daftar pemasok barang</p>
         </div>
         <Dialog
           open={open}

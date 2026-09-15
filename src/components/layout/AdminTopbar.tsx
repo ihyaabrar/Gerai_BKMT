@@ -6,7 +6,7 @@ import { Search, ExternalLink } from "lucide-react";
 import { useAuthStore } from "@/store/auth";
 
 const JUDUL: Record<string, string> = {
-  "/admin": "Dashboard",
+  "/admin": "Beranda",
   "/admin/profil": "Profil Organisasi",
   "/admin/berita": "Berita & Pengumuman",
   "/admin/pengurus": "Pengurus",
@@ -82,7 +82,7 @@ export function AdminTopbar() {
           </div>
           <div className="leading-tight">
             <p className="text-sm font-semibold text-slate-900">{user.nama}</p>
-            <p className="text-[11px] text-slate-500 capitalize">{user.role}</p>
+            <p className="text-xs text-slate-500 capitalize">{user.role}</p>
           </div>
         </div>
       )}

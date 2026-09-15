@@ -5,58 +5,93 @@ import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useIdentitasStore } from "@/store/identitas";
 import {
-  LayoutDashboard, ShoppingCart, Package, Wallet, Users, Settings,
-  ChevronDown, LogOut, Globe, Shield, X,
+  Home, ShoppingCart, Package, Wallet, Contact, Settings, Clock, History,
+  PackagePlus, Boxes, PackageX, Printer, MoreHorizontal,
+  ChevronDown, LogOut, Globe, Shield, X, type LucideIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useAuthStore } from "@/store/auth";
 import { useSidebar } from "@/components/layout/DashboardShell";
 
-const menuItems = [
-  { icon: LayoutDashboard, label: "Dashboard", href: "/app" },
+type MenuItem =
+  | { icon: LucideIcon; label: string; href: string; submenu?: undefined }
+  | { icon: LucideIcon; label: string; href?: undefined; submenu: { label: string; href: string }[] };
+
+/**
+ * Menu pengurus (master/admin). Nama menu memakai bahasa sehari-hari —
+ * pemakainya relawan, bukan orang akuntansi.
+ */
+const menuPengurus: MenuItem[] = [
+  { icon: Home, label: "Beranda", href: "/app" },
   { icon: ShoppingCart, label: "Kasir", href: "/app/kasir" },
+  { icon: Clock, label: "Buka / Tutup Kasir", href: "/app/sistem/shift" },
   {
     icon: Package,
-    label: "Inventori",
+    label: "Barang",
     submenu: [
-      { label: "Ringkasan", href: "/app/inventori" },
+      { label: "Ringkasan Barang", href: "/app/inventori" },
       { label: "Barang Masuk", href: "/app/inventori/barang-masuk" },
       { label: "Stok Barang", href: "/app/inventori/stok" },
-      { label: "Penyesuaian", href: "/app/inventori/penyesuaian" },
-      { label: "Retur", href: "/app/inventori/retur" },
+      { label: "Barang Rusak / Hilang", href: "/app/inventori/penyesuaian" },
+      { label: "Retur ke Supplier", href: "/app/inventori/retur" },
     ],
   },
   {
     icon: Wallet,
     label: "Keuangan",
     submenu: [
-      { label: "Ringkasan", href: "/app/keuangan" },
-      { label: "Penjualan", href: "/app/keuangan/penjualan" },
+      { label: "Ringkasan Keuangan", href: "/app/keuangan" },
+      { label: "Riwayat Penjualan", href: "/app/keuangan/penjualan" },
       { label: "Pengeluaran", href: "/app/keuangan/pengeluaran" },
-      { label: "Distribusi Laba", href: "/app/keuangan/distribusi" },
-      { label: "Laporan", href: "/app/keuangan/laporan", restricted: true },
+      { label: "Bagi Hasil Nasabah", href: "/app/keuangan/distribusi" },
+      { label: "Laporan", href: "/app/keuangan/laporan" },
     ],
   },
   {
-    icon: Users,
-    label: "Master Data",
+    icon: Contact,
+    label: "Kontak",
     submenu: [
-      { label: "Ringkasan", href: "/app/master" },
-      { label: "Member", href: "/app/master/member" },
-      { label: "Nasabah", href: "/app/master/nasabah" },
-      { label: "Supplier", href: "/app/master/supplier" },
+      { label: "Ringkasan Kontak", href: "/app/master" },
+      { label: "Member (Pembeli)", href: "/app/master/member" },
+      { label: "Nasabah (Pemodal)", href: "/app/master/nasabah" },
+      { label: "Supplier (Pemasok)", href: "/app/master/supplier" },
     ],
   },
   {
     icon: Settings,
-    label: "Sistem",
+    label: "Pengaturan",
     submenu: [
-      { label: "Ringkasan", href: "/app/sistem" },
-      { label: "Shift Kasir", href: "/app/sistem/shift" },
+      { label: "Ringkasan Pengaturan", href: "/app/sistem" },
       { label: "Printer", href: "/app/sistem/printer" },
-      { label: "Pengguna", href: "/app/sistem/pengguna", restricted: true },
-      { label: "Pengaturan", href: "/app/sistem/pengaturan", restricted: true },
-      { label: "Ekspor Data", href: "/app/sistem/backup", restricted: true },
+      { label: "Pengguna", href: "/app/sistem/pengguna" },
+      { label: "Pengaturan Toko", href: "/app/sistem/pengaturan" },
+      { label: "Unduh Data (Excel)", href: "/app/sistem/backup" },
+    ],
+  },
+];
+
+/**
+ * Menu kasir: pekerjaan harian di atas, tanpa kelompok, supaya tidak perlu
+ * membuka-buka submenu. Halaman yang jarang dipakai kasir dikumpulkan di
+ * "Lainnya" — tetap bisa dibuka, hanya tidak memenuhi layar.
+ */
+const menuKasir: MenuItem[] = [
+  { icon: Home, label: "Beranda", href: "/app" },
+  { icon: ShoppingCart, label: "Kasir", href: "/app/kasir" },
+  { icon: Clock, label: "Buka / Tutup Kasir", href: "/app/sistem/shift" },
+  { icon: History, label: "Riwayat Penjualan", href: "/app/keuangan/penjualan" },
+  { icon: PackagePlus, label: "Barang Masuk", href: "/app/inventori/barang-masuk" },
+  { icon: Boxes, label: "Stok Barang", href: "/app/inventori/stok" },
+  { icon: PackageX, label: "Barang Rusak / Hilang", href: "/app/inventori/penyesuaian" },
+  { icon: Printer, label: "Printer", href: "/app/sistem/printer" },
+  {
+    icon: MoreHorizontal,
+    label: "Lainnya",
+    submenu: [
+      { label: "Pengeluaran", href: "/app/keuangan/pengeluaran" },
+      { label: "Retur ke Supplier", href: "/app/inventori/retur" },
+      { label: "Member (Pembeli)", href: "/app/master/member" },
+      { label: "Supplier (Pemasok)", href: "/app/master/supplier" },
     ],
   },
 ];
@@ -76,19 +111,20 @@ export function Sidebar() {
   const router = useRouter();
   const { user, logout, canAccess } = useAuthStore();
   const [openMenus, setOpenMenus] = useState<string[]>([]);
+  const menuItems = user?.role === "kasir" ? menuKasir : menuPengurus;
 
   // Buka otomatis submenu yang memuat halaman aktif, supaya pengguna
   // tidak kehilangan konteks setelah reload.
   useEffect(() => {
-    const parent = menuItems.find(
-      (item) => "submenu" in item && item.submenu?.some((s) => pathname === s.href)
+    const parent = menuItems.find((item) =>
+      item.submenu?.some((s) => pathname === s.href)
     );
     if (parent) {
       setOpenMenus((prev) =>
         prev.includes(parent.label) ? prev : [...prev, parent.label]
       );
     }
-  }, [pathname]);
+  }, [pathname, menuItems]);
 
   const toggleMenu = (label: string) => {
     setOpenMenus((prev) =>
@@ -144,7 +180,7 @@ export function Sidebar() {
             )}
             <div className="min-w-0 leading-tight">
               <p className="font-bold text-[15px] text-white truncate">Gerai BKMT</p>
-              <p className="text-brand-300 text-[11px]">Kubu Raya</p>
+              <p className="text-brand-300 text-xs">Kubu Raya</p>
             </div>
           </div>
           <button
@@ -162,7 +198,7 @@ export function Sidebar() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = pathname === item.href;
-            const hasSubmenu = "submenu" in item;
+            const hasSubmenu = Boolean(item.submenu);
             const isOpen = openMenus.includes(item.label);
             const isSubmenuActive =
               hasSubmenu && item.submenu?.some((s) => pathname === s.href);
@@ -216,6 +252,7 @@ export function Sidebar() {
               );
             }
 
+            if (!item.href || !canAccess(item.href)) return null;
             return (
               <Link
                 key={item.href}
@@ -256,7 +293,7 @@ export function Sidebar() {
                 <p className="font-semibold text-[13px] text-white truncate">
                   {user.nama}
                 </p>
-                <p className="text-[11px] text-brand-300">
+                <p className="text-xs text-brand-300">
                   <span className="capitalize">{user.role}</span> · Ganti password
                 </p>
               </div>

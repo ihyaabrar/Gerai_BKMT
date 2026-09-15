@@ -249,7 +249,7 @@ export default function AdminDashboard() {
                         height: `${Math.max(4, (p.jumlah / maksimal) * 110)}px`,
                       }}
                     />
-                    <span className="text-[11px] text-slate-400">{p.bulan}</span>
+                    <span className="text-xs text-slate-500">{p.bulan}</span>
                   </div>
                 ))}
               </div>

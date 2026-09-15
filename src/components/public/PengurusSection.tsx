@@ -79,12 +79,12 @@ function KartuPengurus({
       </p>
       <p className="text-xs text-brand-600 font-medium mt-1">{p.jabatan}</p>
       {cabang && (
-        <p className="text-[11px] text-slate-500 mt-0.5 inline-flex items-center gap-1">
+        <p className="text-xs text-slate-500 mt-0.5 inline-flex items-center gap-1">
           <MapPin className="h-3 w-3" />
           {cabang}
         </p>
       )}
-      {p.periode && <p className="text-[11px] text-slate-400 mt-0.5">{p.periode}</p>}
+      {p.periode && <p className="text-xs text-slate-500 mt-0.5">{p.periode}</p>}
     </div>
   );
 }

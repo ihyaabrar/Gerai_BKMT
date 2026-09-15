@@ -141,7 +141,7 @@ export async function PATCH(request: NextRequest) {
     // yang "hilang" tidak pernah tercatat sebagai kerugian.
     if (body?.stok !== undefined) {
       throw new ValidationError(
-        "Stok tidak bisa diubah dari sini. Gunakan Barang Masuk untuk menambah, atau Penyesuaian untuk mengurangi."
+        "Stok tidak bisa diubah dari sini. Gunakan Barang Masuk untuk menambah, atau Barang Rusak / Hilang untuk mengurangi."
       );
     }
 
@@ -206,7 +206,7 @@ export async function DELETE(request: NextRequest) {
     if (existing.stok > 0) {
       throw new ValidationError(
         `${existing.nama} masih punya stok ${existing.stok} ${existing.satuan}. ` +
-          `Kurangi dulu lewat Penyesuaian (mis. rusak atau dikembalikan ke supplier), lalu hapus.`
+          `Kurangi dulu lewat Barang Rusak / Hilang atau Retur ke Supplier, lalu hapus.`
       );
     }
 

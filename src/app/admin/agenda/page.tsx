@@ -233,7 +233,7 @@ export default function AdminAgendaPage() {
                   <li key={a.id} className="flex flex-wrap items-center gap-4 py-3.5">
                     {/* Kotak tanggal */}
                     <div className="w-14 shrink-0 rounded-lg border border-border bg-surface-sunken text-center py-1.5">
-                      <p className="text-[10px] uppercase text-slate-500 tracking-wide">
+                      <p className="text-xs uppercase text-slate-500 tracking-wide">
                         {format(tgl, "MMM", { locale: localeId })}
                       </p>
                       <p className="text-lg font-bold text-slate-900 leading-tight">

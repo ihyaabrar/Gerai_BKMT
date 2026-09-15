@@ -232,7 +232,7 @@ export default function AdminPengurusPage() {
                       </td>
                       <td className="py-3 px-3">
                         <p className="text-slate-600">{p.jabatan}</p>
-                        <p className="text-[11px] text-slate-400 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Bagan: {LABEL_JENJANG[jenjangJabatan(p.jabatan)]} · urutan {p.urutan}
                         </p>
                       </td>

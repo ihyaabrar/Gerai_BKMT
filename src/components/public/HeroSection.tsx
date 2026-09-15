@@ -117,7 +117,7 @@ export function HeroSection({ profil }: HeroSectionProps) {
                 <p className="font-display text-sm leading-snug text-slate-800">
                   &ldquo;Majelis taklim kuat, masyarakat bermartabat.&rdquo;
                 </p>
-                <footer className="mt-1.5 text-[11px] text-slate-500">
+                <footer className="mt-1.5 text-xs text-slate-500">
                   {judul}
                 </footer>
               </blockquote>

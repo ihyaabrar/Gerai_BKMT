@@ -116,8 +116,10 @@ export default function ReturPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Retur Barang</h1>
-          <p className="text-slate-500">Pengembalian barang rusak/kadaluarsa</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Retur ke Supplier</h1>
+          <p className="text-slate-500">
+            Barang rusak atau kedaluwarsa yang dikembalikan ke supplier. Stok berkurang saat ditandai selesai.
+          </p>
         </div>
         <Button onClick={() => setOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />

@@ -10,11 +10,13 @@ import { gambarLebar, LEBAR } from "@/lib/gambar";
 import { useAuthStore } from "@/store/auth";
 import { cn, formatRupiah } from "@/lib/utils";
 import { Search, Trash2, Plus, Minus, User, CreditCard, ShoppingCart, Clock } from "lucide-react";
-import Link from "next/link";
 import { strukDariPenjualan } from "@/lib/struk";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { PrintReceipt } from "@/components/PrintReceipt";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { DialogBukaKasir } from "@/components/DialogBukaKasir";
+import { InputRupiah } from "@/components/ui/input-rupiah";
+import { saranUangBayar } from "@/lib/uang";
 import { toast } from "sonner";
 
 interface Barang {
@@ -45,7 +47,8 @@ export default function KasirPage() {
   const [showMember, setShowMember] = useState(false);
   const [showReceipt, setShowReceipt] = useState(false);
   const [receiptData, setReceiptData] = useState<any>(null);
-  const [bayar, setBayar] = useState("");
+  const [bayar, setBayar] = useState<number | null>(null);
+  const [bukaKasir, setBukaKasir] = useState(false);
   const [metodeBayar, setMetodeBayar] = useState("Tunai");
   const [processing, setProcessing] = useState(false);
   // null = belum diketahui; tidak menampilkan peringatan sebelum pasti.
@@ -148,16 +151,31 @@ export default function KasirPage() {
     toast.info("Member dihapus");
   };
 
-  const handlePayment = async () => {
-    const bayarNum = parseFloat(bayar);
-    const total = getTotal();
+  // Transfer dan QRIS selalu sejumlah total; uang yang diketik hanya perlu
+  // untuk tunai.
+  const pilihMetode = (m: string) => {
+    // Metode bayar ikut menentukan transaksi; kunci lama tidak boleh dipakai
+    // untuk pembayaran yang berbeda.
+    if (m !== metodeBayar) resetKunci();
+    setMetodeBayar(m);
+    setBayar(m === "Tunai" ? null : getTotal());
+  };
 
-    if (!bayar || isNaN(bayarNum)) {
-      toast.error("Masukkan jumlah bayar");
+  const bukaPembayaran = () => {
+    setBayar(metodeBayar === "Tunai" ? null : getTotal());
+    setShowPayment(true);
+  };
+
+  const handlePayment = async () => {
+    const total = getTotal();
+    const bayarNum = metodeBayar === "Tunai" ? bayar : total;
+
+    if (bayarNum === null) {
+      toast.error("Tulis jumlah uang dari pembeli");
       return;
     }
     if (bayarNum < total) {
-      toast.error("Jumlah bayar kurang dari total");
+      toast.error(`Uang kurang ${formatRupiah(total - bayarNum)}`);
       return;
     }
 
@@ -208,7 +226,7 @@ export default function KasirPage() {
       setShowReceipt(true);
       clearCart();
       setShowPayment(false);
-      setBayar("");
+      setBayar(null);
       fetchBarang();
       toast.success("Transaksi berhasil");
     } catch {
@@ -227,13 +245,15 @@ export default function KasirPage() {
   };
 
   const selectedMember = memberList.find((m) => m.id === memberId);
+  const totalBayar = getTotal();
+  const kurang = metodeBayar === "Tunai" && bayar !== null ? totalBayar - bayar : 0;
 
   return (
     <div className="space-y-5 pb-24 lg:pb-0">
       <div>
         <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Kasir</h1>
         <p className="text-sm text-slate-500 mt-0.5">
-          Proses transaksi penjualan dengan cepat, mudah, dan aman
+          Pilih barang, lalu tekan Bayar.
         </p>
       </div>
 
@@ -241,15 +261,12 @@ export default function KasirPage() {
         <div className="rounded-card border border-amber-300 bg-amber-50 px-4 py-3 flex flex-wrap items-center gap-3">
           <Clock className="h-5 w-5 text-amber-600 shrink-0" />
           <p className="text-sm text-amber-900 flex-1 min-w-[200px]">
-            <strong>Belum ada shift yang dibuka.</strong> Penjualan tetap bisa dicatat, tetapi
-            uang tunainya tidak masuk rekap laci siapa pun.
+            <strong>Kasir belum dibuka.</strong> Buka kasir dulu supaya uang di laci bisa
+            dicocokkan saat tutup nanti.
           </p>
-          <Link
-            href="/app/sistem/shift"
-            className="text-sm font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-950"
-          >
-            Buka shift
-          </Link>
+          <Button size="sm" onClick={() => setBukaKasir(true)} className="shrink-0">
+            Buka Kasir
+          </Button>
         </div>
       )}
 
@@ -328,7 +345,7 @@ export default function KasirPage() {
                       {barang.nama}
                     </p>
                     <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                      <span className="text-[11px] text-slate-400">{barang.kode}</span>
+                      <span className="text-xs text-slate-500">{barang.kode}</span>
                       {habis ? (
                         <Badge variant="destructive">Habis</Badge>
                       ) : menipis ? (
@@ -340,7 +357,7 @@ export default function KasirPage() {
                         <p className="text-[15px] font-bold text-slate-900 break-words">
                           {formatRupiah(barang.hargaJual)}
                         </p>
-                        <p className="text-[11px] text-slate-500 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           Stok: {barang.stok}
                         </p>
                       </div>
@@ -461,7 +478,7 @@ export default function KasirPage() {
             <Button
               className="w-full"
               size="lg"
-              onClick={() => setShowPayment(true)}
+              onClick={bukaPembayaran}
               disabled={items.length === 0}
             >
               <CreditCard className="mr-2 h-5 w-5" />
@@ -487,7 +504,7 @@ export default function KasirPage() {
                 {formatRupiah(getTotal())}
               </p>
             </div>
-            <Button className="shrink-0" size="lg" onClick={() => setShowPayment(true)}>
+            <Button className="shrink-0" size="lg" onClick={bukaPembayaran}>
               <CreditCard className="mr-2 h-5 w-5" />
               Bayar
             </Button>
@@ -522,12 +539,7 @@ export default function KasirPage() {
                   <Button
                     key={m}
                     variant={metodeBayar === m ? "default" : "outline"}
-                    onClick={() => {
-                      // Metode bayar ikut menentukan transaksi; kunci lama
-                      // tidak boleh dipakai untuk pembayaran yang berbeda.
-                      if (m !== metodeBayar) resetKunci();
-                      setMetodeBayar(m);
-                    }}
+                    onClick={() => pilihMetode(m)}
                   >
                     {m}
                   </Button>
@@ -535,47 +547,68 @@ export default function KasirPage() {
               </div>
             </div>
 
-            <div>
-              <label className="text-sm font-medium" htmlFor="jumlah-bayar">Jumlah Bayar</label>
-              <Input id="jumlah-bayar"
-                type="number"
-                value={bayar}
-                onChange={(e) => setBayar(e.target.value)}
-                placeholder="0"
-                className="text-lg mt-1"
-                autoFocus
-              />
-              <div className="grid grid-cols-4 gap-1.5 sm:gap-2 mt-2">
-                {[5000, 10000, 20000, 50000, 100000, 150000, 200000, 500000].map((amount) => (
+            {metodeBayar === "Tunai" ? (
+              <div>
+                <label className="text-sm font-medium" htmlFor="jumlah-bayar">
+                  Uang dari pembeli
+                </label>
+                <InputRupiah
+                  id="jumlah-bayar"
+                  nilai={bayar}
+                  onNilai={setBayar}
+                  placeholder="0"
+                  className="text-lg h-12 mt-1"
+                  autoFocus
+                />
+                <div className="grid grid-cols-3 gap-2 mt-2">
                   <Button
-                    key={amount}
-                    variant="outline"
+                    variant={bayar === totalBayar ? "default" : "outline"}
                     size="sm"
-                    className="text-xs"
-                    onClick={() => setBayar(amount.toString())}
+                    onClick={() => setBayar(totalBayar)}
                   >
-                    {amount >= 1000 ? `${amount / 1000}k` : amount}
+                    Uang Pas
                   </Button>
-                ))}
+                  {saranUangBayar(totalBayar, 5).map((jumlah) => (
+                    <Button
+                      key={jumlah}
+                      variant={bayar === jumlah ? "default" : "outline"}
+                      size="sm"
+                      className="tabular-nums"
+                      onClick={() => setBayar(jumlah)}
+                    >
+                      {formatRupiah(jumlah)}
+                    </Button>
+                  ))}
+                </div>
               </div>
-            </div>
+            ) : (
+              <p className="text-sm text-slate-600 rounded-lg bg-slate-50 border border-border px-3 py-2.5 leading-relaxed">
+                Pastikan uang {formatRupiah(totalBayar)} sudah masuk lewat {metodeBayar} sebelum
+                menekan tombol di bawah.
+              </p>
+            )}
 
-            {bayar && parseFloat(bayar) >= getTotal() && (
-              <div className="bg-brand-50 p-3 rounded-lg border border-brand-200">
-                <p className="text-sm text-slate-600">Kembalian</p>
-                <p className="text-2xl font-bold text-brand-600">
-                  {formatRupiah(parseFloat(bayar) - getTotal())}
-                </p>
-              </div>
+            {metodeBayar === "Tunai" && bayar !== null && (
+              kurang > 0 ? (
+                <div className="bg-rose-50 p-3 rounded-lg border border-rose-200" role="alert">
+                  <p className="text-sm text-rose-700">Uang kurang</p>
+                  <p className="text-2xl font-bold text-rose-600">{formatRupiah(kurang)}</p>
+                </div>
+              ) : (
+                <div className="bg-brand-50 p-3 rounded-lg border border-brand-200">
+                  <p className="text-sm text-slate-600">Kembalian</p>
+                  <p className="text-2xl font-bold text-brand-600">{formatRupiah(Math.max(0, -kurang))}</p>
+                </div>
+              )
             )}
 
             <Button
               className="w-full"
               size="lg"
               onClick={handlePayment}
-              disabled={processing}
+              disabled={processing || (metodeBayar === "Tunai" && (bayar === null || kurang > 0))}
             >
-              {processing ? "Memproses..." : "Proses Pembayaran"}
+              {processing ? "Memproses..." : "Selesaikan Pembayaran"}
             </Button>
           </div>
         </DialogContent>
@@ -619,6 +652,8 @@ export default function KasirPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      <DialogBukaKasir open={bukaKasir} onOpenChange={setBukaKasir} onBerhasil={fetchShift} />
 
       {/* Receipt Dialog */}
       <Dialog open={showReceipt} onOpenChange={setShowReceipt}>

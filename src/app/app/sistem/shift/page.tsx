@@ -3,13 +3,14 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Clock, PlayCircle, StopCircle, User } from "lucide-react";
 import { toast } from "sonner";
 import { formatRupiah } from "@/lib/utils";
 import { format } from "date-fns";
 import { TableSkeleton } from "@/components/ui/skeleton";
+import { DialogBukaKasir } from "@/components/DialogBukaKasir";
+import { InputRupiah } from "@/components/ui/input-rupiah";
 
 interface Shift {
   id: string;
@@ -37,11 +38,8 @@ export default function ShiftPage() {
   const [loading, setLoading] = useState(true);
   const [openBuka, setOpenBuka] = useState(false);
   const [openTutup, setOpenTutup] = useState(false);
-  const [formBuka, setFormBuka] = useState({
-    saldoAwal: "",
-  });
-  const [formTutup, setFormTutup] = useState({
-    saldoAkhir: "",
+  const [formTutup, setFormTutup] = useState<{ saldoAkhir: number | null; catatan: string }>({
+    saldoAkhir: null,
     catatan: "",
   });
   const [submitting, setSubmitting] = useState(false);
@@ -65,42 +63,10 @@ export default function ShiftPage() {
     fetchShifts();
   }, []);
 
-  const handleBukaShift = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (submitting) return;
-    setSubmitting(true);
-    try {
-      // userId tidak lagi dikirim dari client — server memakai sesi login.
-      const res = await fetch("/api/shift", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "buka",
-          saldoAwal: Number(formBuka.saldoAwal),
-        }),
-      });
-
-      if (res.ok) {
-        setOpenBuka(false);
-        setFormBuka({ saldoAwal: "" });
-        fetchShifts();
-        toast.success("Shift berhasil dibuka");
-      } else {
-        const error = await res.json();
-        toast.error(error.error || "Gagal membuka shift");
-      }
-    } catch {
-      toast.error("Terjadi kesalahan");
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleTutupShift = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (submitting) return;
+    if (submitting || formTutup.saldoAkhir === null) return;
     setSubmitting(true);
     try {
       const res = await fetch("/api/shift", {
@@ -108,7 +74,7 @@ export default function ShiftPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           action: "tutup",
-          saldoAkhir: Number(formTutup.saldoAkhir),
+          saldoAkhir: formTutup.saldoAkhir,
           catatan: formTutup.catatan,
         }),
       });
@@ -116,19 +82,21 @@ export default function ShiftPage() {
       if (res.ok) {
         const hasil = await res.json();
         setOpenTutup(false);
-        setFormTutup({ saldoAkhir: "", catatan: "" });
+        setFormTutup({ saldoAkhir: null, catatan: "" });
         fetchShifts();
         toast.success(
           hasil.selisih === 0
-            ? "Shift ditutup — kas sesuai"
-            : `Shift ditutup — selisih kas ${formatRupiah(hasil.selisih)}`
+            ? "Kasir ditutup — uang di laci cocok"
+            : hasil.selisih > 0
+            ? `Kasir ditutup — uang di laci lebih ${formatRupiah(hasil.selisih)}`
+            : `Kasir ditutup — uang di laci kurang ${formatRupiah(-hasil.selisih)}`
         );
       } else {
-        const error = await res.json();
-        toast.error(error.error || "Gagal menutup shift");
+        const error = await res.json().catch(() => ({}));
+        toast.error(error.error || "Kasir gagal ditutup. Coba lagi.");
       }
     } catch {
-      toast.error("Terjadi kesalahan");
+      toast.error("Koneksi terputus. Periksa internet, lalu coba lagi.");
     } finally {
       setSubmitting(false);
     }
@@ -138,8 +106,10 @@ export default function ShiftPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap gap-3 justify-between items-center">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Shift Kasir</h1>
-          <p className="text-slate-500">Manajemen shift dan rekap kasir</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Buka / Tutup Kasir</h1>
+          <p className="text-slate-500">
+            Buka kasir sebelum berjualan, tutup setelah selesai dan uang di laci dihitung.
+          </p>
         </div>
         <div className="flex gap-2">
           {!activeShift ? (
@@ -147,7 +117,7 @@ export default function ShiftPage() {
               onClick={() => setOpenBuka(true)}
             >
               <PlayCircle className="h-4 w-4 mr-2" />
-              Buka Shift
+              Buka Kasir
             </Button>
           ) : (
             <Button
@@ -155,7 +125,7 @@ export default function ShiftPage() {
               className="bg-red-600 hover:bg-red-700"
             >
               <StopCircle className="h-4 w-4 mr-2" />
-              Tutup Shift
+              Tutup Kasir
             </Button>
           )}
         </div>
@@ -166,7 +136,7 @@ export default function ShiftPage() {
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <Clock className="h-5 w-5" />
-              Shift Aktif
+              Kasir Sedang Buka
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -176,7 +146,7 @@ export default function ShiftPage() {
                 <p className="text-xl font-bold">{activeShift.user.nama}</p>
               </div>
               <div>
-                <p className="text-sm opacity-90">Waktu Buka</p>
+                <p className="text-sm opacity-90">Dibuka</p>
                 <p className="text-xl font-bold">
                   {/* Tanggal ikut ditampilkan: tanpa itu, shift kemarin yang
                       lupa ditutup terlihat seperti shift yang dibuka pagi ini. */}
@@ -184,13 +154,13 @@ export default function ShiftPage() {
                 </p>
               </div>
               <div>
-                <p className="text-sm opacity-90">Saldo Awal</p>
+                <p className="text-sm opacity-90">Uang Awal di Laci</p>
                 <p className="text-xl font-bold">
                   {formatRupiah(activeShift.saldoAwal)}
                 </p>
               </div>
               <div>
-                <p className="text-sm opacity-90">Durasi</p>
+                <p className="text-sm opacity-90">Lama Buka</p>
                 <p className="text-xl font-bold">
                   {Math.floor(
                     (new Date().getTime() - new Date(activeShift.jamBuka).getTime()) /
@@ -208,7 +178,7 @@ export default function ShiftPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Clock className="h-5 w-5" />
-            Riwayat Shift
+            Riwayat Buka / Tutup
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -216,7 +186,7 @@ export default function ShiftPage() {
             <TableSkeleton cols={4} />
           ) : shifts.filter((s) => s.jamTutup).length === 0 ? (
             <div className="text-center py-8 text-slate-500">
-              Belum ada riwayat shift
+              Belum ada riwayat
             </div>
           ) : (
             <div className="space-y-4">
@@ -251,7 +221,7 @@ export default function ShiftPage() {
                             </p>
                             <div className="grid grid-cols-2 gap-x-4 gap-y-3 mt-3">
                               <div>
-                                <p className="text-xs text-slate-500">Saldo Awal</p>
+                                <p className="text-xs text-slate-500">Uang Awal</p>
                                 <p className="font-semibold">
                                   {formatRupiah(s.saldoAwal)}
                                 </p>
@@ -263,30 +233,30 @@ export default function ShiftPage() {
                                 <p className="font-semibold text-green-600">
                                   {formatRupiah(tunai)}
                                 </p>
-                                <p className="text-[11px] text-slate-400 mt-0.5">
+                                <p className="text-xs text-slate-500 mt-0.5">
                                   {s.jumlahTransaksi ?? 0} transaksi (semua metode)
                                 </p>
                                 {nonTunai > 0 && (
-                                  <p className="text-[11px] text-slate-400 mt-0.5">
+                                  <p className="text-xs text-slate-500 mt-0.5">
                                     + {formatRupiah(nonTunai)} non-tunai, tidak
                                     masuk laci
                                   </p>
                                 )}
                                 {refundTunai > 0 && (
-                                  <p className="text-[11px] text-rose-500 mt-0.5">
+                                  <p className="text-xs text-rose-600 mt-0.5">
                                     − {formatRupiah(refundTunai)} dikembalikan untuk retur
                                   </p>
                                 )}
                               </div>
                               <div>
-                                <p className="text-xs text-slate-500">Saldo Akhir</p>
+                                <p className="text-xs text-slate-500">Uang Akhir (dihitung)</p>
                                 <p className="font-semibold">
                                   {formatRupiah(s.saldoAkhir || 0)}
                                 </p>
                               </div>
                               <div>
                                 <p className="text-xs text-slate-500">
-                                  Selisih Kas
+                                  Selisih
                                 </p>
                                 <p
                                   className={`font-semibold ${
@@ -297,7 +267,11 @@ export default function ShiftPage() {
                                       : "text-red-600"
                                   }`}
                                 >
-                                  {formatRupiah(selisih)}
+                                  {selisih === 0
+                                    ? "Cocok"
+                                    : selisih > 0
+                                    ? `Lebih ${formatRupiah(selisih)}`
+                                    : `Kurang ${formatRupiah(-selisih)}`}
                                 </p>
                               </div>
                             </div>
@@ -317,65 +291,48 @@ export default function ShiftPage() {
         </CardContent>
       </Card>
 
-      <Dialog open={openBuka} onOpenChange={setOpenBuka}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Buka Shift</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleBukaShift} className="space-y-4">
-            <div>
-              <label className="text-sm font-medium" htmlFor="saldo-awal-kas">Saldo Awal Kas</label>
-              <Input id="saldo-awal-kas"
-                type="number"
-                value={formBuka.saldoAwal}
-                onChange={(e) => setFormBuka({ saldoAwal: e.target.value })}
-                placeholder="0"
-                required
-              />
-            </div>
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full"
-            >
-              {submitting ? "Memproses..." : "Buka Shift"}
-            </Button>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <DialogBukaKasir open={openBuka} onOpenChange={setOpenBuka} onBerhasil={fetchShifts} />
 
-      <Dialog open={openTutup} onOpenChange={setOpenTutup}>
-        <DialogContent>
+      <Dialog open={openTutup} onOpenChange={(v) => !submitting && setOpenTutup(v)}>
+        <DialogContent onClose={() => !submitting && setOpenTutup(false)}>
           <DialogHeader>
-            <DialogTitle>Tutup Shift</DialogTitle>
+            <DialogTitle>Tutup Kasir</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleTutupShift} className="space-y-4">
+            <ol className="text-sm text-slate-600 space-y-1.5 list-decimal pl-5 leading-relaxed">
+              <li>Keluarkan dan hitung semua uang tunai di laci.</li>
+              <li>Tulis jumlahnya di bawah — apa adanya, walau terasa kurang atau lebih.</li>
+              <li>Sistem mencocokkan dengan uang awal dan penjualan tunai.</li>
+            </ol>
             <div>
-              <label className="text-sm font-medium" htmlFor="saldo-akhir-kas">Saldo Akhir Kas</label>
-              <Input id="saldo-akhir-kas"
-                type="number"
-                value={formTutup.saldoAkhir}
-                onChange={(e) => setFormTutup({ ...formTutup, saldoAkhir: e.target.value })}
+              <label className="text-sm font-medium" htmlFor="saldo-akhir-kas">Uang di laci sekarang</label>
+              <InputRupiah
+                id="saldo-akhir-kas"
+                nilai={formTutup.saldoAkhir}
+                onNilai={(v) => setFormTutup({ ...formTutup, saldoAkhir: v })}
                 placeholder="0"
+                className="mt-1 text-lg h-12"
+                autoFocus
                 required
               />
             </div>
             <div>
-              <label className="text-sm font-medium" htmlFor="catatan-opsional">Catatan (Opsional)</label>
+              <label className="text-sm font-medium" htmlFor="catatan-opsional">Catatan (boleh kosong)</label>
               <textarea id="catatan-opsional"
-                className="w-full border rounded-lg px-3 py-2"
+                className="mt-1 w-full border rounded-lg px-3 py-2 text-sm"
                 value={formTutup.catatan}
                 onChange={(e) => setFormTutup({ ...formTutup, catatan: e.target.value })}
-                placeholder="Catatan shift..."
+                placeholder="Mis. uang kembalian Rp2.000 diberikan dari kantong sendiri"
                 rows={3}
               />
             </div>
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || formTutup.saldoAkhir === null}
               className="w-full bg-red-600 hover:bg-red-700"
+              size="lg"
             >
-              {submitting ? "Memproses..." : "Tutup Shift"}
+              {submitting ? "Menutup..." : "Tutup Kasir"}
             </Button>
           </form>
         </DialogContent>

@@ -269,7 +269,7 @@ export default function PenjualanPage() {
                             <div className="mt-1 flex flex-wrap items-center gap-1.5">
                               <Badge variant="destructive">Dibatalkan</Badge>
                               {p.dibatalkanOleh?.nama && (
-                                <span className="text-[11px] text-slate-400">
+                                <span className="text-xs text-slate-500">
                                   oleh {p.dibatalkanOleh.nama}
                                 </span>
                               )}
@@ -283,7 +283,7 @@ export default function PenjualanPage() {
                             </div>
                           )}
                           {batal && p.alasanBatal && (
-                            <p className="text-[11px] text-slate-400 mt-0.5 max-w-xs font-normal">
+                            <p className="text-xs text-slate-500 mt-0.5 max-w-xs font-normal">
                               {p.alasanBatal}
                             </p>
                           )}
@@ -457,7 +457,7 @@ export default function PenjualanPage() {
                 placeholder="Contoh: salah input jumlah, pembeli membatalkan pesanan"
                 className="mt-1.5 flex w-full rounded-lg border border-border bg-white px-3.5 py-2.5 text-sm leading-relaxed focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
               />
-              <p className="text-[11px] text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 mt-1">
                 Minimal 5 karakter. Inilah yang dibaca kalau pertanyaannya muncul
                 lagi bulan depan.
               </p>
