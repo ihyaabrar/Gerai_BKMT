@@ -23,7 +23,15 @@ export async function GET(request: NextRequest) {
   const ukuran = request.nextUrl.searchParams.get("ukuran") === "180" ? 180 : 64;
   const { logoUrl } = await ambilIdentitas();
 
-  if (!logoUrl) {
+  // Ikon layar utama iPhone tidak mendukung latar transparan (jadi hitam).
+  const tujuan = logoUrl
+    ? gambarKotak(logoUrl, ukuran, ukuran === 180 ? "white" : "transparent")
+    : "";
+
+  // Hanya mengarahkan ke gambar Cloudinary milik aplikasi. Logo yang (karena
+  // sebab apa pun) bukan URL Cloudinary tidak dijadikan tujuan pengalihan,
+  // supaya endpoint publik ini tidak bisa memantulkan ke alamat luar.
+  if (!tujuan.startsWith("https://res.cloudinary.com/")) {
     return new NextResponse(IKON_BAWAAN, {
       headers: {
         "Content-Type": "image/svg+xml",
@@ -32,8 +40,6 @@ export async function GET(request: NextRequest) {
     });
   }
 
-  // Ikon layar utama iPhone tidak mendukung latar transparan (jadi hitam).
-  const tujuan = gambarKotak(logoUrl, ukuran, ukuran === 180 ? "white" : "transparent");
   return NextResponse.redirect(new URL(tujuan, request.url), {
     status: 307,
     headers: { "Cache-Control": "public, max-age=300, s-maxage=300" },

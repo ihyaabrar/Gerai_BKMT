@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth-middleware";
 import { uploadImage } from "@/lib/cloudinary";
+import { jenisGambarDariByte } from "@/lib/berkas-gambar";
 
 export const dynamic = "force-dynamic";
 
@@ -55,13 +56,24 @@ export async function POST(request: NextRequest) {
 
     const bytes = await file.arrayBuffer();
     const buffer = Buffer.from(bytes);
+
+    // Label jenis dari browser mudah dipalsukan; pastikan isi berkasnya
+    // memang gambar sebelum dikirim ke Cloudinary.
+    if (!jenisGambarDariByte(new Uint8Array(bytes.slice(0, 16)))) {
+      return NextResponse.json(
+        { error: "Berkas ini bukan gambar yang dikenali. Gunakan JPG, PNG, WebP, atau GIF." },
+        { status: 400 }
+      );
+    }
+
     const url = await uploadImage(buffer, folder);
 
     return NextResponse.json({ url, success: true });
-  } catch (error: any) {
-    console.error("Upload error:", error?.message || error);
+  } catch (error) {
+    // Detail teknis hanya untuk log server, tidak dibocorkan ke pengguna.
+    console.error("Upload error:", error instanceof Error ? error.message : error);
     return NextResponse.json(
-      { error: `Gagal upload: ${error?.message || "Unknown error"}` },
+      { error: "Gambar gagal diunggah. Periksa sambungan internet, lalu coba lagi." },
       { status: 500 }
     );
   }
